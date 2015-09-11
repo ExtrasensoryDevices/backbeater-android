@@ -77,8 +77,8 @@ public class SensitivitySlider extends View {
         if (height != contentHeight && width != contentWidth) {
             height = contentHeight;
             width = contentWidth;
-            low.setBounds(paddingLeft, (height - low.getIntrinsicHeight()) / 2, low.getIntrinsicWidth() + paddingLeft, (height + low.getIntrinsicHeight()) / 2);
-            high.setBounds(width + paddingLeft-high.getIntrinsicWidth(), (height - high.getIntrinsicHeight()) / 2, getWidth() - getPaddingRight(), (height + high.getIntrinsicHeight()) / 2);
+            low.setBounds(paddingLeft, paddingTop, contentHeight + paddingLeft, contentHeight+paddingTop);
+            high.setBounds(width -paddingLeft-paddingRight-contentHeight, paddingTop, width-paddingRight, contentHeight+paddingTop);
         }
         low.draw(canvas);
         high.draw(canvas);
