@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="280dp"
+    android:layout_gravity="start"
+    android:layout_height="match_parent"
+    android:background="#dd2f44"
+    android:padding="20dp">
+
+    <com.esdevices.backbeater.ui.widgets.BBTextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="sensitivity level"
+        android:id="@+id/textView2"
+        android:layout_gravity="center_horizontal"
+        android:textAllCaps="true"
+        android:textColor="#fff" />
+
+    <com.esdevices.backbeater.ui.widgets.SensitivitySlider
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:id="@+id/view"
+        android:layout_gravity="center_horizontal" />
+
+    <com.esdevices.backbeater.ui.widgets.BBTextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="metronom sound"
+        android:id="@+id/textView6"
+        android:layout_gravity="center_horizontal"
+        android:textAllCaps="true"
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="20dp"
+        android:textColor="#fff" />
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/imageView2" />
+    </LinearLayout>
+
+    <com.esdevices.backbeater.ui.widgets.BBTextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="window"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="10dp"
+        android:id="@+id/textView3"
+        android:layout_gravity="center_horizontal"
+        android:textAllCaps="true"
+        android:textColor="#fff" />
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center">
+
+        <com.esdevices.backbeater.ui.widgets.NumberButton
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:text="2"
+            android:id="@+id/view2"
+            android:layout_weight="1" />
+        <com.esdevices.backbeater.ui.widgets.NumberButton
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:text="4"
+            android:id="@+id/view3"
+            android:layout_weight="1" />
+        <com.esdevices.backbeater.ui.widgets.NumberButton
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:text="8"
+            android:id="@+id/view4"
+            android:layout_weight="1" />
+        <com.esdevices.backbeater.ui.widgets.NumberButton
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:text="16"
+            android:id="@+id/view5"
+            android:layout_weight="1" />
+    </LinearLayout>
+
+    <com.esdevices.backbeater.ui.widgets.BBTextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="beat"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="10dp"
+        android:id="@+id/textView4"
+        android:layout_gravity="center_horizontal"
+        android:textAllCaps="true"
+        android:textColor="#fff" />
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center">
+
+        <com.esdevices.backbeater.ui.widgets.NumberButton
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:text="1"
+            android:id="@+id/view6"
+            android:layout_weight="1" />
+        <com.esdevices.backbeater.ui.widgets.NumberButton
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:text="2"
+            android:id="@+id/view7"
+            android:layout_weight="1" />
+        <com.esdevices.backbeater.ui.widgets.NumberButton
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:text="3"
+            android:id="@+id/view8"
+            android:layout_weight="1" />
+        <com.esdevices.backbeater.ui.widgets.NumberButton
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:text="4"
+            android:id="@+id/view9"
+            android:layout_weight="1" />
+    </LinearLayout>
+</LinearLayout>
