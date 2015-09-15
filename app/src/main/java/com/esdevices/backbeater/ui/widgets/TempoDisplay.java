@@ -6,6 +6,7 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
 import android.text.TextPaint;
 import android.util.AttributeSet;
@@ -19,7 +20,7 @@ import com.esdevices.backbeater.R;
 public class TempoDisplay extends TextView {
     private final int backgroundColor;
     private final int accentColor;
-    private final Drawable drum;
+    private final AnimationDrawable drum;
     private final TextPaint paint;
     private int height = 0;
     private int width = 0;
@@ -40,7 +41,7 @@ public class TempoDisplay extends TextView {
         super(context, attrs, defStyleAttr);
         backgroundColor = getResources().getColor(R.color.main_color);
         accentColor = getResources().getColor(R.color.assent_color);
-        drum = getResources().getDrawable(R.drawable.drum_icon);
+        drum = (AnimationDrawable)getResources().getDrawable(R.drawable.left_animation);
         paint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
         paint.setColor(-1);
         paint.setStyle(Paint.Style.STROKE);
@@ -68,12 +69,13 @@ public class TempoDisplay extends TextView {
         int cY = drum.getIntrinsicHeight()/2+radius+getPaddingTop();
         paint.setColor(accentColor);
         canvas.drawCircle(cX, cY, radius, paint);
+        //paint the circle
         drum.draw(canvas);
         float stroke = paint.getStrokeWidth();
         paint.setStrokeWidth(0);
         String t = ""+tempo;
         paint.setTextSize(radius);
-        paint.getTextBounds(t,0,t.length(),textBounds);
+        paint.getTextBounds(t, 0, t.length(), textBounds);
         paint.setColor(-1);
         canvas.drawText(t,cX,cY-textBounds.exactCenterY(),paint);
         paint.setStrokeWidth(stroke);

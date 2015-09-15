@@ -36,7 +36,7 @@ public class SlideButton extends View {
     public SlideButton(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         p = new TextPaint(Paint.ANTI_ALIAS_FLAG);
-        p.setStrokeWidth(5*DP);
+        p.setStrokeWidth(2*DP);
         p.setColor(-1);
         p.setStyle(Paint.Style.STROKE);
         p.setTextAlign(Paint.Align.CENTER);
