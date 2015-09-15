@@ -1,27 +1,32 @@
 package com.esdevices.backbeater;
 
-import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.widget.ImageView;
-import android.widget.TextView;
 
+import com.esdevices.backbeater.ui.widgets.BBTextView;
+import com.esdevices.backbeater.ui.widgets.NumberButton;
 import com.esdevices.backbeater.ui.widgets.TempoDisplay;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
 
 
 public class MainActivity extends Activity {
 
     AudioService as;
     Handler mHandle;
-    TempoDisplay tempoDisplay;
+    @Bind(R.id.tempo) TempoDisplay tempoDisplay;
+    @Bind(R.id.window2) NumberButton windowButton;
+    @Bind(R.id.beat1) NumberButton beatButton;
+    @Bind(R.id.textVersion) BBTextView versionNumber;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         as = new AudioService(this);
-        tempoDisplay = (TempoDisplay)findViewById(R.id.tempo);
+        ButterKnife.bind(this);
         mHandle = new Handler(getMainLooper()){
             @Override
             public void handleMessage(Message msg) {
@@ -29,6 +34,7 @@ public class MainActivity extends Activity {
 
             }
         };
+        versionNumber.setText("Version "+BuildConfig.VERSION_NAME+ "("+BuildConfig.VERSION_CODE+")");
     }
 
 

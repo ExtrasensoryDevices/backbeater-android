@@ -2,39 +2,46 @@
 <items version="2" >
 
     <item
-        jar="/Users/aeboyd/AndroidStudioProjects/backbeater-android/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.2.0/classes.jar"
-        jumboMode="false"
-        revision="21.1.2"
-        sha1="73753982da6bde518f3a4c6b372749981d14d1a0">
-        <dex dex="/Users/aeboyd/AndroidStudioProjects/backbeater-android/app/build/intermediates/pre-dexed/debug/classes-edb0bd562077e185274be6d3d97135d30c479235.jar" />
-    </item>
-    <item
-        jar="/Users/aeboyd/AndroidStudioProjects/backbeater-android/app/build/intermediates/exploded-aar/com.android.support/design/22.2.0/classes.jar"
-        jumboMode="false"
-        revision="21.1.2"
-        sha1="fc63b820d54c8a27a3a614bdd93920e0076581c2">
-        <dex dex="/Users/aeboyd/AndroidStudioProjects/backbeater-android/app/build/intermediates/pre-dexed/debug/classes-941ec216d84d82a20c4662e3b480ae3854e6ab8b.jar" />
-    </item>
-    <item
-        jar="/Users/aeboyd/AndroidStudioProjects/backbeater-android/app/build/intermediates/exploded-aar/com.android.support/support-v4/22.2.0/libs/internal_impl-22.2.0.jar"
+        jar="/Users/aeboyd/AndroidStudioProjects/Backbeater/app/build/intermediates/exploded-aar/com.android.support/support-v4/22.2.0/libs/internal_impl-22.2.0.jar"
         jumboMode="false"
         revision="21.1.2"
         sha1="57f2ab85c164ff1676ec64dee787981c046fab79">
-        <dex dex="/Users/aeboyd/AndroidStudioProjects/backbeater-android/app/build/intermediates/pre-dexed/debug/internal_impl-22.2.0-db0203c626fedbd8b4d2a47fdac072ce79e27aa9.jar" />
+        <dex dex="/Users/aeboyd/AndroidStudioProjects/Backbeater/app/build/intermediates/pre-dexed/debug/internal_impl-22.2.0-0208ee86ebe46c00ecfef4692b6a5fe3d2545854.jar" />
+    </item>
+    <item
+        jar="/Users/aeboyd/AndroidStudioProjects/Backbeater/app/build/intermediates/exploded-aar/com.android.support/design/22.2.0/classes.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="fc63b820d54c8a27a3a614bdd93920e0076581c2">
+        <dex dex="/Users/aeboyd/AndroidStudioProjects/Backbeater/app/build/intermediates/pre-dexed/debug/classes-e85f9d6907f90dd1da67c05f1027504261b0b5b7.jar" />
+    </item>
+    <item
+        jar="/Users/aeboyd/AndroidStudioProjects/Backbeater/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.2.0/classes.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="73753982da6bde518f3a4c6b372749981d14d1a0">
+        <dex dex="/Users/aeboyd/AndroidStudioProjects/Backbeater/app/build/intermediates/pre-dexed/debug/classes-5c8499cc1f1fd876160674079221eb1c0681745c.jar" />
     </item>
     <item
         jar="/Users/aeboyd/sdk/extras/android/m2repository/com/android/support/support-annotations/22.2.0/support-annotations-22.2.0.jar"
         jumboMode="false"
         revision="21.1.2"
         sha1="66b42a1f3eb7676070b7ef7f14b603483aecbee1">
-        <dex dex="/Users/aeboyd/AndroidStudioProjects/backbeater-android/app/build/intermediates/pre-dexed/debug/support-annotations-22.2.0-048b250f1b7bed250b3a9c587657a1edaa87748f.jar" />
+        <dex dex="/Users/aeboyd/AndroidStudioProjects/Backbeater/app/build/intermediates/pre-dexed/debug/support-annotations-22.2.0-048b250f1b7bed250b3a9c587657a1edaa87748f.jar" />
     </item>
     <item
-        jar="/Users/aeboyd/AndroidStudioProjects/backbeater-android/app/build/intermediates/exploded-aar/com.android.support/support-v4/22.2.0/classes.jar"
+        jar="/Users/aeboyd/.gradle/caches/modules-2/files-2.1/com.jakewharton/butterknife/7.0.1/d5d13ea991eab0252e3710e5df3d6a9d4b21d461/butterknife-7.0.1.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="d5d13ea991eab0252e3710e5df3d6a9d4b21d461">
+        <dex dex="/Users/aeboyd/AndroidStudioProjects/Backbeater/app/build/intermediates/pre-dexed/debug/butterknife-7.0.1-4069f3f3bd93b7c25996785c2fda7cc02c9a0f70.jar" />
+    </item>
+    <item
+        jar="/Users/aeboyd/AndroidStudioProjects/Backbeater/app/build/intermediates/exploded-aar/com.android.support/support-v4/22.2.0/classes.jar"
         jumboMode="false"
         revision="21.1.2"
         sha1="1ee588ff2c4daf7b97c1cbf922a6c7f027285c2f">
-        <dex dex="/Users/aeboyd/AndroidStudioProjects/backbeater-android/app/build/intermediates/pre-dexed/debug/classes-7cdf8aa1b8e9470faa00c0e042d512c96d160c08.jar" />
+        <dex dex="/Users/aeboyd/AndroidStudioProjects/Backbeater/app/build/intermediates/pre-dexed/debug/classes-58891979353e457dab2e5c1fa94768a305a2583a.jar" />
     </item>
 
 </items>
