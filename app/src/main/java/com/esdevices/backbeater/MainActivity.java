@@ -52,13 +52,13 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        as.start();
+//        as.start();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        as.stopMe();
+//        as.stopMe();
     }
 
 

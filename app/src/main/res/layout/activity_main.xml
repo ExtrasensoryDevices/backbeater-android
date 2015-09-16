@@ -13,13 +13,13 @@
 
     <ImageView
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="50dp"
         android:id="@+id/top_logo"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:src="@drawable/top_logo"
-        android:padding="10dp"
-        android:visibility="invisible" />
+        android:visibility="visible"
+        android:layout_marginTop="10dp" />
 
     <com.esdevices.backbeater.ui.widgets.TempoDisplay
         android:layout_width="match_parent"
@@ -30,11 +30,10 @@
         android:paddingRight="20dp"
         android:paddingTop="10dp"
         android:paddingBottom="10dp"
-        android:layout_above="@+id/menu"
-        android:layout_marginBottom="50dp" />
+        android:layout_above="@+id/menu" />
 
     <ImageView
-        android:layout_width="wrap_content"
+        android:layout_width="40dp"
         android:layout_height="wrap_content"
         android:id="@+id/menu"
         android:layout_alignParentBottom="true"
@@ -43,16 +42,16 @@
         android:layout_margin="20dp" />
 
     <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:id="@+id/imageView3"
         android:layout_alignParentTop="true"
         android:src="@drawable/settings_background"
         android:layout_alignParentLeft="true"
-        android:padding="20dp" />
+        android:layout_margin="15dp" />
 
     <com.esdevices.backbeater.ui.widgets.SlideButton
-        android:layout_width="90dp"
+        android:layout_width="65dp"
         android:layout_height="90dp"
         android:id="@+id/view10"
         android:layout_alignParentBottom="false"

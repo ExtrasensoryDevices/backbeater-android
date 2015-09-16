@@ -27,6 +27,7 @@ public class TempoDisplay extends TextView {
     private final Rect textBounds = new Rect();
     private int tempo = 0;
     private final Point circleC = new Point();
+    private static final float PCT_DRUM = .4f;
 
 
     public TempoDisplay(Context context) {
@@ -59,14 +60,14 @@ public class TempoDisplay extends TextView {
         if (height != contentHeight && width != contentWidth) {
             height = contentHeight;
             width = contentWidth;
-            drum.setBounds((width-drum.getIntrinsicWidth())/2+getPaddingLeft(),getPaddingTop(),(width+drum.getIntrinsicWidth())/2+getPaddingLeft(),drum.getIntrinsicHeight()+getPaddingTop());
+            drum.setBounds((int) (.5*width*(1-PCT_DRUM)+getPaddingLeft()),getPaddingTop(),(int) (.5*width*(1+PCT_DRUM)+getPaddingLeft()),(int)(width*PCT_DRUM*drum.getIntrinsicHeight()/drum.getIntrinsicWidth()+getPaddingTop()));
         }
         int cX = width/2+getPaddingLeft();
         int radius = (int) (width/2-paint.getStrokeWidth());
-        if(height-drum.getIntrinsicHeight()/2<getWidth()){
-            radius = (height - drum.getIntrinsicHeight()/2)/2;
+        if(height-drum.getBounds().height()/2<getWidth()){
+            radius = (height - drum.getBounds().height()/2)/2- getPaddingLeft();
         }
-        int cY = drum.getIntrinsicHeight()/2+radius+getPaddingTop();
+        int cY = drum.getBounds().height()/2+radius+getPaddingTop();
         paint.setColor(accentColor);
         canvas.drawCircle(cX, cY, radius, paint);
         //paint the circle
@@ -88,6 +89,7 @@ public class TempoDisplay extends TextView {
 
     public void setTempo(int tempo) {
         this.tempo = tempo;
+        drum.start();
         invalidate();
     }
 }
