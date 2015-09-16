@@ -1,19 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <animation-list xmlns:android="http://schemas.android.com/apk/res/android" android:oneshot="true">
-<item android:drawable="@drawable/l_hit_1" android:duration="10"/>
-<item android:drawable="@drawable/l_hit_2" android:duration="10"/>
-<item android:drawable="@drawable/l_hit_3" android:duration="10"/>
-<item android:drawable="@drawable/l_hit_4" android:duration="10"/>
-<item android:drawable="@drawable/l_hit_5" android:duration="10"/>
-<item android:drawable="@drawable/l_hit_6" android:duration="10"/>
-<item android:drawable="@drawable/l_hit_7" android:duration="10"/>
-<item android:drawable="@drawable/l_hit_8" android:duration="10"/>
-<item android:drawable="@drawable/l_hit_9" android:duration="10"/>
-<item android:drawable="@drawable/l_hit_10" android:duration="10"/>
-<item android:drawable="@drawable/l_hit_11" android:duration="10"/>
-<item android:drawable="@drawable/l_hit_12" android:duration="10"/>
-<item android:drawable="@drawable/l_hit_13" android:duration="10"/>
-<item android:drawable="@drawable/l_hit_14" android:duration="10"/>
-<item android:drawable="@drawable/l_hit_15" android:duration="10"/>
-<item android:drawable="@drawable/l_hit_16" android:duration="10"/>
+    <item android:drawable="@drawable/l_hit_1" android:duration="10"/>
+    <item android:drawable="@drawable/l_hit_2" android:duration="10"/>
+    <item android:drawable="@drawable/l_hit_3" android:duration="10"/>
+    <item android:drawable="@drawable/l_hit_4" android:duration="10"/>
+    <item android:drawable="@drawable/l_hit_5" android:duration="10"/>
+    <item android:drawable="@drawable/l_hit_6" android:duration="10"/>
+    <item android:drawable="@drawable/l_hit_7" android:duration="10"/>
+    <item android:drawable="@drawable/l_hit_8" android:duration="10"/>
+    <item android:drawable="@drawable/l_hit_9" android:duration="10"/>
+    <item android:drawable="@drawable/l_hit_10" android:duration="10"/>
+    <item android:drawable="@drawable/l_hit_11" android:duration="10"/>
+    <item android:drawable="@drawable/l_hit_12" android:duration="10"/>
+    <item android:drawable="@drawable/l_hit_13" android:duration="10"/>
+    <item android:drawable="@drawable/l_hit_14" android:duration="10"/>
+    <item android:drawable="@drawable/l_hit_15" android:duration="10"/>
+    <item android:drawable="@drawable/l_hit_16" android:duration="10"/>
+
+    <item android:drawable="@drawable/r_hit_1" android:duration="10"/>
+    <item android:drawable="@drawable/r_hit_2" android:duration="10"/>
+    <item android:drawable="@drawable/r_hit_3" android:duration="10"/>
+    <item android:drawable="@drawable/r_hit_4" android:duration="10"/>
+    <item android:drawable="@drawable/r_hit_5" android:duration="10"/>
+    <item android:drawable="@drawable/r_hit_6" android:duration="10"/>
+    <item android:drawable="@drawable/r_hit_7" android:duration="10"/>
+    <item android:drawable="@drawable/r_hit_8" android:duration="10"/>
+    <item android:drawable="@drawable/r_hit_9" android:duration="10"/>
+    <item android:drawable="@drawable/r_hit_10" android:duration="10"/>
+    <item android:drawable="@drawable/r_hit_11" android:duration="10"/>
+    <item android:drawable="@drawable/r_hit_12" android:duration="10"/>
+    <item android:drawable="@drawable/r_hit_13" android:duration="10"/>
+    <item android:drawable="@drawable/r_hit_14" android:duration="10"/>
+    <item android:drawable="@drawable/r_hit_15" android:duration="10"/>    
+    <item android:drawable="@drawable/r_hit_16" android:duration="10"/>
+    <item android:drawable="@drawable/r_hit_17" android:duration="10"/>
+    <item android:drawable="@drawable/r_hit_18" android:duration="10"/>
+    <item android:drawable="@drawable/r_hit_19" android:duration="10"/>
+    <item android:drawable="@drawable/r_hit_20" android:duration="10"/>
 </animation-list>

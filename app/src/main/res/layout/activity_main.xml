@@ -4,22 +4,24 @@
     tools:context=".MainActivity"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#262626"
     >
 
 <RelativeLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#262626">
+    >
 
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="50dp"
         android:id="@+id/top_logo"
-        android:layout_alignParentTop="true"
+        android:layout_alignParentTop="false"
         android:layout_centerHorizontal="true"
         android:src="@drawable/top_logo"
         android:visibility="visible"
-        android:layout_marginTop="10dp" />
+        android:layout_marginTop="10dp"
+        android:layout_below="@+id/top" />
 
     <com.esdevices.backbeater.ui.widgets.TempoDisplay
         android:layout_width="match_parent"
@@ -45,10 +47,11 @@
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:id="@+id/imageView3"
-        android:layout_alignParentTop="true"
+        android:layout_alignParentTop="false"
         android:src="@drawable/settings_background"
         android:layout_alignParentLeft="true"
-        android:layout_margin="15dp" />
+        android:layout_margin="15dp"
+        android:layout_below="@+id/top" />
 
     <com.esdevices.backbeater.ui.widgets.SlideButton
         android:layout_width="65dp"
@@ -58,6 +61,12 @@
         android:layout_alignParentEnd="true"
         android:layout_marginRight="20dp"
         android:layout_alignBottom="@+id/menu" />
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="25dp"
+        android:layout_alignParentTop="true"
+        android:id="@+id/top" />
 
 </RelativeLayout>
 

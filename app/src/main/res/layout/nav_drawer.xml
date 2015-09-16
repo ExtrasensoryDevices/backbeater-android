@@ -5,7 +5,11 @@
     android:layout_gravity="start"
     android:layout_height="match_parent"
     android:background="#dd2f44"
-    android:padding="20dp">
+    android:paddingLeft="20dp"
+    android:paddingTop="45dp"
+    android:paddingRight="20dp"
+    android:paddingBottom="20dp"
+    android:nestedScrollingEnabled="true">
 
     <com.esdevices.backbeater.ui.widgets.BBTextView
         android:layout_width="wrap_content"

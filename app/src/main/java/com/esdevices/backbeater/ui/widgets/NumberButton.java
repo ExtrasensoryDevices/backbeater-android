@@ -23,7 +23,7 @@ public class NumberButton extends Button implements View.OnClickListener {
     private float transistionPct = 0f;
     private boolean on = false;
     private final Rect textBounds = new Rect();
-
+    private OnClickListener listener;
     public NumberButton(Context context) {
         this(context, null, 0);
     }
@@ -45,6 +45,7 @@ public class NumberButton extends Button implements View.OnClickListener {
         paint.setTextAlign(Paint.Align.CENTER);
         paint.setTextSize(getTextSize());
         paint.getTextBounds("2", 0, 1, textBounds);
+        super.setOnClickListener(this);
     }
 
     @Override
@@ -67,7 +68,6 @@ public class NumberButton extends Button implements View.OnClickListener {
         canvas.drawText(getText().toString(), cX, cY - textBounds.centerY(), paint);
         paint.setStrokeWidth(stroke);
 
-        setOnClickListener(this);
     }
 
     public void setTransistionPct(float pct) {
@@ -96,15 +96,26 @@ public class NumberButton extends Button implements View.OnClickListener {
         return a << ALPHA_CHANNEL | r << RED_CHANNEL | g << GREEN_CHANNEL | b << BLUE_CHANNEL;
     }
 
-    @Override
-    public void onClick(View v) {
-        if (on) {
+    public void enable(boolean state){
+        if (!state) {
             ObjectAnimator.ofFloat(this, "transistionPct", transistionPct, 0).start();
             on = false;
         } else {
             on = true;
             ObjectAnimator.ofFloat(this, "transistionPct", transistionPct, 1).start();
+        }
+    }
 
+    @Override
+    public void setOnClickListener(OnClickListener l) {
+        super.setOnClickListener(l);
+    }
+
+    @Override
+    public void onClick(View v) {
+        enable(!on);
+        if(listener!=null){
+            listener.onClick(v);
         }
     }
 }
