@@ -6,7 +6,9 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -44,6 +46,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
     @Bind(R.id.soundMetronom) ImageView metronome;
     @Bind(R.id.soundSurprise) ImageView surprise;
     @Bind(R.id.textVersion) BBTextView versionNumber;
+    @Bind(R.id.drawerLayout) DrawerLayout mDrawerLayout;
     private SharedPreferences settings;
 
     @Override
@@ -79,6 +82,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
         setBeat(settings.getInt("beat", beat));
         sensitivity = settings.getInt("sensitivity", sensitivity);
 
+        findViewById(R.id.menuButton).setOnClickListener(this);
     }
 
 
@@ -136,7 +140,6 @@ public class MainActivity extends Activity implements View.OnClickListener{
     }
     @Override
     public void onClick(View v) {
-        Log.v("bacb","------"+v.getId());
         switch (v.getId()){
             case R.id.soundSurprise:
                 setSound(3);
@@ -173,6 +176,9 @@ public class MainActivity extends Activity implements View.OnClickListener{
                 break;
             case R.id.beat4:
                 setBeat(4);
+                break;
+            case R.id.menuButton:
+                mDrawerLayout.openDrawer(Gravity.LEFT);
                 break;
 
         }

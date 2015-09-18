@@ -33,9 +33,10 @@ public class TempoDisplay extends TextView {
     private int tempo = 0;
     private final Point circleC = new Point();
     private static final float PCT_DRUM = .4f;
-
+    private boolean leftStrike = false;
     private long lastBeat=0;
-
+    private boolean hit = false;
+    private float offDegree = 0;
     public TempoDisplay(Context context) {
         this(context, null, 0);
     }
@@ -49,6 +50,7 @@ public class TempoDisplay extends TextView {
         backgroundColor = getResources().getColor(R.color.main_color);
         accentColor = getResources().getColor(R.color.assent_color);
         drum = (AnimationDrawable)getResources().getDrawable(R.drawable.left_animation);
+        drum.selectDrawable(35);
         paint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
         paint.setColor(-1);
         paint.setStyle(Paint.Style.STROKE);
@@ -73,21 +75,49 @@ public class TempoDisplay extends TextView {
         if(height-drum.getBounds().height()/2<getWidth()){
             radius = (height - drum.getBounds().height()/2)/2- getPaddingLeft();
         }
+        long now = new Date().getTime();
+        long timeDiff = now - lastBeat;
         int cY = drum.getBounds().height()/2+radius+getPaddingTop();
-        paint.setColor(accentColor);
-        canvas.drawCircle(cX, cY, radius, paint);
+        if(timeDiff<600 && hit){
+            paint.setColor(NumberButton.mixTwoColors(accentColor,-1,Math.abs((timeDiff-300)/300f)));
+            canvas.drawCircle(cX, cY, radius, paint);
+            paint.setColor(accentColor);
+            if(leftStrike) {
+                drum.selectDrawable((int) (timeDiff / 600f * 16));
+            }else{
+                drum.selectDrawable((int) (timeDiff / 600f * 20)+15);
+            }
+        }else {
+            paint.setColor(accentColor);
+            canvas.drawCircle(cX, cY, radius, paint);
+            if(timeDiff<600&&offDegree>0) {
+                paint.setColor(NumberButton.mixTwoColors(accentColor,-1, timeDiff / 600f));
+                paint.setAlpha((int) (255-(timeDiff/600f)*255));
+                int ocX = (int) (radius * Math.sin(offDegree) + cX);
+                int ocY = (int) (radius * Math.cos(offDegree) + cY);
+                paint.setStyle(Paint.Style.FILL);
+                canvas.drawCircle(ocX, ocY, 3 * paint.getStrokeWidth(), paint);
+                paint.setColor(accentColor);
+                paint.setAlpha(255);
+            }
+        }
         //paint the circles that go on the ring
         paint.setStyle(Paint.Style.FILL);
-        long now = new Date().getTime();
         if(tempo>0) {
             float bpmilisecond = 60000 / tempo;
-            double degree = (((now - lastBeat) / bpmilisecond) % 1) * 2 * Math.PI+ Math.PI;
+            double degree = ((timeDiff / bpmilisecond) % 1) * 2 * Math.PI+ Math.PI;
             int ocX = (int) (radius * Math.sin(degree) + cX);
             int ocY = (int) (radius * Math.cos(degree) + cY);
-            canvas.drawCircle(ocX, ocY, 3*paint.getStrokeWidth(), paint);
+            canvas.drawCircle(ocX, ocY, 3 * paint.getStrokeWidth(), paint);
+
+
+        }else{
+
+
         }
-        paint.setStyle(Paint.Style.STROKE);
+
         drum.draw(canvas);
+        paint.setStyle(Paint.Style.STROKE);
 
         float stroke = paint.getStrokeWidth();
         paint.setStrokeWidth(0);
@@ -115,6 +145,13 @@ public class TempoDisplay extends TextView {
             return;
         }
         int tempo = (int) (60000/(now-lastBeat));
+
+        if(hit=(tempo==this.tempo)) {
+            leftStrike = !leftStrike;
+        }else if(this.tempo>0){
+            offDegree= (float)((((now-lastBeat) / (60000f/this.tempo)) % 1) * 2 * Math.PI+ Math.PI);
+
+        }
         lastBeat = now;
         setTempo(tempo);
     }
