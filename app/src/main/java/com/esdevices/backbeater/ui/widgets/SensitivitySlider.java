@@ -15,9 +15,6 @@ import android.view.View;
 
 import com.esdevices.backbeater.R;
 
-/**
- * TODO: document your custom view class.
- */
 public class SensitivitySlider extends View {
     private TextPaint mTextPaint;
     private Drawable low;

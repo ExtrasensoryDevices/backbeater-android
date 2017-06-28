@@ -3,12 +3,12 @@ package com.esdevices.backbeater.ui.widgets;
 import android.content.Context;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
-import android.widget.TextView;
+import android.support.v7.widget.AppCompatTextView;
 
 /**
  * Created by aeboyd on 7/15/15.
  */
-public class BBTextView extends TextView {
+public class BBTextView extends AppCompatTextView {
     public BBTextView(Context context) {
         this(context, null, 0);
     }

@@ -165,9 +165,9 @@
         android:layout_weight="1" />
 
     <ImageView
+        android:id="@+id/aboutButton"
         android:layout_width="35dp"
         android:layout_height="35dp"
-        android:id="@+id/imageAbout"
         android:src="@drawable/help"
         android:layout_gravity="center_horizontal"
         android:layout_marginBottom="5dp" />

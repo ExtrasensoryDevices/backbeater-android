@@ -1,9 +1,10 @@
-package com.esdevices.backbeater;
+package com.esdevices.backbeater.audio;
 
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.util.Log;
+import com.esdevices.backbeater.activity.MainActivity;
 
 /**
  * Created by aeboyd on 7/13/15.
