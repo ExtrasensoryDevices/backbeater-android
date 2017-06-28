@@ -37,6 +37,9 @@ public class TempoDisplay extends TextView {
     private long lastBeat=0;
     private boolean hit = false;
     private float offDegree = 0;
+    
+    public boolean handleTap = true;
+    
     public TempoDisplay(Context context) {
         this(context, null, 0);
     }
@@ -163,9 +166,11 @@ public class TempoDisplay extends TextView {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        switch (event.getAction()){
-            case MotionEvent.ACTION_DOWN:
-                beat();
+        if (handleTap) {
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    beat();
+            }
         }
         return super.onTouchEvent(event);
     }

@@ -1,7 +1,10 @@
 package com.esdevices.backbeater.activity;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
@@ -37,7 +40,7 @@ public class MainActivity extends Activity{
     private int sensitivity = 100;
 
     AudioService audioService;
-    Handler mHandle;
+    Handler handler;
     @Bind(R.id.tempoDisplay) TempoDisplay tempoDisplay;
     @Bind(R.id.window2) NumberButton window2Button;
     @Bind(R.id.window4) NumberButton window4Button;
@@ -53,7 +56,24 @@ public class MainActivity extends Activity{
     @Bind(R.id.soundSurprise) ImageView surpriseButton;
     @Bind(R.id.textVersion) BBTextView versionNumber;
     @Bind(R.id.drawerLayout) DrawerLayout mDrawerLayout;
+    
+    @Bind(R.id.getSensorButton) View getSensorButton;
+    @Bind(R.id.setTempoButton) View setTempoButton;
+    
     private SharedPreferences settings;
+    
+    
+    private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+            if (Intent.ACTION_HEADSET_PLUG.equals(action)) {
+                boolean hasMicrophone = intent.getIntExtra("microphone", -1) == 1;
+                int state = intent.getIntExtra("state", -1);
+                handleSensorDetected(hasMicrophone && state == 1);
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,7 +81,7 @@ public class MainActivity extends Activity{
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         
-        mHandle = new Handler(getMainLooper()){
+        handler = new Handler(getMainLooper()){
             @Override
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
@@ -74,6 +94,8 @@ public class MainActivity extends Activity{
         versionNumber.setText("Version "+ BuildConfig.VERSION_NAME+ "("+BuildConfig.VERSION_CODE+")");
         
         // RESTORE SETTINGS
+        handleSensorDetected(false);
+        
         settings = getSharedPreferences(PREFS_NAME, 0);
         setSound(settings.getInt("sound", sound));
         setWindow(settings.getInt("window", window));
@@ -84,7 +106,7 @@ public class MainActivity extends Activity{
 
 
     public void beat(final double beatsPerMinute){
-        mHandle.post(new Runnable() {
+        handler.post(new Runnable() {
             @Override
             public void run() {
                 tempoDisplay.setTempo((int) (beatsPerMinute));
@@ -97,13 +119,34 @@ public class MainActivity extends Activity{
     @Override
     protected void onResume() {
         super.onResume();
-//        audioService.start();
+        // register sensor listener
+        IntentFilter filter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
+        getApplicationContext().registerReceiver(broadcastReceiver, filter);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-//        audioService.stopMe();
+        // unregister sensor listener
+        getApplicationContext().unregisterReceiver(broadcastReceiver);
+        audioService.stopMe();
+    }
+    
+    
+    private void handleSensorDetected(boolean pluggedIn){
+        if (pluggedIn) {
+            // sensor plugged in
+            getSensorButton.setVisibility(View.INVISIBLE);
+            setTempoButton.setVisibility(View.VISIBLE);
+            tempoDisplay.handleTap = false;
+            audioService.start();
+        } else {
+            // sensor unplugged
+            getSensorButton.setVisibility(View.VISIBLE);
+            setTempoButton.setVisibility(View.INVISIBLE);
+            tempoDisplay.handleTap = true;
+            audioService.stopMe();
+        }
     }
     
     //================================================================================
@@ -222,5 +265,8 @@ public class MainActivity extends Activity{
         Intent intent = new Intent(this, AboutActivity.class);
         startActivity(intent);
     }
+    
+    
+    
     
 }
