@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    
+    <color name="colorPrimaryDark">@color/main_color</color>
+    <color name="navigationBarColor">@color/main_color</color>
+    
     <color name="main_color">#262626</color>
     <color name="assent_color">#DD2F44</color>
 </resources>

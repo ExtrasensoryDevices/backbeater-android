@@ -15,26 +15,26 @@
     
     <Space android:id="@+id/top"
         android:layout_width="match_parent"
-        android:layout_height="25dp"
+        android:layout_height="@dimen/padding_xlarge"
         android:layout_alignParentTop="true"/>
     
     
     <ImageView android:id="@+id/menuButton"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="@dimen/button_medium"
+        android:layout_height="@dimen/button_medium"
         android:layout_alignParentTop="false"
         android:layout_alignParentLeft="true"
         android:layout_below="@+id/top"
-        android:layout_margin="15dp"
+        android:layout_margin="@dimen/padding_medium"
         android:src="@drawable/settings_background"/>
 
     <ImageView android:id="@+id/topLogo"
         android:layout_width="wrap_content"
-        android:layout_height="50dp"
+        android:layout_height="@dimen/logo_height"
         android:layout_alignParentTop="false"
         android:layout_centerHorizontal="true"
         android:layout_below="@+id/top"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="@dimen/padding_small"
         android:src="@drawable/top_logo" />
 
     <com.esdevices.backbeater.ui.widgets.TempoDisplay
@@ -43,39 +43,39 @@
         android:layout_height="match_parent"
         android:layout_below="@+id/topLogo"
         android:layout_above="@+id/songListButton"
-        android:paddingLeft="20dp"
-        android:paddingRight="20dp"
-        android:paddingTop="10dp"
-        android:paddingBottom="10dp"/>
+        android:paddingLeft="@dimen/padding_medium"
+        android:paddingRight="@dimen/padding_medium"
+        android:paddingTop="@dimen/padding_small"
+        android:paddingBottom="@dimen/padding_small"/>
 
     
     <com.esdevices.backbeater.ui.widgets.SlideButton
         android:id="@+id/slideButton"
-        android:layout_width="65dp"
+        android:layout_width="@dimen/button_large"
         android:layout_height="90dp"
         android:layout_alignParentBottom="false"
         android:layout_alignParentEnd="true"
         android:layout_alignBottom="@+id/songListButton"
-        android:layout_marginRight="20dp"/>
+        android:layout_marginRight="@dimen/padding_medium"/>
     
     
     <com.esdevices.backbeater.ui.widgets.BBTextView
         android:id="@+id/getSensorButton"
-        android:layout_width="65dp"
-        android:layout_height="65dp"
+        android:layout_width="@dimen/button_large"
+        android:layout_height="@dimen/button_large"
         android:layout_alignParentBottom="false"
         android:layout_alignParentStart="true"
         android:layout_alignTop="@+id/slideButton"
-        android:layout_marginLeft="20dp"
+        android:layout_marginLeft="@dimen/padding_small"
         android:text="@string/get_sensor"
         android:textSize="14dp"
-        android:textColor="@android:color/white"
+        android:textColor="@color/main_color"
         android:gravity="center"
         android:background="@drawable/circle_red"/>
     
     <View android:id="@+id/setTempoButton"
-        android:layout_width="65dp"
-        android:layout_height="65dp"
+        android:layout_width="@dimen/button_large"
+        android:layout_height="@dimen/button_large"
         android:layout_alignTop="@+id/getSensorButton"
         android:layout_alignLeft="@+id/getSensorButton"
         android:background="@drawable/set_tempo_background"
@@ -83,16 +83,16 @@
     
     
     <ImageView android:id="@+id/songListButton"
-        android:layout_width="40dp"
-        android:layout_height="wrap_content"
+        android:layout_width="@dimen/button_medium"
+        android:layout_height="@dimen/button_medium"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_margin="20dp"
+        android:layout_margin="@dimen/padding_large"
         android:src="@drawable/tempo_list" />
 
     <Space android:id="@+id/bottom"
         android:layout_width="match_parent"
-        android:layout_height="25dp"
+        android:layout_height="@dimen/padding_xlarge"
         android:layout_alignParentBottom="true" />
 
 </RelativeLayout>

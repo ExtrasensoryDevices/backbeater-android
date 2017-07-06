@@ -4,11 +4,11 @@
     android:layout_width="280dp"
     android:layout_gravity="start"
     android:layout_height="match_parent"
-    android:background="#dd2f44"
-    android:paddingLeft="20dp"
+    android:background="@color/assent_color"
+    android:paddingLeft="@dimen/padding_large"
     android:paddingTop="45dp"
-    android:paddingRight="20dp"
-    android:paddingBottom="20dp"
+    android:paddingRight="@dimen/padding_large"
+    android:paddingBottom="@dimen/padding_large"
     android:nestedScrollingEnabled="true">
 
     <com.esdevices.backbeater.ui.widgets.BBTextView
@@ -22,7 +22,7 @@
 
     <com.esdevices.backbeater.ui.widgets.SensitivitySlider
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="@dimen/button_medium"
         android:id="@+id/sensitivityLevel"
         android:layout_gravity="center_horizontal" />
 
@@ -33,8 +33,8 @@
         android:id="@+id/textView6"
         android:layout_gravity="center_horizontal"
         android:textAllCaps="true"
-        android:layout_marginBottom="10dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginBottom="@dimen/padding_small"
+        android:layout_marginTop="@dimen/padding_large"
         android:textColor="#fff" />
 
     <LinearLayout
@@ -46,28 +46,28 @@
 
         <ImageView
             android:layout_width="wrap_content"
-            android:layout_height="30dp"
+            android:layout_height="@dimen/button_small"
             android:id="@+id/soundDrum"
             android:src="@drawable/side_stick"
             android:layout_weight="1" />
 
         <ImageView
             android:layout_width="wrap_content"
-            android:layout_height="30dp"
+            android:layout_height="@dimen/button_small"
             android:id="@+id/soundSticks"
             android:src="@drawable/sticks"
             android:layout_weight="1" />
 
         <ImageView
             android:layout_width="wrap_content"
-            android:layout_height="30dp"
+            android:layout_height="@dimen/button_small"
             android:id="@+id/soundMetronom"
             android:src="@drawable/metronome"
             android:layout_weight="1" />
 
         <ImageView
             android:layout_width="wrap_content"
-            android:layout_height="30dp"
+            android:layout_height="@dimen/button_small"
             android:id="@+id/soundSurprise"
             android:src="@drawable/surprise"
             android:layout_weight="1" />
@@ -77,8 +77,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="window"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="10dp"
+        android:layout_marginTop="@dimen/padding_large"
+        android:layout_marginBottom="@dimen/padding_small"
         android:id="@+id/textView3"
         android:layout_gravity="center_horizontal"
         android:textAllCaps="true"
@@ -91,26 +91,26 @@
         android:gravity="center">
 
         <com.esdevices.backbeater.ui.widgets.NumberButton
-            android:layout_width="@dimen/number_button_dims"
-            android:layout_height="@dimen/number_button_dims"
+            android:layout_width="@dimen/button_medium"
+            android:layout_height="@dimen/button_medium"
             android:text="2"
             android:id="@+id/window2"
             android:layout_weight="1" />
         <com.esdevices.backbeater.ui.widgets.NumberButton
-            android:layout_width="@dimen/number_button_dims"
-            android:layout_height="@dimen/number_button_dims"
+            android:layout_width="@dimen/button_medium"
+            android:layout_height="@dimen/button_medium"
             android:text="4"
             android:id="@+id/window4"
             android:layout_weight="1" />
         <com.esdevices.backbeater.ui.widgets.NumberButton
-            android:layout_width="@dimen/number_button_dims"
-            android:layout_height="@dimen/number_button_dims"
+            android:layout_width="@dimen/button_medium"
+            android:layout_height="@dimen/button_medium"
             android:text="8"
             android:id="@+id/window8"
             android:layout_weight="1" />
         <com.esdevices.backbeater.ui.widgets.NumberButton
-            android:layout_width="@dimen/number_button_dims"
-            android:layout_height="@dimen/number_button_dims"
+            android:layout_width="@dimen/button_medium"
+            android:layout_height="@dimen/button_medium"
             android:text="16"
             android:id="@+id/window16"
             android:layout_weight="1" />
@@ -120,8 +120,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="beat"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="10dp"
+        android:layout_marginTop="@dimen/padding_large"
+        android:layout_marginBottom="@dimen/padding_small"
         android:id="@+id/textView4"
         android:layout_gravity="center_horizontal"
         android:textAllCaps="true"
@@ -134,40 +134,40 @@
         android:gravity="center">
 
         <com.esdevices.backbeater.ui.widgets.NumberButton
-            android:layout_width="@dimen/number_button_dims"
-            android:layout_height="@dimen/number_button_dims"
+            android:layout_width="@dimen/button_medium"
+            android:layout_height="@dimen/button_medium"
             android:text="1"
             android:id="@+id/beat1"
             android:layout_weight="1" />
         <com.esdevices.backbeater.ui.widgets.NumberButton
-            android:layout_width="@dimen/number_button_dims"
-            android:layout_height="@dimen/number_button_dims"
+            android:layout_width="@dimen/button_medium"
+            android:layout_height="@dimen/button_medium"
             android:text="2"
             android:id="@+id/beat2"
             android:layout_weight="1" />
         <com.esdevices.backbeater.ui.widgets.NumberButton
-            android:layout_width="@dimen/number_button_dims"
-            android:layout_height="@dimen/number_button_dims"
+            android:layout_width="@dimen/button_medium"
+            android:layout_height="@dimen/button_medium"
             android:text="3"
             android:id="@+id/beat3"
             android:layout_weight="1" />
         <com.esdevices.backbeater.ui.widgets.NumberButton
-            android:layout_width="@dimen/number_button_dims"
-            android:layout_height="@dimen/number_button_dims"
+            android:layout_width="@dimen/button_medium"
+            android:layout_height="@dimen/button_medium"
             android:text="4"
             android:id="@+id/beat4"
             android:layout_weight="1" />
     </LinearLayout>
 
     <Space
-        android:layout_width="20px"
-        android:layout_height="20px"
+        android:layout_width="@dimen/padding_medium"
+        android:layout_height="@dimen/padding_medium"
         android:layout_weight="1" />
 
     <ImageView
         android:id="@+id/aboutButton"
-        android:layout_width="35dp"
-        android:layout_height="35dp"
+        android:layout_width="@dimen/button_about"
+        android:layout_height="@dimen/button_about"
         android:src="@drawable/help"
         android:layout_gravity="center_horizontal"
         android:layout_marginBottom="5dp" />

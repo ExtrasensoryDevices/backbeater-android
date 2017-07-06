@@ -6,7 +6,7 @@ android:background="@color/main_color">
     
     <Space android:id="@+id/top"
         android:layout_width="match_parent"
-        android:layout_height="25dp"
+        android:layout_height="@dimen/padding_xlarge"
         android:layout_alignParentTop="true"/>
     
     
@@ -16,12 +16,12 @@ android:background="@color/main_color">
         android:background="@color/main_color"/>
     
     <ImageView android:id="@+id/backButton"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="@dimen/button_medium"
+        android:layout_height="@dimen/button_medium"
         android:layout_alignParentTop="false"
         android:layout_alignParentLeft="true"
         android:layout_below="@+id/top"
-        android:layout_margin="15dp"
+        android:layout_margin="@dimen/padding_medium"
         android:src="@drawable/back"
         android:rotation="-90"/>
 

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/main_color"
+    android:weightSum="1"
+    android:gravity="center_vertical"
+    android:paddingTop="@dimen/padding_small"
+    android:paddingBottom="@dimen/padding_small"
+    android:descendantFocusability="beforeDescendants"
+    >
+    
+    <com.esdevices.backbeater.ui.widgets.BBEditTextView
+        android:id="@+id/songNameText"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:layout_marginRight="@dimen/padding_small"
+        android:gravity="center_vertical"
+        tools:text="Song #1"
+        android:textColor="#fff"
+        android:textSize="17dp"
+        android:focusableInTouchMode="true"
+        android:windowSoftInputMode="adjustPan"
+        android:inputType="textAutoComplete|textAutoCorrect|textCapWords"
+        android:imeOptions="actionNext"
+        android:maxLines="1"
+    />
+    <com.esdevices.backbeater.ui.widgets.BBEditTextView
+        android:id="@+id/tempoText"
+        android:layout_width="@dimen/button_small"
+        android:layout_height="@dimen/button_small"
+        android:layout_marginRight="@dimen/padding_small"
+        android:gravity="center"
+        tools:text="120"
+        android:textColor="#fff"
+        android:textSize="13dp"
+        android:background="@drawable/border_red"
+        android:focusableInTouchMode="true"
+        android:windowSoftInputMode="adjustPan"
+        android:imeOptions="actionNext"
+        android:inputType="number"
+        android:maxLines="1"
+    />
+    
+    <ImageView android:id="@+id/deleteButton"
+        android:layout_width="@dimen/button_small"
+        android:layout_height="@dimen/button_small"
+        android:src="@drawable/close"/>
+</LinearLayout>

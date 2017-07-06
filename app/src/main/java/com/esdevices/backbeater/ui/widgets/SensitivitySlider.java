@@ -44,11 +44,6 @@ public class SensitivitySlider extends View {
     }
 
     private void init(AttributeSet attrs, int defStyle) {
-        // Load attributes
-        final TypedArray a = getContext().obtainStyledAttributes(
-                attrs, R.styleable.SensitivitySlider, defStyle, 0);
-
-        a.recycle();
 
         // Set up a default TextPaint object
         mTextPaint = new TextPaint();

@@ -28,12 +28,12 @@ import butterknife.OnClick;
 import com.esdevices.backbeater.utils.Constants;
 import com.esdevices.backbeater.utils.DialogHelper;
 import com.esdevices.backbeater.utils.NetworkInfoHelper;
+import com.esdevices.backbeater.utils.Preferences;
 
 public class MainActivity extends Activity{
 
     private static final int BLACK = -16777216;
-    public static final String PREFS_NAME = "Prefs";
-
+    
     private int sound = 1;
     private int window = 16;
     private int beat = 4;
@@ -60,7 +60,7 @@ public class MainActivity extends Activity{
     @Bind(R.id.getSensorButton) View getSensorButton;
     @Bind(R.id.setTempoButton) View setTempoButton;
     
-    private SharedPreferences settings;
+    @Bind(R.id.songListButton) ImageView songListButton;
     
     
     private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
@@ -96,11 +96,10 @@ public class MainActivity extends Activity{
         // RESTORE SETTINGS
         handleSensorDetected(false);
         
-        settings = getSharedPreferences(PREFS_NAME, 0);
-        setSound(settings.getInt("sound", sound));
-        setWindow(settings.getInt("window", window));
-        setBeat(settings.getInt("beat", beat));
-        sensitivity = settings.getInt("sensitivity", sensitivity);
+        setSound(Preferences.getSound(sound));
+        setWindow(Preferences.getWindow(window));
+        setBeat(Preferences.getBeat(beat));
+        sensitivity = Preferences.getSensitivity(sensitivity);
 
     }
 
@@ -170,6 +169,13 @@ public class MainActivity extends Activity{
         
     }
     
+    
+    @OnClick(R.id.songListButton)
+    public void onSongListButtonClick(View v) {
+        Intent intent = new Intent(this, SongListActivity.class);
+        startActivity(intent);
+    }
+    
     //================================================================================
     //  NAV DRAWER
     //================================================================================
@@ -180,7 +186,7 @@ public class MainActivity extends Activity{
         beat3Button.enable(beat==3);
         beat4Button.enable(beat==4);
         this.beat = beat;
-        settings.edit().putInt("beat",beat).commit();
+        Preferences.putBeat(beat);
     }
 
     public void setWindow(int window){
@@ -189,7 +195,7 @@ public class MainActivity extends Activity{
         window4Button.enable(window==4);
         window8Button.enable(window==8);
         this.window = window;
-        settings.edit().putInt("window",window).commit();
+        Preferences.putWindow(window);
 
     }
 
@@ -199,7 +205,7 @@ public class MainActivity extends Activity{
         metronomeButton.setColorFilter(sound==2?BLACK:-1,android.graphics.PorterDuff.Mode.MULTIPLY);
         surpriseButton.setColorFilter(sound==3?BLACK:-1,android.graphics.PorterDuff.Mode.MULTIPLY);
         this.sound = sound;
-        settings.edit().putInt("sound",sound).commit();
+        Preferences.putSound(sound);
 
     }
     @OnClick({R.id.window2, R.id.window4, R.id.window8, R.id.window16,
