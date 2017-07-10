@@ -30,8 +30,8 @@
     />
     <com.esdevices.backbeater.ui.widgets.BBEditTextView
         android:id="@+id/tempoText"
-        android:layout_width="@dimen/button_small"
-        android:layout_height="@dimen/button_small"
+        android:layout_width="@dimen/button_medium"
+        android:layout_height="@dimen/button_medium"
         android:layout_marginRight="@dimen/padding_small"
         android:gravity="center"
         tools:text="120"
@@ -40,13 +40,13 @@
         android:background="@drawable/border_red"
         android:focusableInTouchMode="true"
         android:windowSoftInputMode="adjustPan"
-        android:imeOptions="actionNext"
+        android:imeOptions="actionDone"
         android:inputType="number"
         android:maxLines="1"
     />
     
     <ImageView android:id="@+id/deleteButton"
-        android:layout_width="@dimen/button_small"
-        android:layout_height="@dimen/button_small"
+        android:layout_width="@dimen/button_medium"
+        android:layout_height="@dimen/button_medium"
         android:src="@drawable/close"/>
 </LinearLayout>

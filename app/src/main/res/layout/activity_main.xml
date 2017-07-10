@@ -82,17 +82,53 @@
         android:visibility="gone"/>
     
     
+    <LinearLayout android:id="@+id/songListLayout"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/bottom"
+        android:weightSum="1">
+    
+        <ImageView android:id="@+id/prevButton"
+            android:layout_width="@dimen/button_medium"
+            android:layout_height="@dimen/button_medium"
+            android:layout_marginLeft="@dimen/padding_medium"
+            android:layout_marginRight="@dimen/padding_small"
+            android:src="@drawable/pre"/>
+    
+        <com.esdevices.backbeater.ui.widgets.BBTextView
+            android:id="@+id/songNameText"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            tools:text="Song #1"
+            android:textColor="#fff"
+            android:textSize="17dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+        />
+    
+        <ImageView android:id="@+id/nextButton"
+            android:layout_width="@dimen/button_medium"
+            android:layout_height="@dimen/button_medium"
+            android:layout_marginLeft="@dimen/padding_small"
+            android:layout_marginRight="@dimen/padding_medium"
+            android:src="@drawable/next"/>
+    </LinearLayout>
+    
     <ImageView android:id="@+id/songListButton"
         android:layout_width="@dimen/button_medium"
         android:layout_height="@dimen/button_medium"
-        android:layout_alignParentBottom="true"
+        android:layout_above="@id/songListLayout"
+        android:layout_alignParentBottom="false"
         android:layout_centerHorizontal="true"
-        android:layout_margin="@dimen/padding_large"
+        android:layout_margin="@dimen/padding_small"
         android:src="@drawable/tempo_list" />
-
+    
     <Space android:id="@+id/bottom"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/padding_xlarge"
+        android:layout_height="@dimen/padding_medium"
         android:layout_alignParentBottom="true" />
 
 </RelativeLayout>

@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/contentView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
+    android:focusable="true"
+    android:focusableInTouchMode ="true"
     android:background="@color/main_color">
     
     
@@ -32,18 +35,26 @@
         android:layout_centerHorizontal="true"
         android:layout_below="@+id/top"
         android:layout_marginTop="@dimen/padding_small"
+        android:clickable="false"
+        android:focusableInTouchMode="false"
         android:src="@drawable/top_logo" />
     
-    <ListView android:id="@+id/listView"
+    <ScrollView android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@+id/topLogo"
         android:layout_alignParentBottom="true"
-        android:layout_margin="@dimen/padding_medium"
-        android:animateLayoutChanges="true"
-        android:descendantFocusability="afterDescendants"
-        android:divider="@null"
-    />
+        android:layout_marginTop="@dimen/padding_medium"
+        android:layout_marginLeft="@dimen/padding_medium"
+        android:layout_marginRight="@dimen/padding_medium"
+        android:scrollbars="none">
+        <LinearLayout android:id="@+id/songListLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <include layout="@layout/list_item_add"/>
+        </LinearLayout>
+    </ScrollView>
     
     <com.esdevices.backbeater.ui.widgets.BBTextView
         android:id="@+id/hintText"

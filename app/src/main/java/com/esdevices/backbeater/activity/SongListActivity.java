@@ -1,18 +1,28 @@
 package com.esdevices.backbeater.activity;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AlertDialog;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
-import android.widget.ListView;
+import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.LinearLayout;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import com.esdevices.backbeater.App;
+import butterknife.OnEditorAction;
+import butterknife.OnFocusChange;
 import com.esdevices.backbeater.R;
-import com.esdevices.backbeater.adapter.SongListAdapter;
 import com.esdevices.backbeater.model.Song;
+import com.esdevices.backbeater.ui.widgets.BBEditTextView;
 import com.esdevices.backbeater.ui.widgets.BBTextView;
+import com.esdevices.backbeater.utils.Constants;
 import com.esdevices.backbeater.utils.Preferences;
 import java.util.List;
 
@@ -20,13 +30,12 @@ import java.util.List;
  * Created by Alina Kholcheva on 2017-06-28.
  */
 
-public class SongListActivity extends Activity implements SongListAdapter.OnSongListChangeListener {
+public class SongListActivity extends Activity  {
     
-    @Bind(R.id.listView) ListView listView;
+    @Bind(R.id.songListLayout) LinearLayout songListLayout;
     @Bind(R.id.hintText) BBTextView hintText;
     
     private List<Song> songList;
-    private SongListAdapter adapter;
     
     boolean dataChanged = false;
     
@@ -39,9 +48,7 @@ public class SongListActivity extends Activity implements SongListAdapter.OnSong
     
         songList = Preferences.getSongList();
         updateView();
-        
-        adapter = new SongListAdapter(this, songList, this);
-        listView.setAdapter(adapter);
+        updateSongListView();
     }
     
     
@@ -49,18 +56,163 @@ public class SongListActivity extends Activity implements SongListAdapter.OnSong
     @OnClick(R.id.backButton)
     public void onBackButtonClick(View v) {
         if (dataChanged) {
-            Preferences.putSongList(adapter.getObjects());
+            Preferences.putSongList(songList);
         }
         onBackPressed();
     }
     
+    @OnClick(R.id.addButton)
+    public void onAddButtonClick(View v) {
+        Song newSong = new Song("Song #"+(songList.size()+1), Constants.DEFAULT_TEMPO);
+        songList.add(newSong);
+        onDataChange();
+        addSongRow(songList.size()-1, newSong, true);
+    }
+    
     public void onDataChange(){
+        setResult(RESULT_OK);
         dataChanged = true;
-        Preferences.putSongList(adapter.getObjects());
+        Preferences.putSongList(songList);
         updateView();
     }
 
     private void updateView() {
         hintText.setVisibility(songList.size() == 0 ? View.VISIBLE : View.GONE);
+    }
+    
+    private void updateSongListView() {
+        // remove song rows, keep plus row
+        int totalCount = songListLayout.getChildCount();
+        int songCount = totalCount-1;
+        for (int i=0; i<songCount; i++) {
+            songListLayout.removeViewAt(i);
+        }
+        // add new songs
+        songCount = songList.size();
+        for (int i=0; i<songCount; i++) {
+            addSongRow(i, songList.get(i), false);
+        }
+    }
+    
+    private void addSongRow(int position, Song song, boolean startEdit) {
+        View row = getLayoutInflater().inflate(R.layout.list_item_song, null);
+        LinearLayout.LayoutParams payoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT);
+        ViewHolder viewHolder = new ViewHolder(position, song, row);
+        row.setTag(viewHolder);
+        
+        songListLayout.addView(row, position, payoutParams);
+        if (startEdit) {
+            BBEditTextView songNameText = ((ViewHolder)row.getTag()).songNameText;
+            songNameText.requestFocus();
+            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.showSoftInput(songNameText, InputMethodManager.SHOW_IMPLICIT);
+        }
+    }
+    
+    private void deleteSong(final int position) {
+        AlertDialog.Builder dialog = new AlertDialog.Builder(this)
+            .setMessage("Delete "+songList.get(position).name + "?")
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+                @Override public void onClick(DialogInterface dialog, int which) {
+                    songList.remove(position);
+                    songListLayout.removeViewAt(position);
+                    onDataChange();
+                }
+            });
+            dialog.create().show();
+    }
+    
+    private int getPosition(View view) {
+        return songListLayout.indexOfChild(view);
+    }
+    
+
+    
+    @OnClick({R.id.contentView, R.id.songListLayout})
+    public void onContentViewClick(View v)
+    {
+        Log.d("Click", ""+v);
+        getCurrentFocus().clearFocus();
+        hideKeyboard();
+    }
+    
+    private void hideKeyboard(){
+        InputMethodManager imm = (InputMethodManager) SongListActivity.this.getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(getWindow().getDecorView().getRootView().getWindowToken(), 0);
+    }
+    
+    
+    class ViewHolder {
+    
+        @Bind(R.id.songNameText) BBEditTextView songNameText;
+        @Bind(R.id.tempoText) BBEditTextView tempoText;
+        
+        private final View parent;
+    
+        //public final int position;
+    
+        public ViewHolder(int position, Song song, View view) {
+            ButterKnife.bind(this, view);
+            this.parent = view;
+            songNameText.setText(song.name);
+            tempoText.setText(""+song.tempo);
+        }
+        
+        @OnClick(R.id.deleteButton)
+        public void onDeleteButtonClick(View v) {
+            deleteSong(getPosition(parent));
+        }
+    
+        @OnFocusChange(R.id.songNameText)
+        public void onSongNameFocusChange(View v, boolean hasFocus) {
+            if (hasFocus) { return;}
+            Song song = songList.get(getPosition(parent));
+            String res = songNameText.getText().toString().trim();
+            if (TextUtils.isEmpty(res)) {
+                songNameText.setText(song.name);
+            } else {
+                song.name = res;
+                onDataChange();
+            }
+        }
+    
+        
+        @OnFocusChange(R.id.tempoText)
+        public void onTempoFocusChange(View v, boolean hasFocus) {
+            if (hasFocus){
+                tempoText.selectAll();
+            } else {
+                Song song = songList.get(getPosition(parent));
+                String res = tempoText.getText().toString().trim();
+                try {
+                    int value = Integer.parseInt(res);
+                    if (value < Constants.MIN_TEMPO) {
+                        value = Constants.MIN_TEMPO;
+                    } else if (value > Constants.MAX_TEMPO) {
+                        value = Constants.MAX_TEMPO;
+                    }
+                    tempoText.setText("" + value);
+                    song.tempo = value;
+                    onDataChange();
+                } catch (NumberFormatException e) {
+                    tempoText.setText("" + song.tempo);
+                }
+            }
+        }
+    
+    
+        @OnEditorAction(R.id.tempoText)
+        boolean tempoEditorAction(int actionId) {
+            if (tempoText.hasFocus()) {
+                if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_NULL) {
+                    hideKeyboard();
+                    tempoText.clearFocus();
+                    return false;
+                }
+            }
+            return false;
+        }
     }
 }

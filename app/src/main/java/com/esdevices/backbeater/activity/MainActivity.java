@@ -5,7 +5,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -18,6 +17,7 @@ import android.widget.ImageView;
 import com.esdevices.backbeater.audio.AudioService;
 import com.esdevices.backbeater.BuildConfig;
 import com.esdevices.backbeater.R;
+import com.esdevices.backbeater.model.Song;
 import com.esdevices.backbeater.ui.widgets.BBTextView;
 import com.esdevices.backbeater.ui.widgets.NumberButton;
 import com.esdevices.backbeater.ui.widgets.TempoDisplay;
@@ -29,8 +29,11 @@ import com.esdevices.backbeater.utils.Constants;
 import com.esdevices.backbeater.utils.DialogHelper;
 import com.esdevices.backbeater.utils.NetworkInfoHelper;
 import com.esdevices.backbeater.utils.Preferences;
+import java.util.List;
 
 public class MainActivity extends Activity{
+    
+    static final int EDIT_SONG_LIST_REQUEST = 1;
 
     private static final int BLACK = -16777216;
     
@@ -38,6 +41,9 @@ public class MainActivity extends Activity{
     private int window = 16;
     private int beat = 4;
     private int sensitivity = 100;
+    
+    private List<Song> songList;
+    private int currentSongIndex = -1;
 
     AudioService audioService;
     Handler handler;
@@ -61,6 +67,10 @@ public class MainActivity extends Activity{
     @Bind(R.id.setTempoButton) View setTempoButton;
     
     @Bind(R.id.songListButton) ImageView songListButton;
+    @Bind(R.id.songListLayout) View songListView;
+    @Bind(R.id.songNameText) BBTextView songNameText;
+    @Bind(R.id.prevButton) ImageView prevButton;
+    @Bind(R.id.nextButton) ImageView nextButton;
     
     
     private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
@@ -100,6 +110,8 @@ public class MainActivity extends Activity{
         setWindow(Preferences.getWindow(window));
         setBeat(Preferences.getBeat(beat));
         sensitivity = Preferences.getSensitivity(sensitivity);
+        
+        updateSongList();
 
     }
 
@@ -148,6 +160,51 @@ public class MainActivity extends Activity{
         }
     }
     
+    @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == EDIT_SONG_LIST_REQUEST) {
+            if (resultCode == RESULT_OK) { // data changed
+                updateSongList();
+            }
+        }
+    }
+    
+    
+    private void updateSongList() {
+        songList = Preferences.getSongList();
+        setCurrentSongIndex(0);
+    }
+    
+    private void updateSongListView() {
+        int count = songList.size();
+        if (count <= 0) {
+            songListView.setVisibility(View.GONE);
+            songListButton.setImageResource(R.drawable.tempo_list);
+            return;
+        }
+        // count > 0
+        songListView.setVisibility(View.VISIBLE);
+        songListButton.setImageResource(R.drawable.tempo_list_select);
+        songNameText.setText(songList.get(currentSongIndex).name);
+        prevButton.setVisibility(count == 1 ? View.GONE : View.VISIBLE);
+        nextButton.setVisibility(count == 1 ? View.GONE : View.VISIBLE);
+    }
+    
+    private void setCurrentSongIndex(int index) {
+        int count = songList.size();
+        if (count <= 0) { // song list is empty
+            currentSongIndex = -1;
+        } else { // handle out of bounds
+            currentSongIndex = (index + count) % count;
+        }
+        updateSongListView();
+        setTempo(songList.get(currentSongIndex).tempo);
+    }
+    
+    
+    public void setTempo(int tempo) {
+        //TODO:
+    }
+    
     //================================================================================
     //  Buttons
     //================================================================================
@@ -173,7 +230,18 @@ public class MainActivity extends Activity{
     @OnClick(R.id.songListButton)
     public void onSongListButtonClick(View v) {
         Intent intent = new Intent(this, SongListActivity.class);
-        startActivity(intent);
+        startActivityForResult(intent, EDIT_SONG_LIST_REQUEST);
+    }
+    
+    @OnClick(R.id.nextButton)
+    public void onNextButtonClick(View v){
+        setCurrentSongIndex(currentSongIndex + 1);
+        
+    }
+    
+    @OnClick(R.id.prevButton)
+    public void onPrevButtonClick(View v){
+        setCurrentSongIndex(currentSongIndex - 1);
     }
     
     //================================================================================

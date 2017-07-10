@@ -2,6 +2,7 @@ package com.esdevices.backbeater.utils;
 
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import com.esdevices.backbeater.App;
 import com.esdevices.backbeater.model.Song;
 import com.google.gson.Gson;
@@ -51,6 +52,7 @@ public class Preferences {
         return getPrefs().getInt(SENSITIVITY, defaultValue);
     }
     
+    @NonNull
     public static List<Song> getSongList() {
         Gson gson = new Gson();
         String json = getPrefs().getString(SONG_LIST, "");

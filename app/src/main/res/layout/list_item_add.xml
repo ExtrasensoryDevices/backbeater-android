@@ -13,7 +13,7 @@
     >
     
     <ImageView android:id="@+id/addButton"
-        android:layout_width="@dimen/button_small"
-        android:layout_height="@dimen/button_small"
+        android:layout_width="@dimen/button_medium"
+        android:layout_height="@dimen/button_medium"
         android:src="@drawable/add"/>
 </LinearLayout>
