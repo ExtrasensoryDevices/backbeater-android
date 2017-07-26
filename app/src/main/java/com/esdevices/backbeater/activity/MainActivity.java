@@ -20,6 +20,7 @@ import com.esdevices.backbeater.R;
 import com.esdevices.backbeater.model.Song;
 import com.esdevices.backbeater.ui.widgets.BBTextView;
 import com.esdevices.backbeater.ui.widgets.NumberButton;
+import com.esdevices.backbeater.ui.widgets.SlideButton;
 import com.esdevices.backbeater.ui.widgets.TempoDisplay;
 
 import butterknife.ButterKnife;
@@ -31,7 +32,8 @@ import com.esdevices.backbeater.utils.NetworkInfoHelper;
 import com.esdevices.backbeater.utils.Preferences;
 import java.util.List;
 
-public class MainActivity extends Activity{
+public class MainActivity extends Activity implements SlideButton.StateChangeListener,
+    AudioService.AudioServiceBeatListener {
     
     static final int EDIT_SONG_LIST_REQUEST = 1;
 
@@ -44,9 +46,11 @@ public class MainActivity extends Activity{
     
     private List<Song> songList;
     private int currentSongIndex = -1;
-
-    AudioService audioService;
-    Handler handler;
+    
+    private AudioService audioService;
+    private Handler handler;
+    
+    
     @Bind(R.id.tempoDisplay) TempoDisplay tempoDisplay;
     @Bind(R.id.window2) NumberButton window2Button;
     @Bind(R.id.window4) NumberButton window4Button;
@@ -65,6 +69,7 @@ public class MainActivity extends Activity{
     
     @Bind(R.id.getSensorButton) View getSensorButton;
     @Bind(R.id.setTempoButton) View setTempoButton;
+    @Bind(R.id.tempoSlideButton) SlideButton tempoSlideButton;
     
     @Bind(R.id.songListButton) ImageView songListButton;
     @Bind(R.id.songListLayout) View songListView;
@@ -99,7 +104,8 @@ public class MainActivity extends Activity{
             }
         };
     
-        audioService = new AudioService(this);
+        audioService = new AudioService();
+        audioService.setBeatListener(this);
         
         versionNumber.setText("Version "+ BuildConfig.VERSION_NAME+ "("+BuildConfig.VERSION_CODE+")");
         
@@ -111,23 +117,15 @@ public class MainActivity extends Activity{
         setBeat(Preferences.getBeat(beat));
         sensitivity = Preferences.getSensitivity(sensitivity);
         
+        tempoSlideButton.setStateChangeListener(this);
+        tempoDisplay.setCPT(Constants.DEFAULT_TEMPO); // TODO: save last played tempo and restore it
+        
         updateSongList();
 
     }
 
 
-    public void beat(final double beatsPerMinute){
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                tempoDisplay.setTempo((int) (beatsPerMinute));
-//                ObjectAnimator.ofFloat(circle,"scaleX",0,1f,0).start();
-//                ObjectAnimator.ofFloat(circle,"scaleY",0,1f,0).start();
-            }
-        });
-    }
-
-    @Override
+   @Override
     protected void onResume() {
         super.onResume();
         // register sensor listener
@@ -141,6 +139,10 @@ public class MainActivity extends Activity{
         // unregister sensor listener
         getApplicationContext().unregisterReceiver(broadcastReceiver);
         audioService.stopMe();
+        if (tempoSlideButton.isSelected()) {
+            tempoSlideButton.toggle();
+            tempoDisplay.setMetronomeOff();
+        }
     }
     
     
@@ -167,6 +169,13 @@ public class MainActivity extends Activity{
             }
         }
     }
+    
+    
+    //================================================================================
+    //  Song list
+    //================================================================================
+    
+    
     
     
     private void updateSongList() {
@@ -197,13 +206,37 @@ public class MainActivity extends Activity{
             currentSongIndex = (index + count) % count;
         }
         updateSongListView();
-        setTempo(songList.get(currentSongIndex).tempo);
     }
     
+    
+    //================================================================================
+    
+    //================================================================================
+    //  Hit processing
     
     public void setTempo(int tempo) {
-        //TODO:
+        tempo = Math.min(Constants.MAX_TEMPO, (Math.max(Constants.MIN_TEMPO, tempo)));
+        tempoSlideButton.setValue(tempo);
+        // start metronome
+        if (!tempoSlideButton.isSelected()) {
+            // set ON
+            tempoSlideButton.toggle();
+        }
+        onToggle(true);
     }
+    
+    
+    
+    @Override
+    public void onBeat(final double bpm){
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                tempoDisplay.setBPM((int) (bpm));
+            }
+        });
+    }
+
     
     //================================================================================
     //  Buttons
@@ -236,12 +269,29 @@ public class MainActivity extends Activity{
     @OnClick(R.id.nextButton)
     public void onNextButtonClick(View v){
         setCurrentSongIndex(currentSongIndex + 1);
+        setTempo(songList.get(currentSongIndex).tempo);
         
     }
     
     @OnClick(R.id.prevButton)
     public void onPrevButtonClick(View v){
         setCurrentSongIndex(currentSongIndex - 1);
+        setTempo(songList.get(currentSongIndex).tempo);
+    }
+    
+    @Override public void onToggle(boolean isOn) {
+        if (isOn) {
+            tempoDisplay.setCPT(tempoSlideButton.getValue());
+            tempoDisplay.setMetronomeOn(Constants.Sound.fromIndex(sound));
+        } else {
+            tempoDisplay.setMetronomeOff();
+        }
+    }
+    
+    @Override public void onValueChanged(int newValue) {
+        if (tempoSlideButton.isSelected()) {
+            tempoDisplay.setCPT(newValue);
+        }
     }
     
     //================================================================================
@@ -255,6 +305,7 @@ public class MainActivity extends Activity{
         beat4Button.enable(beat==4);
         this.beat = beat;
         Preferences.putBeat(beat);
+        tempoDisplay.setBeat(beat);
     }
 
     public void setWindow(int window){
@@ -264,7 +315,7 @@ public class MainActivity extends Activity{
         window8Button.enable(window==8);
         this.window = window;
         Preferences.putWindow(window);
-
+        tempoDisplay.setWindow(window);
     }
 
     public void setSound(int sound){
@@ -274,6 +325,7 @@ public class MainActivity extends Activity{
         surpriseButton.setColorFilter(sound==3?BLACK:-1,android.graphics.PorterDuff.Mode.MULTIPLY);
         this.sound = sound;
         Preferences.putSound(sound);
+        tempoDisplay.setMetronomeSond(Constants.Sound.fromIndex(this.sound));
 
     }
     @OnClick({R.id.window2, R.id.window4, R.id.window8, R.id.window16,

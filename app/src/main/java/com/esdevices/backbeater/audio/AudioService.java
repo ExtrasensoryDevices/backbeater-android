@@ -10,6 +10,11 @@ import com.esdevices.backbeater.activity.MainActivity;
  * Created by aeboyd on 7/13/15.
  */
 public class AudioService extends Thread {
+    
+    public interface AudioServiceBeatListener{
+        void onBeat(double beatBpm);
+    }
+    
     private static final String TAG = "AudioRecorder";
     private static final int SAMPLE_RATE = 44100;
     private static final int CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO;
@@ -21,17 +26,17 @@ public class AudioService extends Thread {
     private static final double SECONDS_PER_SAMPLE = 1.0/SAMPLE_RATE;
     private final short[] buffer;
     private boolean running = false;
-    MainActivity activity;
 
     private byte bpmAvgSize = 4;
     private double[] bpmAvgA = new double[]{0,0,0,0};
     private int bpmI =0;
+    
+    private AudioServiceBeatListener beatListener;
 
 
     private AudioRecord audioRecord;
 
-    public AudioService(MainActivity act) {
-        activity = act;
+    public AudioService() {
         int min_buffer_size = AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT);
         int buffer_size = SAMPLES_PER_FRAME * 10;
         if (buffer_size < min_buffer_size) {
@@ -50,8 +55,11 @@ public class AudioService extends Thread {
                 AUDIO_FORMAT,                        // audio format
                 buffer.length);                        // buffer size (bytes)
     }
-
-
+    
+    public void setBeatListener(AudioServiceBeatListener beatListener) {
+        this.beatListener = beatListener;
+    }
+    
     public void stopMe() {
         running = false;
     }
@@ -94,7 +102,10 @@ public class AudioService extends Thread {
                         for(int i2=0;i2<bpmAvgSize;i2++){
                             seconds+=bpmAvgA[i2];
                         }
-                        activity.beat(bpmAvgSize/seconds*60);
+                        
+                        if (beatListener != null) {
+                            beatListener.onBeat(bpmAvgSize / seconds * 60);
+                        }
                         sample = 0;
                     }else if(avg<LOW_THRESHOLD && inBeat){
                         inBeat=false;

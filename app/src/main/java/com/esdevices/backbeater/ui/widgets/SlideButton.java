@@ -10,19 +10,37 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import com.esdevices.backbeater.R;
+import com.esdevices.backbeater.utils.Constants;
 
 /**
  * Created by aeboyd on 8/8/15.
  */
 public class SlideButton extends View {
+    
+    public interface StateChangeListener {
+        public void onToggle(boolean isOn);
+        public void onValueChanged(int newValue);
+    }
+    
     private final float DP = isInEditMode()?3f:getResources().getDisplayMetrics().density;
-    private static final int SLIDE_MAX =125;
-    private static final int SLIDE_MIN =20;
-    private int slideValue = 20;
+    private static final int MAX_CLICK_DURATION = 200;
+    
+    private int slideValue = Constants.DEFAULT_TEMPO;
     private int tempSlideValue = 0;
-    private TextPaint p;
-    private float eventStartY = 0;
+    private TextPaint paint;
     private final Rect textBounds = new Rect();
+    
+    private long eventStartTime = 0;
+    private float eventStartY = 0;
+    
+    private int greyColor;
+    private int whiteColor = -1;
+    private int assentColor;
+    
+    private boolean selected = false;
+    
+    private StateChangeListener stateChangeListener;
 
 
     public SlideButton(Context context) {
@@ -35,31 +53,71 @@ public class SlideButton extends View {
 
     public SlideButton(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        p = new TextPaint(Paint.ANTI_ALIAS_FLAG);
-        p.setStrokeWidth(2*DP);
-        p.setColor(-1);
-        p.setStyle(Paint.Style.STROKE);
-        p.setTextAlign(Paint.Align.CENTER);
+        
+        greyColor = context.getResources().getColor(R.color.grey_color);
+        assentColor = context.getResources().getColor(R.color.assent_color);
+        
+        paint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
+        paint.setStrokeWidth(2*DP);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setTextAlign(Paint.Align.CENTER);
         if(!isInEditMode()) {
-            p.setTypeface(Typeface.createFromAsset(getResources().getAssets(), "fonts/steelfish_rg.ttf"));
+            paint.setTypeface(Typeface.createFromAsset(getResources().getAssets(), "fonts/steelfish_rg.ttf"));
         }
     }
-
+    
+    public void setStateChangeListener(StateChangeListener stateChangeListener) {
+        this.stateChangeListener = stateChangeListener;
+    }
+    
+    public int getValue() {
+        return slideValue;
+    }
+    
+    public void setValue(int value) {
+        this.slideValue = value;
+        invalidate();
+    }
+    
+    public boolean isSelected() {
+        return selected;
+    }
+    
+    public void toggle(){
+        selected = !selected;
+        invalidate();
+    }
+    
+    private void handleClick(){
+        toggle();
+        if (stateChangeListener != null) {
+            stateChangeListener.onToggle(selected);
+        }
+    }
+    
+    private void handleValueChange(){
+        if (stateChangeListener != null) {
+            stateChangeListener.onValueChanged(slideValue);
+        }
+    }
+    
     @Override
     protected void onDraw(Canvas canvas) {
+        paint.setColor(selected ? assentColor : greyColor);
+    
         int cX = getWidth()/2;
         int cY = getWidth()/2;
-        int radius = (int)(Math.min(cX,cY) - p.getStrokeWidth());
-        canvas.drawCircle(cX,cY,radius,p);
+        int radius = (int)(Math.min(cX,cY) - paint.getStrokeWidth());
+        canvas.drawCircle(cX,cY,radius, paint);
 
-        float stroke = p.getStrokeWidth();
-        p.setStrokeWidth(0);
-        String t = ""+ (tempSlideValue==0?slideValue:tempSlideValue);
-        p.setTextSize(radius);
-        p.getTextBounds(t,0,t.length(),textBounds);
-        p.setColor(-1);
-        canvas.drawText(t,cX,cY-textBounds.exactCenterY(),p);
-        p.setStrokeWidth(stroke);
+        float oldStrokeWidth = paint.getStrokeWidth();
+        paint.setStrokeWidth(0);
+        paint.setColor(selected ? whiteColor : greyColor);
+        String t = ""+ (tempSlideValue==0 ? slideValue : tempSlideValue);
+        paint.setTextSize(radius);
+        paint.getTextBounds(t,0,t.length(),textBounds);
+        canvas.drawText(t,cX,cY-textBounds.exactCenterY(), paint);
+        paint.setStrokeWidth(oldStrokeWidth);
     }
 
     @Override
@@ -67,16 +125,30 @@ public class SlideButton extends View {
         switch (event.getAction()){
             case MotionEvent.ACTION_DOWN:
                 eventStartY = event.getY();
+                eventStartTime = System.currentTimeMillis();
+                tempSlideValue = slideValue;
+                break;
             case MotionEvent.ACTION_MOVE:
                 tempSlideValue = slideValue + (int)((eventStartY-event.getY())/(DP*5));
-                tempSlideValue = Math.min(SLIDE_MAX,Math.max(SLIDE_MIN,tempSlideValue));
-                Log.v("slide",tempSlideValue+"");
+                tempSlideValue = Math.min(Constants.MAX_TEMPO, Math.max(Constants.MIN_TEMPO, tempSlideValue));
                 invalidate();
                 break;
             case MotionEvent.ACTION_UP:
+                boolean valueChanged = slideValue != tempSlideValue;
                 slideValue = tempSlideValue;
-                tempSlideValue=0;
-                eventStartY=0;
+                tempSlideValue = 0;
+                eventStartY = 0;
+                long clickDuration = System.currentTimeMillis() - eventStartTime;
+                if(clickDuration < MAX_CLICK_DURATION) {
+                    //click event has occurred
+                    handleClick();
+                }
+                eventStartTime = 0;
+                
+                if (valueChanged) {
+                    handleValueChange();
+                }
+                break;
             default:
                 Log.v("slide","event "+event.getAction());
         }
