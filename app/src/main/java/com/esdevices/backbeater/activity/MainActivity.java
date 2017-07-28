@@ -40,8 +40,8 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     private static final int BLACK = -16777216;
     
     private int sound = 1;
-    private int window = 16;
-    private int beat = 4;
+    private int window = 2;
+    private int beat = 1;
     private int sensitivity = 100;
     
     private List<Song> songList;
@@ -53,9 +53,9 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     
     @Bind(R.id.tempoDisplay) TempoDisplay tempoDisplay;
     @Bind(R.id.window2) NumberButton window2Button;
+    @Bind(R.id.window3) NumberButton window3Button;
     @Bind(R.id.window4) NumberButton window4Button;
-    @Bind(R.id.window8) NumberButton window8Button;
-    @Bind(R.id.window16) NumberButton window16Button;
+    @Bind(R.id.window5) NumberButton window5Button;
     @Bind(R.id.beat1) NumberButton beat1Button;
     @Bind(R.id.beat2) NumberButton beat2Button;
     @Bind(R.id.beat3) NumberButton beat3Button;
@@ -118,7 +118,6 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         sensitivity = Preferences.getSensitivity(sensitivity);
         
         tempoSlideButton.setStateChangeListener(this);
-        tempoDisplay.setCPT(Constants.DEFAULT_TEMPO); // TODO: save last played tempo and restore it
         
         updateSongList();
 
@@ -143,6 +142,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
             tempoSlideButton.toggle();
             tempoDisplay.setMetronomeOff();
         }
+        Preferences.putCPT(tempoDisplay.getCPT());
     }
     
     
@@ -181,6 +181,9 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     private void updateSongList() {
         songList = Preferences.getSongList();
         setCurrentSongIndex(0);
+        if (currentSongIndex != -1) {
+            tempoSlideButton.setValue(songList.get(currentSongIndex).tempo);
+        }
     }
     
     private void updateSongListView() {
@@ -217,12 +220,10 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     public void setTempo(int tempo) {
         tempo = Math.min(Constants.MAX_TEMPO, (Math.max(Constants.MIN_TEMPO, tempo)));
         tempoSlideButton.setValue(tempo);
-        // start metronome
-        if (!tempoSlideButton.isSelected()) {
-            // set ON
-            tempoSlideButton.toggle();
+        // update metronome if needed
+        if (tempoSlideButton.isSelected()) {
+            tempoDisplay.setMetronomeOn(Constants.Sound.fromIndex(sound), tempoSlideButton.getValue());;
         }
-        onToggle(true);
     }
     
     
@@ -281,8 +282,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     
     @Override public void onToggle(boolean isOn) {
         if (isOn) {
-            tempoDisplay.setCPT(tempoSlideButton.getValue());
-            tempoDisplay.setMetronomeOn(Constants.Sound.fromIndex(sound));
+            tempoDisplay.setMetronomeOn(Constants.Sound.fromIndex(sound), tempoSlideButton.getValue());
         } else {
             tempoDisplay.setMetronomeOff();
         }
@@ -290,7 +290,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     
     @Override public void onValueChanged(int newValue) {
         if (tempoSlideButton.isSelected()) {
-            tempoDisplay.setCPT(newValue);
+            tempoDisplay.setMetronomeOn(Constants.Sound.fromIndex(sound), tempoSlideButton.getValue());
         }
     }
     
@@ -309,10 +309,10 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     }
 
     public void setWindow(int window){
-        window16Button.enable(window==16);
         window2Button.enable(window==2);
+        window3Button.enable(window==3);
         window4Button.enable(window==4);
-        window8Button.enable(window==8);
+        window5Button.enable(window==5);
         this.window = window;
         Preferences.putWindow(window);
         tempoDisplay.setWindow(window);
@@ -328,7 +328,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         tempoDisplay.setMetronomeSond(Constants.Sound.fromIndex(this.sound));
 
     }
-    @OnClick({R.id.window2, R.id.window4, R.id.window8, R.id.window16,
+    @OnClick({R.id.window2, R.id.window3, R.id.window4, R.id.window5,
         R.id.beat1, R.id.beat2, R.id.beat3, R.id.beat4,
         R.id.soundDrum, R.id.soundSticks, R.id.soundMetronom, R.id.soundSurprise,
         R.id.aboutButton,
@@ -350,14 +350,14 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
             case R.id.window2:
                 setWindow(2);
                 break;
+            case R.id.window3:
+                setWindow(3);
+                break;
             case R.id.window4:
                 setWindow(4);
                 break;
-            case R.id.window8:
-                setWindow(8);
-                break;
-            case R.id.window16:
-                setWindow(16);
+            case R.id.window5:
+                setWindow(5);
                 break;
             case R.id.beat1:
                 setBeat(1);

@@ -99,20 +99,20 @@
         <com.esdevices.backbeater.ui.widgets.NumberButton
             android:layout_width="@dimen/button_medium"
             android:layout_height="@dimen/button_medium"
+            android:text="3"
+            android:id="@+id/window3"
+            android:layout_weight="1" />
+        <com.esdevices.backbeater.ui.widgets.NumberButton
+            android:layout_width="@dimen/button_medium"
+            android:layout_height="@dimen/button_medium"
             android:text="4"
             android:id="@+id/window4"
             android:layout_weight="1" />
         <com.esdevices.backbeater.ui.widgets.NumberButton
             android:layout_width="@dimen/button_medium"
             android:layout_height="@dimen/button_medium"
-            android:text="8"
-            android:id="@+id/window8"
-            android:layout_weight="1" />
-        <com.esdevices.backbeater.ui.widgets.NumberButton
-            android:layout_width="@dimen/button_medium"
-            android:layout_height="@dimen/button_medium"
-            android:text="16"
-            android:id="@+id/window16"
+            android:text="5"
+            android:id="@+id/window5"
             android:layout_weight="1" />
     </LinearLayout>
 

@@ -20,6 +20,7 @@ public class Preferences {
     public static ArrayList<Song> readSongList;
     
     
+    private final static String CPT = "CPT";
     private final static String SOUND = "SOUND";
     private final static String WINDOW = "WINDOW";
     private final static String BEAT = "BEAT";
@@ -37,9 +38,14 @@ public class Preferences {
     
     
     
+    public static int getCPT(int defaultValue) {
+        return getPrefs().getInt(CPT, defaultValue);
+    }
+    
     public static int getSound(int defaultValue) {
         return getPrefs().getInt(SOUND, defaultValue);
     }
+    
     public static int getWindow(int defaultValue) {
         return getPrefs().getInt(WINDOW, defaultValue);
     }
@@ -65,6 +71,10 @@ public class Preferences {
     }
     
     
+    
+    public static void putCPT(int value) {
+        getPrefs().edit().putInt(CPT, value).commit();
+    }
     
     public static void putSound(int value) {
         getPrefs().edit().putInt(SOUND, value).commit();

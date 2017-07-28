@@ -18,6 +18,7 @@ import com.esdevices.backbeater.audio.MetronomePlayer;
 import com.esdevices.backbeater.audio.WindowQueue;
 import com.esdevices.backbeater.utils.Constants;
 import com.esdevices.backbeater.utils.Constants.Sound;
+import com.esdevices.backbeater.utils.Preferences;
 
 /**
  * Created by aeboyd on 7/15/15.
@@ -40,13 +41,14 @@ public class TempoDisplay extends TextView {
     
     
     
-    private int CPT = 0;  // = Currently Playing Tempo (multiplied by Beat, averaged in Window) or Metronome Tempo
+    private int CPT = Constants.DEFAULT_TEMPO;  // = Currently Playing Tempo (multiplied by Beat, averaged in Window) or Metronome Tempo
+    private int metronomeTempo = Constants.DEFAULT_TEMPO;
     
     private MetronomePlayer metronome;
     
-    private int beat = 4;
-    private int window = 16;
-    private WindowQueue windowQueue = new WindowQueue(window);
+    private int beat = 1;
+    private int window = 5;
+    private WindowQueue windowQueue;
     
     public boolean handleTap = true;
     
@@ -63,6 +65,11 @@ public class TempoDisplay extends TextView {
 
     public TempoDisplay(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        
+        beat = Preferences.getBeat(beat);
+        window = Preferences.getWindow(window);
+        CPT = Preferences.getCPT(CPT);
+        windowQueue = new WindowQueue(window);
     
         accentColor = getResources().getColor(R.color.assent_color);
         
@@ -97,25 +104,12 @@ public class TempoDisplay extends TextView {
     }
     
     //================================================================================
-    //  Currently Playing Tempo (set from metronome button or strike button)
+    //  Currently Playing Tempo (use for saving state)
     //================================================================================
     
     public int getCPT() {
         return CPT;
     }
-    
-    // set from metronome button or strike button
-    public void setCPT(int CPT) {
-        if (CPT != this.CPT) {
-            // reset all
-            lastBeat = 0;
-            lastMetronomeBeat = 0;
-            //TODO: do we need to clear it? windowQueue.clear();
-            this.CPT = CPT;
-            invalidate();
-        }
-    }
-    
     
     
     //================================================================================
@@ -145,8 +139,8 @@ public class TempoDisplay extends TextView {
             radius = (height - drum.getBounds().height()/2)/2- getPaddingLeft();
         }
         long now = System.currentTimeMillis();
-        long timeSinceLastBeat = now - lastBeat;
-        long timeSinceLastMetronomeBeat = now - lastMetronomeBeat;
+        long timeSinceLastBeat = now - lastBeatTime;
+        long timeSinceLastTimerBeat = now - lastTimerBeatTime;
         
         int cY = drum.getBounds().height()/2+radius+getPaddingTop();
         
@@ -175,8 +169,7 @@ public class TempoDisplay extends TextView {
             paint.setColor(accentColor);
             canvas.drawCircle(cX, cY, radius, paint);
     
-            
-            
+            Log.d("TIMER", "timeSinceLastBeat: "+timeSinceLastBeat+", condition: "+(timeSinceLastBeat < DRUM_ANIMATION_DURATION));
             // draw fading white circle
             if(timeSinceLastBeat < DRUM_ANIMATION_DURATION && offDegree > 0) {
                 paint.setColor(NumberButton.mixTwoColors(accentColor, WHITE_COLOR, timeSinceLastBeat / DRUM_ANIMATION_DURATION));
@@ -196,34 +189,32 @@ public class TempoDisplay extends TextView {
         
         // if become idle
         if (!oldIsIdle && isIdle) {
-            lastBeat = 0;
+            lastBeatTime = 0;
         }
-    
-    
-    
-        float cptRate = MS_IN_MIN / CPT;
+        
+        int _CPT = metronomeIsOn ? metronomeTempo : CPT;
     
         //paint the red circle that goes on the ring
         paint.setStyle(Paint.Style.FILL);
-        if (CPT > 0 && (!isIdle || metronomeIsOn) ) {
-            
-            double degree;
-            if (metronomeIsOn) {
-                degree = ((timeSinceLastMetronomeBeat / cptRate) % 1) * 2 * Math.PI + Math.PI;
-                Log.d("METRONOME", "degree: "+degree);
-                double delta = 0.131;
-
-                if (Math.PI+delta <= degree ||  3*Math.PI-delta > degree) {
-                    Log.d("METRONOME", "----------------- BEEP ------------");
-                    lastMetronomeBeat = now;
-                    metronome.play();
-                }
-            } else {
-                degree = ((timeSinceLastBeat / cptRate) % 1) * 2 * Math.PI + Math.PI;
-            }
+        if (_CPT > 0 && (!isIdle || metronomeIsOn) ) {
+    
+            double oneLapTime = getOneLapTime();
+            double degree = ((double)timeSinceLastTimerBeat * 2*Math.PI) / oneLapTime + Math.PI;
+            //Log.d("TIMER", "timeSinceLastTimerBeat: "+timeSinceLastTimerBeat+", degree: "+degree);
+    
             int ocX = (int) (radius * Math.sin(degree) + cX);
             int ocY = (int) (radius * Math.cos(degree) + cY);
             canvas.drawCircle(ocX, ocY, 3 * paint.getStrokeWidth(), paint);
+    
+            
+            //Log.d("TIMER", "degree: "+degree+", time offset: "+(timeSinceLastTimerBeat-oneLapTime));
+            if ((oneLapTime-timeSinceLastTimerBeat <= 5) || (timeSinceLastTimerBeat >= oneLapTime)) {
+                Log.d("METRONOME", "----------------- BEEP ------------");
+                lastTimerBeatTime = now;
+                if (metronomeIsOn) {
+                    metronome.play();
+                }
+            }
         }
 
         // draw drum
@@ -262,18 +253,20 @@ public class TempoDisplay extends TextView {
     //================================================================================
     
     
-    private long timerStartTime = 0;
+    private long lastTimerBeatTime = 0;
     private long lastBeatTime=0;
     private boolean hit = false;
     private double offDegree = 0;
     private boolean isIdle = true;
     
-    private long speed(){ // time to run one whole circle
-        return (long) ( (double) MS_IN_MIN / ((double)CPT/1000/(double)beat) );
+    private double getOneLapTime(){ // time to run one whole circle
+        double CPT = isMetronomeOn() ? (double)metronomeTempo : (double) this.CPT /(double)beat;
+        return  (double) MS_IN_MIN / CPT;
     }
     
-    private long getCurrentOffsetTime(long from, long to){
-        return (to - from) % speed();
+    // tap handler
+    private double getBeatRate(){ //  hit frequency = CPT/beat
+        return  (double) MS_IN_MIN / ((double) CPT /(double)beat);
     }
     
     // tap handler
@@ -282,15 +275,14 @@ public class TempoDisplay extends TextView {
         if (lastBeatTime == 0){
             lastBeatTime = now;
             if (!isMetronomeOn()) {
-                timerStartTime = now;
+                lastTimerBeatTime = now;
             }
             return;
         }
-        long timeSinceLastBeat = getCurrentOffsetTime(lastBeatTime, now);
-        
+        long timeSinceLastBeat = now - lastBeatTime;
         double tapBpm = (double) (MS_IN_MIN /timeSinceLastBeat);
-        processBeat(tapBpm, timeSinceLastBeat);
         lastBeatTime = now;
+        processBeat(tapBpm, now);
     }
     
     // audio handler
@@ -299,46 +291,31 @@ public class TempoDisplay extends TextView {
         if (lastBeatTime == 0){
             lastBeatTime = now;
             if (!isMetronomeOn()) {
-                timerStartTime = now;
+                lastTimerBeatTime = now;
             }
             return;
         }
-        long currentOffsetTime = getCurrentOffsetTime(lastBeatTime, now);
-        processBeat(drumBpm, currentOffsetTime);
         lastBeatTime = now;
+        processBeat(drumBpm, now);
     }
     
-    private void processBeat(double bpm, long timeSinceLastBeat) {
+    private void processBeat(double bpm, long beatTime) {
         double multiplier = isMetronomeOn() ? 1 : (double) beat;
         double instantTempo = multiplier * bpm;
-        if (!isMetronomeOn()) {
-            CPT = windowQueue.enqueue(instantTempo).average();
-        }
-        int BPM = (int) instantTempo;
-    
+        CPT = windowQueue.enqueue(instantTempo).average();
+        
         offDegree = 0;
         if (this.CPT > 0) {
-            offDegree = (((double)timeSinceLastBeat / ((double) MS_IN_MIN / (double)CPT)) * 2 * Math.PI + Math.PI);
-            double offset = offDegree-(2*Math.PI);
-            Log.d("HIT", ""+offDegree+"   -   "+offset);
-            hit = offDegree == 0;
-            if (hit){
+            double oneLapTime = getOneLapTime();
+            long timeSinceLastTimerBeat = beatTime - lastTimerBeatTime;
+            hit = (oneLapTime-timeSinceLastTimerBeat <= 5) || (timeSinceLastTimerBeat >= oneLapTime);
+            if (!hit){
+                offDegree = ((double)timeSinceLastTimerBeat * 2*Math.PI) / oneLapTime + Math.PI;
                 leftStrike = !leftStrike;
-            } else {
-                offDegree = 0;
             }
+            Log.d("HIT", "---------------------");
+            //Log.d("HIT", (hit? "HIT!!!!  ":"MISSED!!! ") +"   timeSinceLastBeat: "+timeSinceLastTimerBeat+", getBeatRate: "+ getBeatRate()+", offDegree: "+offDegree);
         }
-    
-    
-        //hit = BPM==this.CPT;
-        //
-        //if (hit) {
-        //    leftStrike = !leftStrike;
-        //} else if (this.BPM > 0) {
-        //    offDegree = ((((double)timeSinceLastBeat / ((double) MS_IN_MIN / (double)BPM)) % 1) * 2 * Math.PI + Math.PI);
-        //    Log.d("HIT", ""+offDegree);
-        //}
-        
         invalidate();
     }
     
@@ -368,18 +345,20 @@ public class TempoDisplay extends TextView {
     //================================================================================
     
     
-    public void setMetronomeOn(Sound sound) {
+    public void setMetronomeOn(Sound sound, int metronomeTempo) {
+        //TODO: think of initializing MetronomePlayer in constructor
         if (metronome == null) {
             metronome = new MetronomePlayer();
         }
-        timerStartTime = System.currentTimeMillis();
         metronome.setCurrentSound(sound);
+        this.metronomeTempo = metronomeTempo;
+        lastTimerBeatTime = System.currentTimeMillis();
         invalidate();
     }
     
     public void setMetronomeOff() {
         metronome = null;
-        timerStartTime = 0;
+        lastTimerBeatTime = 0;
         invalidate();
     }
     
