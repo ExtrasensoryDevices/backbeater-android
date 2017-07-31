@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -116,6 +117,10 @@ public class SongListActivity extends Activity  {
             .setNegativeButton("Cancel", null)
             .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
                 @Override public void onClick(DialogInterface dialog, int which) {
+                    View v = getCurrentFocus();
+                    if (v instanceof EditText) {
+                        v.clearFocus();
+                    }
                     songList.remove(position);
                     songListLayout.removeViewAt(position);
                     onDataChange();
@@ -156,7 +161,7 @@ public class SongListActivity extends Activity  {
         public ViewHolder(int position, Song song, View view) {
             ButterKnife.bind(this, view);
             this.parent = view;
-            songNameText.setText(song.name);
+            songNameText.setText(song.name.toUpperCase());
             tempoText.setText(""+song.tempo);
         }
         
@@ -169,13 +174,15 @@ public class SongListActivity extends Activity  {
         public void onSongNameFocusChange(View v, boolean hasFocus) {
             if (hasFocus) { return;}
             Song song = songList.get(getPosition(parent));
-            String res = songNameText.getText().toString().trim();
+            String res = songNameText.getText().toString().trim().toUpperCase();
             if (TextUtils.isEmpty(res)) {
-                songNameText.setText(song.name);
+                songNameText.setText(song.name.toUpperCase());
             } else {
                 song.name = res;
+                songNameText.setText(res);
                 onDataChange();
             }
+            songNameText.scrollTo(0,0);
         }
     
         

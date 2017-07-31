@@ -5,6 +5,7 @@
     <color name="navigationBarColor">@color/main_color</color>
     
     <color name="main_color">#262626</color>
+    <color name="main_color_transparent">#E6262626</color> <!-- 90% opacity -->
     <color name="assent_color">#DD2F44</color>
     <color name="grey_color">#4C4C4C</color>
 </resources>

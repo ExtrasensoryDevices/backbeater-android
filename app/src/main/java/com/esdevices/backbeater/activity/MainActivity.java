@@ -51,6 +51,8 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     private Handler handler;
     
     
+    @Bind(R.id.drawerLayout) DrawerLayout drawerLayout;
+    
     @Bind(R.id.tempoDisplay) TempoDisplay tempoDisplay;
     @Bind(R.id.window2) NumberButton window2Button;
     @Bind(R.id.window3) NumberButton window3Button;
@@ -65,7 +67,6 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     @Bind(R.id.soundMetronom) ImageView metronomeButton;
     @Bind(R.id.soundSurprise) ImageView surpriseButton;
     @Bind(R.id.textVersion) BBTextView versionNumber;
-    @Bind(R.id.drawerLayout) DrawerLayout mDrawerLayout;
     
     @Bind(R.id.getSensorButton) View getSensorButton;
     @Bind(R.id.setTempoButton) View setTempoButton;
@@ -95,6 +96,8 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+    
+        drawerLayout.setScrimColor(getResources().getColor(R.color.main_color_transparent));
         
         handler = new Handler(getMainLooper()){
             @Override
@@ -196,7 +199,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         // count > 0
         songListView.setVisibility(View.VISIBLE);
         songListButton.setImageResource(R.drawable.tempo_list_select);
-        songNameText.setText(songList.get(currentSongIndex).name);
+        songNameText.setText(songList.get(currentSongIndex).name.toUpperCase());
         prevButton.setVisibility(count == 1 ? View.GONE : View.VISIBLE);
         nextButton.setVisibility(count == 1 ? View.GONE : View.VISIBLE);
     }
@@ -372,11 +375,11 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
                 setBeat(4);
                 break;
             case R.id.aboutButton:
-                mDrawerLayout.closeDrawer(Gravity.LEFT);
+                drawerLayout.closeDrawer(Gravity.LEFT);
                 showAbout();
                 break;
             case R.id.menuButton:
-                mDrawerLayout.openDrawer(Gravity.LEFT);
+                drawerLayout.openDrawer(Gravity.LEFT);
                 break;
 
         }

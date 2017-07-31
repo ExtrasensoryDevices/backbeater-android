@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.Button;
 
 import com.esdevices.backbeater.R;
+import com.esdevices.backbeater.utils.Constants;
 
 /**
  * Created by aeboyd on 7/15/15.
@@ -40,7 +41,7 @@ public class NumberButton extends Button implements View.OnClickListener {
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(getResources().getDimension(R.dimen.circle_outline_width));
         if (!isInEditMode()) {
-            paint.setTypeface(Typeface.createFromAsset(getResources().getAssets(), "fonts/futura_round_demi.ttf"));
+            paint.setTypeface(Constants.BBTypeface.FUTURA_ROUND_DEMI.getTypeface(context));
         }
         paint.setTextAlign(Paint.Align.CENTER);
         paint.setTextSize(getTextSize());

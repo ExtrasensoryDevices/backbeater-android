@@ -1,5 +1,7 @@
 package com.esdevices.backbeater.utils;
 
+import android.content.Context;
+import android.graphics.Typeface;
 import android.support.annotation.RawRes;
 import com.esdevices.backbeater.R;
 
@@ -44,6 +46,40 @@ public enum Sound {
             default: return SIDE_STICK;
         }
     }
+    
+}
+    
+public enum BBTypeface {
+    FUTURA_ROUND_BOOK(0, "FUTURA_ROUND_BOOK", "fonts/futura_round_book.ttf"),
+    FUTURA_ROUND_DEMI(1, "FUTURA_ROUND_DEMI", "fonts/futura_round_demi.ttf"),
+    STEELFISH(2, "STEELFISH", "fonts/steelfish_rg.ttf");
+    
+    
+    public final int index;
+    public final String name;
+    private final String path;
+    
+    public static final BBTypeface DEFAULT_TYPEFACE = FUTURA_ROUND_DEMI;
+    
+    BBTypeface(int index, String name, String path){
+        this.index = index;
+        this.name = name;
+        this.path = path;
+    }
+    
+    public static BBTypeface fromIndex(final int index) {
+        switch (index){
+            case 0: return FUTURA_ROUND_BOOK;
+            case 1: return FUTURA_ROUND_DEMI;
+            case 2: return STEELFISH;
+            default: return DEFAULT_TYPEFACE;
+        }
+    }
+    
+    public Typeface getTypeface(Context context) {
+        return Typeface.createFromAsset(context.getResources().getAssets(), path);
+    }
+    
     
 }
     

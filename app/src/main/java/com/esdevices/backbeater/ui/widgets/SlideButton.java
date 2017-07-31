@@ -58,11 +58,11 @@ public class SlideButton extends View {
         assentColor = context.getResources().getColor(R.color.assent_color);
         
         paint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
-        paint.setStrokeWidth(2*DP);
+        paint.setStrokeWidth(getResources().getDimension(R.dimen.circle_outline_width));
         paint.setStyle(Paint.Style.STROKE);
         paint.setTextAlign(Paint.Align.CENTER);
         if(!isInEditMode()) {
-            paint.setTypeface(Typeface.createFromAsset(getResources().getAssets(), "fonts/steelfish_rg.ttf"));
+            paint.setTypeface(Constants.BBTypeface.FUTURA_ROUND_BOOK.getTypeface(context));
         }
     }
     

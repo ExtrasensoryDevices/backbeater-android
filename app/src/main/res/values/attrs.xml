@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+    <attr name="bbTypeface" format="enum">
+        <enum name="FUTURA_ROUND_BOOK" value="0"/>
+        <enum name="FUTURA_ROUND_DEMI" value="1"/>
+        <enum name="STEELFISH" value="2"/>
+    </attr>
+    
+    <declare-styleable name="BBTextView">
+        <attr name="bbTypeface"/>
+    </declare-styleable>
+    <declare-styleable name="BBEditTextView">
+        <attr name="bbTypeface"/>
+    </declare-styleable>
+
+
+
+
+</resources>

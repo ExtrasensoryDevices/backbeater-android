@@ -14,6 +14,7 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import com.esdevices.backbeater.R;
+import com.esdevices.backbeater.utils.Constants;
 
 public class SensitivitySlider extends View {
     private TextPaint mTextPaint;
@@ -61,7 +62,7 @@ public class SensitivitySlider extends View {
         mTextPaint.setColor(-1);
         mTextPaint.setStrokeWidth(getResources().getDimension(R.dimen.sensitivity_stroke));
         if (!isInEditMode()) {
-            mTextPaint.setTypeface(Typeface.createFromAsset(getResources().getAssets(), "fonts/futura_round_demi.ttf"));
+            mTextPaint.setTypeface(Constants.BBTypeface.FUTURA_ROUND_BOOK.getTypeface(getContext()));
         }
         mTextPaint.setTextAlign(Paint.Align.CENTER);
     }

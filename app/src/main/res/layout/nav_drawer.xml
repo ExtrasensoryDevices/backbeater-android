@@ -29,7 +29,7 @@
     <com.esdevices.backbeater.ui.widgets.BBTextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="metronom sound"
+        android:text="metronome sound"
         android:id="@+id/textView6"
         android:layout_gravity="center_horizontal"
         android:textAllCaps="true"

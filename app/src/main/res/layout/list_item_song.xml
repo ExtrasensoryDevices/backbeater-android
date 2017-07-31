@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:tools="http://schemas.android.com/tools" xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -10,7 +10,7 @@
     android:paddingTop="@dimen/padding_small"
     android:paddingBottom="@dimen/padding_small"
     android:descendantFocusability="beforeDescendants"
-    >
+>
     
     <com.esdevices.backbeater.ui.widgets.BBEditTextView
         android:id="@+id/songNameText"
@@ -22,11 +22,13 @@
         tools:text="Song #1"
         android:textColor="#fff"
         android:textSize="17dp"
+        android:textAllCaps="true"
         android:focusableInTouchMode="true"
         android:windowSoftInputMode="adjustPan"
-        android:inputType="textAutoComplete|textAutoCorrect|textCapWords"
+        android:inputType="textAutoComplete|textAutoCorrect|textCapCharacters"
         android:imeOptions="actionNext"
         android:maxLines="1"
+        android:ellipsize="end"
     />
     <com.esdevices.backbeater.ui.widgets.BBEditTextView
         android:id="@+id/tempoText"
@@ -37,6 +39,7 @@
         tools:text="120"
         android:textColor="#fff"
         android:textSize="13dp"
+        app:bbTypeface="FUTURA_ROUND_BOOK"
         android:background="@drawable/border_red"
         android:focusableInTouchMode="true"
         android:windowSoftInputMode="adjustPan"

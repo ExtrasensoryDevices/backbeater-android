@@ -83,7 +83,7 @@ public class TempoDisplay extends TextView {
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(getResources().getDimension(R.dimen.circle_outline_width));
         if(!isInEditMode()) {
-            paint.setTypeface(Typeface.createFromAsset(getResources().getAssets(), "fonts/steelfish_rg.ttf"));
+            paint.setTypeface(Constants.BBTypeface.STEELFISH.getTypeface(context));
         }
         paint.setTextAlign(Paint.Align.CENTER);
     }
