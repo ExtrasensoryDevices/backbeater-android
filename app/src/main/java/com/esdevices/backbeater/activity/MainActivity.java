@@ -194,14 +194,14 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         if (count <= 0) {
             songListView.setVisibility(View.GONE);
             songListButton.setImageResource(R.drawable.tempo_list);
-            return;
+        } else {
+            // count > 0
+            songListView.setVisibility(View.VISIBLE);
+            songListButton.setImageResource(R.drawable.tempo_list_select);
+            songNameText.setText(songList.get(currentSongIndex).name.toUpperCase());
+            prevButton.setVisibility(count == 1 ? View.GONE : View.VISIBLE);
+            nextButton.setVisibility(count == 1 ? View.GONE : View.VISIBLE);
         }
-        // count > 0
-        songListView.setVisibility(View.VISIBLE);
-        songListButton.setImageResource(R.drawable.tempo_list_select);
-        songNameText.setText(songList.get(currentSongIndex).name.toUpperCase());
-        prevButton.setVisibility(count == 1 ? View.GONE : View.VISIBLE);
-        nextButton.setVisibility(count == 1 ? View.GONE : View.VISIBLE);
     }
     
     private void setCurrentSongIndex(int index) {

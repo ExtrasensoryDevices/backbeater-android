@@ -129,7 +129,7 @@ public class TempoDisplay extends AppCompatTextView {
         int contentHeight = getHeight()-getPaddingBottom()-getPaddingTop();
         
         // size of the CPT display
-        if (height != contentHeight && width != contentWidth) {
+        if (height != contentHeight || width != contentWidth) {
             height = contentHeight;
             width = contentWidth;
             int drumL = (int) (.5*width*(1-PCT_DRUM)+getPaddingLeft());
