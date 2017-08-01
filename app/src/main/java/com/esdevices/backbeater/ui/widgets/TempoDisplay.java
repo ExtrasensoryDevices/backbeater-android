@@ -4,13 +4,12 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.graphics.Typeface;
 import android.graphics.drawable.AnimationDrawable;
 import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
-import android.widget.TextView;
+import android.support.v7.widget.AppCompatTextView;
 
 import com.esdevices.backbeater.R;
 
@@ -23,7 +22,7 @@ import com.esdevices.backbeater.utils.Preferences;
 /**
  * Created by aeboyd on 7/15/15.
  */
-public class TempoDisplay extends TextView {
+public class TempoDisplay extends AppCompatTextView {
     
     public static final long MS_IN_MIN = 60000;
     public static final long IDLE_TIMEOUT = 10000;
@@ -34,10 +33,13 @@ public class TempoDisplay extends TextView {
     private int height = 0;
     private int width = 0;
     private final Rect textBounds = new Rect();
+    private Rect drumBounds = new Rect();
     private static final float PCT_DRUM = .4f;
     private static final float DRUM_ANIMATION_DURATION = 600f;
     private final int DRUM_ANIMATION_FRAMES;
     private boolean leftStrike = false;
+    private static final float DRUM_PULSE_ANIMATION_DURATION = DRUM_ANIMATION_DURATION/10f;
+    private final float DRUM_PULSE_DELTA_Y;
     
     
     
@@ -76,6 +78,7 @@ public class TempoDisplay extends TextView {
         drum = (AnimationDrawable)getResources().getDrawable(R.drawable.drum_hit_animation);
         int totalFrames = drum.getNumberOfFrames();
         DRUM_ANIMATION_FRAMES = totalFrames / 2; // one pass = half of the frames
+        DRUM_PULSE_DELTA_Y = getResources().getDimension(R.dimen.drum_animation_delta_y);
         drum.selectDrawable(totalFrames - 1); // last frame
         
         paint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
@@ -129,29 +132,41 @@ public class TempoDisplay extends TextView {
         if (height != contentHeight && width != contentWidth) {
             height = contentHeight;
             width = contentWidth;
-            drum.setBounds((int) (.5*width*(1-PCT_DRUM)+getPaddingLeft()),getPaddingTop(),(int) (.5*width*(1+PCT_DRUM)+getPaddingLeft()),(int)(width*PCT_DRUM*drum.getIntrinsicHeight()/drum.getIntrinsicWidth()+getPaddingTop()));
+            int drumL = (int) (.5*width*(1-PCT_DRUM)+getPaddingLeft());
+            int drumT = getPaddingTop();
+            int drumR = (int) (.5*width*(1+PCT_DRUM)+getPaddingLeft());
+            int drumB =(int)(width*PCT_DRUM*drum.getIntrinsicHeight()/drum.getIntrinsicWidth()+getPaddingTop());
+            drumBounds = new Rect(drumL, drumT, drumR, drumB);
+            drum.setBounds(drumBounds);
+            Log.d("PULSE", "initial: "+drumBounds.width()+" x "+drumBounds.height()+", ratio = "+((float)drumBounds.width()/(float)drumBounds.height()));
+    
         }
         
         // (cX, cY), radius - centre and radius of the big circle,
         int cX = width/2+getPaddingLeft();
         int radius = (int) (width/2-paint.getStrokeWidth());
-        if(height-drum.getBounds().height()/2<getWidth()){
-            radius = (height - drum.getBounds().height()/2)/2- getPaddingLeft();
+        if(height-drumBounds.height()/2<getWidth()){
+            radius = (height - drumBounds.height()/2)/2- getPaddingLeft();
         }
         long now = System.currentTimeMillis();
         long timeSinceLastBeat = now - lastBeatTime;
         long timeSinceLastTimerBeat = now - lastTimerBeatTime;
         
-        int cY = drum.getBounds().height()/2+radius+getPaddingTop();
+        int cY = drumBounds.height()/2+radius+getPaddingTop();
         
+        
+        // beat - beat registered
+        // hit - beat in time accourding to CPT
+        boolean beat = Constants.isValidTempo(CPT) && timeSinceLastBeat < DRUM_ANIMATION_DURATION;
+    
         // draw big circle
-        if(timeSinceLastBeat < DRUM_ANIMATION_DURATION && hit){
+        if (beat && hit){
             // hit in right time
             
             // draw big circle (flash white)
             float halfDrumAnimation = DRUM_ANIMATION_DURATION / 2f;
-            paint.setColor(NumberButton.mixTwoColors(accentColor,
-                WHITE_COLOR,Math.abs((timeSinceLastBeat-halfDrumAnimation)/halfDrumAnimation)));
+            paint.setColor(NumberButton.mixTwoColors(accentColor, WHITE_COLOR,
+                Math.abs((timeSinceLastBeat-halfDrumAnimation)/halfDrumAnimation)));
             canvas.drawCircle(cX, cY, radius, paint);
             paint.setColor(accentColor);
             
@@ -169,9 +184,8 @@ public class TempoDisplay extends TextView {
             paint.setColor(accentColor);
             canvas.drawCircle(cX, cY, radius, paint);
     
-            Log.d("TIMER", "timeSinceLastBeat: "+timeSinceLastBeat+", condition: "+(timeSinceLastBeat < DRUM_ANIMATION_DURATION));
             // draw fading white circle
-            if(timeSinceLastBeat < DRUM_ANIMATION_DURATION && offDegree > 0) {
+            if (beat && offDegree > 0) {
                 paint.setColor(NumberButton.mixTwoColors(accentColor, WHITE_COLOR, timeSinceLastBeat / DRUM_ANIMATION_DURATION));
                 paint.setAlpha((int) (255 - (timeSinceLastBeat / DRUM_ANIMATION_DURATION) * 255));
                 int ocX = (int) (radius * Math.sin(offDegree) + cX);
@@ -182,34 +196,54 @@ public class TempoDisplay extends TextView {
                 paint.setColor(accentColor);
                 paint.setAlpha(255);
             }
+    
+            drum.selectDrawable(leftStrike ? DRUM_ANIMATION_FRAMES-1 : 2*DRUM_ANIMATION_FRAMES-1);
+        }
+        
+        // drum pulse animation
+        if (beat && timeSinceLastBeat < DRUM_PULSE_ANIMATION_DURATION) {
+
+            Rect drumPulseBounds = drumBounds;
+
+            float halfDrumPulseAnimation = DRUM_PULSE_ANIMATION_DURATION / 2f;
+            float timeElapsed = (float) timeSinceLastBeat - halfDrumPulseAnimation;
+            float coefficient = 0;
+            if (timeElapsed <= halfDrumPulseAnimation) {
+                 // increase 0 -> 1
+                coefficient = timeElapsed / halfDrumPulseAnimation;
+            } else {
+                // decrease 1 -> 0
+                coefficient = timeElapsed / halfDrumPulseAnimation - 1f;
+            }
+
+            int deltaY = (int) (coefficient * DRUM_PULSE_DELTA_Y);
+            int deltaX = (int) ((float)deltaY*(float)drumBounds.width() / (float)drumBounds.height());
+
+            drumPulseBounds = new Rect(drumPulseBounds.left+deltaX, drumPulseBounds.top+deltaY, drumPulseBounds.right-deltaX, drumPulseBounds.bottom-deltaY);
+            drum.setBounds(drumPulseBounds);
+        } else {
+            drum.setBounds(drumBounds);
         }
     
         boolean oldIsIdle = isIdle;
         isIdle = IDLE_TIMEOUT - timeSinceLastBeat < 200;
         
-        // if become idle
-        if (!oldIsIdle && isIdle) {
-            lastBeatTime = 0;
-        }
-        
         int _CPT = metronomeIsOn ? metronomeTempo : CPT;
+        boolean _cptIsValid = Constants.isValidTempo(_CPT);
     
         //paint the red circle that goes on the ring
         paint.setStyle(Paint.Style.FILL);
-        if (_CPT > 0 && (!isIdle || metronomeIsOn) ) {
+        if (_cptIsValid && (!isIdle || metronomeIsOn) ) {
     
             double oneLapTime = getOneLapTime();
             double degree = ((double)timeSinceLastTimerBeat * 2*Math.PI) / oneLapTime + Math.PI;
-            //Log.d("TIMER", "timeSinceLastTimerBeat: "+timeSinceLastTimerBeat+", degree: "+degree);
-    
+            
             int ocX = (int) (radius * Math.sin(degree) + cX);
             int ocY = (int) (radius * Math.cos(degree) + cY);
             canvas.drawCircle(ocX, ocY, 3 * paint.getStrokeWidth(), paint);
     
             
-            //Log.d("TIMER", "degree: "+degree+", time offset: "+(timeSinceLastTimerBeat-oneLapTime));
             if ((oneLapTime-timeSinceLastTimerBeat <= 5) || (timeSinceLastTimerBeat >= oneLapTime)) {
-                Log.d("METRONOME", "----------------- BEEP ------------");
                 lastTimerBeatTime = now;
                 if (metronomeIsOn) {
                     metronome.play();
@@ -221,14 +255,7 @@ public class TempoDisplay extends TextView {
         drum.draw(canvas);
         
         // draw CPT text
-        String cptString;
-        if (CPT < Constants.MIN_TEMPO) {
-            cptString = "MIN";
-        } else if (CPT > Constants.MAX_TEMPO) {
-            cptString = "MAX";
-        } else {
-            cptString = ""+ CPT;
-        }
+        String cptString = Constants.getTempoString(CPT);
         
         paint.setStyle(Paint.Style.STROKE);
         float stroke = paint.getStrokeWidth();
@@ -238,13 +265,28 @@ public class TempoDisplay extends TextView {
         paint.setColor(WHITE_COLOR);
         canvas.drawText(cptString, cX, cY - textBounds.exactCenterY(), paint);
         paint.setStrokeWidth(stroke);
-
+    
+    
+        // if become idle
+        if (!oldIsIdle && isIdle) {
+            reset();
+        }
         
         // repeat onDraw() if needed
         if (metronomeIsOn || (CPT > 0 && !isIdle)){
             invalidate();
         }
 
+    }
+    
+    
+    private void reset() {
+        lastTimerBeatTime = 0;
+        lastBeatTime=0;
+        hit = false;
+        offDegree = 0;
+        isIdle = true;
+        windowQueue.clear();
     }
     
     
@@ -262,11 +304,6 @@ public class TempoDisplay extends TextView {
     private double getOneLapTime(){ // time to run one whole circle
         double CPT = isMetronomeOn() ? (double)metronomeTempo : (double) this.CPT /(double)beat;
         return  (double) MS_IN_MIN / CPT;
-    }
-    
-    // tap handler
-    private double getBeatRate(){ //  hit frequency = CPT/beat
-        return  (double) MS_IN_MIN / ((double) CPT /(double)beat);
     }
     
     // tap handler
@@ -308,13 +345,13 @@ public class TempoDisplay extends TextView {
         if (this.CPT > 0) {
             double oneLapTime = getOneLapTime();
             long timeSinceLastTimerBeat = beatTime - lastTimerBeatTime;
-            hit = (oneLapTime-timeSinceLastTimerBeat <= 5) || (timeSinceLastTimerBeat >= oneLapTime);
-            if (!hit){
-                offDegree = ((double)timeSinceLastTimerBeat * 2*Math.PI) / oneLapTime + Math.PI;
+            hit = (oneLapTime-timeSinceLastTimerBeat <= 10) || (timeSinceLastTimerBeat >= oneLapTime);
+            if (hit && Constants.isValidTempo(CPT)) {
+                Log.d("HIT", "--------- HIT ------------");
                 leftStrike = !leftStrike;
+            } else {
+                offDegree = ((double)timeSinceLastTimerBeat * 2*Math.PI) / oneLapTime + Math.PI;
             }
-            Log.d("HIT", "---------------------");
-            //Log.d("HIT", (hit? "HIT!!!!  ":"MISSED!!! ") +"   timeSinceLastBeat: "+timeSinceLastTimerBeat+", getBeatRate: "+ getBeatRate()+", offDegree: "+offDegree);
         }
         invalidate();
     }
@@ -358,7 +395,7 @@ public class TempoDisplay extends TextView {
     
     public void setMetronomeOff() {
         metronome = null;
-        lastTimerBeatTime = 0;
+        reset();
         invalidate();
     }
     

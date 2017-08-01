@@ -19,6 +19,25 @@ public static final int MAX_TEMPO = 200;
 public static final int MIN_TEMPO = 20;
     
     
+    
+public static boolean isValidTempo(int tempo) {
+    return (tempo >= Constants.MIN_TEMPO  && tempo <= Constants.MAX_TEMPO);
+}
+    
+    
+public static String getTempoString(int tempo) {
+    String cptString;
+    if (tempo < Constants.MIN_TEMPO) {
+        cptString = "MIN";
+    } else if (tempo > Constants.MAX_TEMPO) {
+        cptString = "MAX";
+    } else {
+        cptString = ""+ tempo;
+    }
+    return cptString;
+}
+    
+    
 public enum Sound {
     SIDE_STICK(0, R.raw.side_stick),
     STICKS(1, R.raw.stick),

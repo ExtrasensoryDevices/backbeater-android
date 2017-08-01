@@ -17,5 +17,8 @@
     <dimen name="padding_xlarge">25dp</dimen>
     
     <dimen name="logo_height">50dp</dimen>
+    
+    <dimen name="drum_animation_delta_y">7dp</dimen>
+
 
 </resources>
