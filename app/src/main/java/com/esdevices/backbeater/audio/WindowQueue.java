@@ -16,6 +16,7 @@ public class WindowQueue {
     
     
     public WindowQueue(int capacity) {
+        this.capacity = capacity;
         buffer = new ArrayList(capacity);
     }
     

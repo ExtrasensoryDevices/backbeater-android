@@ -25,7 +25,6 @@ import com.esdevices.backbeater.utils.Preferences;
 public class TempoDisplay extends AppCompatTextView {
     
     public static final long MS_IN_MIN = 60000;
-    public static final long IDLE_TIMEOUT = 10000;
     public static final int WHITE_COLOR = -1;
     private final int accentColor;
     private final AnimationDrawable drum;
@@ -98,12 +97,18 @@ public class TempoDisplay extends AppCompatTextView {
     
     
     public void setWindow(int window) {
-        this.window = window;
-        windowQueue.setCapacity(window);
+        if (this.window != window) {
+            reset();
+            this.window = window;
+            windowQueue.setCapacity(window);
+        }
     }
     
     public void setBeat(int beat) {
-        this.beat = beat;
+        if (this.beat != beat) {
+            reset();
+            this.beat = beat;
+        }
     }
     
     //================================================================================
@@ -138,7 +143,6 @@ public class TempoDisplay extends AppCompatTextView {
             int drumB =(int)(width*PCT_DRUM*drum.getIntrinsicHeight()/drum.getIntrinsicWidth()+getPaddingTop());
             drumBounds = new Rect(drumL, drumT, drumR, drumB);
             drum.setBounds(drumBounds);
-            Log.d("PULSE", "initial: "+drumBounds.width()+" x "+drumBounds.height()+", ratio = "+((float)drumBounds.width()/(float)drumBounds.height()));
     
         }
         
@@ -226,7 +230,7 @@ public class TempoDisplay extends AppCompatTextView {
         }
     
         boolean oldIsIdle = isIdle;
-        isIdle = IDLE_TIMEOUT - timeSinceLastBeat < 200;
+        isIdle = Constants.IDLE_TIMEOUT_IN_MS - timeSinceLastBeat < 200;
         
         int _CPT = metronomeIsOn ? metronomeTempo : CPT;
         boolean _cptIsValid = Constants.isValidTempo(_CPT);
@@ -305,35 +309,26 @@ public class TempoDisplay extends AppCompatTextView {
         double CPT = isMetronomeOn() ? (double)metronomeTempo : (double) this.CPT /(double)beat;
         return  (double) MS_IN_MIN / CPT;
     }
+
     
-    // tap handler
-    public void beat(){
-        long now = System.currentTimeMillis();
+    // beat handler
+    public void beat(long hitTime) {
         if (lastBeatTime == 0){
-            lastBeatTime = now;
+            lastBeatTime = hitTime;
             if (!isMetronomeOn()) {
-                lastTimerBeatTime = now;
+                lastTimerBeatTime = hitTime;
             }
             return;
         }
-        long timeSinceLastBeat = now - lastBeatTime;
+        if (true) {
+            return;
+        }
+        
+        
+        long timeSinceLastBeat = hitTime - lastBeatTime;
         double tapBpm = (double) (MS_IN_MIN /timeSinceLastBeat);
-        lastBeatTime = now;
-        processBeat(tapBpm, now);
-    }
-    
-    // audio handler
-    public void setBPM(double drumBpm) {
-        long now = System.currentTimeMillis();
-        if (lastBeatTime == 0){
-            lastBeatTime = now;
-            if (!isMetronomeOn()) {
-                lastTimerBeatTime = now;
-            }
-            return;
-        }
-        lastBeatTime = now;
-        processBeat(drumBpm, now);
+        lastBeatTime = hitTime;
+        processBeat(tapBpm, hitTime);
     }
     
     private void processBeat(double bpm, long beatTime) {
@@ -369,7 +364,7 @@ public class TempoDisplay extends AppCompatTextView {
         if (handleTap) {
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
-                    beat();
+                    beat(System.currentTimeMillis());
             }
         }
         return super.onTouchEvent(event);

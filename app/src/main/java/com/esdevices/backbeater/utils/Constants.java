@@ -18,9 +18,12 @@ public static final int DEFAULT_TEMPO = 120;
 public static final int MAX_TEMPO = 200;
 public static final int MIN_TEMPO = 20;
     
+public static final long IDLE_TIMEOUT_IN_MS = 10000; // 10 000ms = 10sec
     
     
-public static boolean isValidTempo(int tempo) {
+    
+    
+    public static boolean isValidTempo(int tempo) {
     return (tempo >= Constants.MIN_TEMPO  && tempo <= Constants.MAX_TEMPO);
 }
     

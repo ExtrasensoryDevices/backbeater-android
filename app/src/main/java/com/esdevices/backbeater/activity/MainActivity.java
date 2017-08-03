@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v4.widget.DrawerLayout;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.ImageView;
@@ -120,6 +121,8 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         setBeat(Preferences.getBeat(beat));
         sensitivity = Preferences.getSensitivity(sensitivity);
         
+        audioService.setSensitivity(sensitivity);
+        
         tempoSlideButton.setStateChangeListener(this);
         
         updateSongList();
@@ -155,7 +158,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
             getSensorButton.setVisibility(View.INVISIBLE);
             setTempoButton.setVisibility(View.VISIBLE);
             tempoDisplay.handleTap = false;
-            audioService.start();
+            audioService.startMe();
         } else {
             // sensor unplugged
             getSensorButton.setVisibility(View.VISIBLE);
@@ -225,18 +228,18 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         tempoSlideButton.setValue(tempo);
         // update metronome if needed
         if (tempoSlideButton.isSelected()) {
-            tempoDisplay.setMetronomeOn(Constants.Sound.fromIndex(sound), tempoSlideButton.getValue());;
+            tempoDisplay.setMetronomeOn(Constants.Sound.fromIndex(sound), tempoSlideButton.getValue());
         }
     }
     
     
     
     @Override
-    public void onBeat(final double bpm){
+    public void onBeat(final long hitTime){
         handler.post(new Runnable() {
             @Override
             public void run() {
-                tempoDisplay.setBPM((int) (bpm));
+                tempoDisplay.beat(hitTime);
             }
         });
     }

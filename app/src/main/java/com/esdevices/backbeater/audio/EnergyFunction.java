@@ -8,9 +8,9 @@ class EnergyFunction {
     
     private static final int COUNT = 4;
     
-    private float buffer[] = new float[COUNT];
+    private double buffer[] = new double[COUNT];
     private int index = -1;
-    private float energy = 0f;
+    private double energy = 0f;
     
     public void clear() {
         index = -1;
@@ -20,11 +20,11 @@ class EnergyFunction {
         }
     }
     
-    public float push(float value){
+    public double push(double value){
         index = (index+1) % COUNT;
-        
-        float square = value * value;
-        float oldValue = buffer[index];
+    
+        double square = value * value;
+        double oldValue = buffer[index];
         buffer[index] = square;
         
         energy = energy - oldValue + square;
