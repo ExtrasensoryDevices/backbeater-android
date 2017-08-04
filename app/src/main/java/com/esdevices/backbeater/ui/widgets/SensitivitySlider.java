@@ -1,13 +1,13 @@
 package com.esdevices.backbeater.ui.widgets;
 
 import android.content.Context;
-import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
+import android.support.v4.content.ContextCompat;
 import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -17,6 +17,15 @@ import com.esdevices.backbeater.R;
 import com.esdevices.backbeater.utils.Constants;
 
 public class SensitivitySlider extends View {
+    
+    public interface ValueChangeListener {
+        void onSensitivityValueChanged(int newValue);
+    }
+    
+    
+    private ValueChangeListener valueChangeListener;
+    
+    
     private TextPaint mTextPaint;
     private Drawable low;
     private Drawable high;
@@ -41,23 +50,43 @@ public class SensitivitySlider extends View {
     public SensitivitySlider(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         PINK_COLOR = getResources().getColor(R.color.assent_color);
-        init(attrs, defStyle);
+        init(context, attrs, defStyle);
     }
 
-    private void init(AttributeSet attrs, int defStyle) {
+    private void init(Context context, AttributeSet attrs, int defStyle) {
 
         // Set up a default TextPaint object
         mTextPaint = new TextPaint();
         mTextPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
         mTextPaint.setTextAlign(Paint.Align.LEFT);
-
-        low = getResources().getDrawable(R.drawable.sensitivity_low);
-        high = getResources().getDrawable(R.drawable.sensitivity_high);
+    
+    
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            low = getResources().getDrawable(R.drawable.sensitivity_low, context.getTheme());
+            high = getResources().getDrawable(R.drawable.sensitivity_high, context.getTheme());
+        } else {
+            low = ContextCompat.getDrawable(context, R.drawable.sensitivity_low);
+            high = ContextCompat.getDrawable(context, R.drawable.sensitivity_high);
+        }
+        
 
         // Update TextPaint and text measurements from attributes
         invalidateTextPaintAndMeasurements();
     }
-
+    
+    public void setValueChangeListener(ValueChangeListener valueChangeListener) {
+        this.valueChangeListener = valueChangeListener;
+    }
+    
+    public void setValue(int level) {
+        this.level = Math.max(0f, Math.min(100f, (float)level/100f));
+        invalidate();
+    }
+    
+    public int getValue() {
+        return Math.round(level*100f);
+    }
+    
     private void invalidateTextPaintAndMeasurements() {
         mTextPaint.setColor(-1);
         mTextPaint.setStrokeWidth(getResources().getDimension(R.dimen.sensitivity_stroke));
@@ -108,7 +137,7 @@ public class SensitivitySlider extends View {
 
         mTextPaint.setStrokeWidth(mTextPaint.getStrokeWidth() * 2);
         mTextPaint.setStyle(Paint.Style.FILL);
-        canvas.drawText(""+Math.round(level*100f),cX,cY-textBounds.exactCenterY(),mTextPaint);
+        canvas.drawText(""+getValue(),cX,cY-textBounds.exactCenterY(),mTextPaint);
     }
 
     @Override
@@ -128,6 +157,9 @@ public class SensitivitySlider extends View {
                 break;
             case MotionEvent.ACTION_UP:
                 getParent().requestDisallowInterceptTouchEvent(true);
+                if (valueChangeListener != null){
+                    valueChangeListener.onSensitivityValueChanged(getValue());
+                }
                 break;
         }
         return true;

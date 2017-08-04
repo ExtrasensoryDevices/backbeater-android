@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v4.widget.DrawerLayout;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.ImageView;
@@ -21,6 +20,7 @@ import com.esdevices.backbeater.R;
 import com.esdevices.backbeater.model.Song;
 import com.esdevices.backbeater.ui.widgets.BBTextView;
 import com.esdevices.backbeater.ui.widgets.NumberButton;
+import com.esdevices.backbeater.ui.widgets.SensitivitySlider;
 import com.esdevices.backbeater.ui.widgets.SlideButton;
 import com.esdevices.backbeater.ui.widgets.TempoDisplay;
 
@@ -33,7 +33,7 @@ import com.esdevices.backbeater.utils.NetworkInfoHelper;
 import com.esdevices.backbeater.utils.Preferences;
 import java.util.List;
 
-public class MainActivity extends Activity implements SlideButton.StateChangeListener,
+public class MainActivity extends Activity implements SlideButton.StateChangeListener, SensitivitySlider.ValueChangeListener,
     AudioService.AudioServiceBeatListener {
     
     static final int EDIT_SONG_LIST_REQUEST = 1;
@@ -55,6 +55,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     @Bind(R.id.drawerLayout) DrawerLayout drawerLayout;
     
     @Bind(R.id.tempoDisplay) TempoDisplay tempoDisplay;
+    @Bind(R.id.sensitivitySlider) SensitivitySlider sensitivitySlider;
     @Bind(R.id.window2) NumberButton window2Button;
     @Bind(R.id.window3) NumberButton window3Button;
     @Bind(R.id.window4) NumberButton window4Button;
@@ -119,9 +120,10 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         setSound(Preferences.getSound(sound));
         setWindow(Preferences.getWindow(window));
         setBeat(Preferences.getBeat(beat));
-        sensitivity = Preferences.getSensitivity(sensitivity);
         
-        audioService.setSensitivity(sensitivity);
+        setSensitivity(Preferences.getSensitivity(sensitivity));
+        sensitivitySlider.setValue(sensitivity);
+        sensitivitySlider.setValueChangeListener(this);
         
         tempoSlideButton.setStateChangeListener(this);
         
@@ -223,10 +225,13 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     //================================================================================
     //  Hit processing
     
-    public void setTempo(int tempo) {
+    public void setTempo(int tempo, boolean startMetronome) {
         tempo = Math.min(Constants.MAX_TEMPO, (Math.max(Constants.MIN_TEMPO, tempo)));
         tempoSlideButton.setValue(tempo);
         // update metronome if needed
+        if (!tempoSlideButton.isSelected() && startMetronome) {
+            tempoSlideButton.toggle();
+        }
         if (tempoSlideButton.isSelected()) {
             tempoDisplay.setMetronomeOn(Constants.Sound.fromIndex(sound), tempoSlideButton.getValue());
         }
@@ -263,7 +268,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     
     @OnClick(R.id.setTempoButton)
     public void onSetTempoButtonClick(View v) {
-        
+        setTempo(tempoDisplay.getCPT(), true);
     }
     
     
@@ -276,14 +281,14 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     @OnClick(R.id.nextButton)
     public void onNextButtonClick(View v){
         setCurrentSongIndex(currentSongIndex + 1);
-        setTempo(songList.get(currentSongIndex).tempo);
+        setTempo(songList.get(currentSongIndex).tempo, false);
         
     }
     
     @OnClick(R.id.prevButton)
     public void onPrevButtonClick(View v){
         setCurrentSongIndex(currentSongIndex - 1);
-        setTempo(songList.get(currentSongIndex).tempo);
+        setTempo(songList.get(currentSongIndex).tempo, false);
     }
     
     @Override public void onToggle(boolean isOn) {
@@ -294,11 +299,19 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         }
     }
     
+    // Tempo Slide Button
     @Override public void onValueChanged(int newValue) {
         if (tempoSlideButton.isSelected()) {
             tempoDisplay.setMetronomeOn(Constants.Sound.fromIndex(sound), tempoSlideButton.getValue());
         }
     }
+    
+    @Override public void onSensitivityValueChanged(int newValue) {
+        setSensitivity(newValue);
+    }
+    
+    
+    
     
     //================================================================================
     //  NAV DRAWER
@@ -332,8 +345,14 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         this.sound = sound;
         Preferences.putSound(sound);
         tempoDisplay.setMetronomeSond(Constants.Sound.fromIndex(this.sound));
-
     }
+    
+    public void setSensitivity(int sensitivity) {
+        this.sensitivity = sensitivity;
+        audioService.setSensitivity(this.sensitivity);
+        Preferences.putSensitivity(sensitivity);
+    }
+    
     @OnClick({R.id.window2, R.id.window3, R.id.window4, R.id.window5,
         R.id.beat1, R.id.beat2, R.id.beat3, R.id.beat4,
         R.id.soundDrum, R.id.soundSticks, R.id.soundMetronom, R.id.soundSurprise,

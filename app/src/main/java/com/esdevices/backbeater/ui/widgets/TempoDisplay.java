@@ -320,12 +320,14 @@ public class TempoDisplay extends AppCompatTextView {
             }
             return;
         }
-        if (true) {
+        
+        long timeSinceLastBeat = hitTime - lastBeatTime;
+        
+        if (timeSinceLastBeat == 0) {
             return;
         }
         
         
-        long timeSinceLastBeat = hitTime - lastBeatTime;
         double tapBpm = (double) (MS_IN_MIN /timeSinceLastBeat);
         lastBeatTime = hitTime;
         processBeat(tapBpm, hitTime);

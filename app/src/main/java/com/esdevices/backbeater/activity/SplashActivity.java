@@ -13,6 +13,13 @@ public class SplashActivity extends Activity {
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
+    
+    
+        // testing
+        //Intent i = new Intent(SplashActivity.this, CalibrationActivity.class);
+        //startActivity(i);
+        //finish();
+        //if (true) {return;}
 
         new Handler().postDelayed(new Runnable(){
             @Override

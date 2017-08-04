@@ -21,9 +21,9 @@
         android:textColor="#fff" />
 
     <com.esdevices.backbeater.ui.widgets.SensitivitySlider
+        android:id="@+id/sensitivitySlider"
         android:layout_width="match_parent"
         android:layout_height="@dimen/button_medium"
-        android:id="@+id/sensitivityLevel"
         android:layout_gravity="center_horizontal" />
 
     <com.esdevices.backbeater.ui.widgets.BBTextView

@@ -23,11 +23,11 @@ class EnergyFunction {
     public double push(double value){
         index = (index+1) % COUNT;
     
-        double square = value * value;
+        double square = value;// * value;
         double oldValue = buffer[index];
         buffer[index] = square;
         
-        energy = energy - oldValue + square;
+        energy = energy - oldValue /(double)COUNT + square/(double)COUNT; // + square;
         
         return energy;
     }

@@ -19,8 +19,8 @@ import com.esdevices.backbeater.utils.Constants;
 public class SlideButton extends View {
     
     public interface StateChangeListener {
-        public void onToggle(boolean isOn);
-        public void onValueChanged(int newValue);
+        void onToggle(boolean isOn);
+        void onValueChanged(int newValue);
     }
     
     private final float DP = isInEditMode()?3f:getResources().getDisplayMetrics().density;

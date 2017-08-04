@@ -15,8 +15,7 @@ public class AudioService {
     public interface AudioServiceBeatListener{
         void onBeat(long hitTime);
     }
-    
-    private static final String TAG = "AudioRecorder";
+    private static final String TAG = "AudioService";
     private static final int SAMPLE_RATE = 44100;
     private static final int CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO;
     private static final int AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT;
@@ -24,18 +23,35 @@ public class AudioService {
     private int buffer_size;
     private boolean running = false;
     
-    private double HIGH_THRESHOLD = 4000*4000;
-    private double LOW_THRESHOLD = 1000*1000    ;
+    private double startThreshold;
+    private double endThreshold;
+    private int sensitivity = 100;
     
     private AudioServiceBeatListener beatListener;
-    
     private EnergyFunction energyFunction = new EnergyFunction();
     
     
     private AudioRecord audioRecord;
-
+    
+    
+    private static final double[] START_THRESHOLD_ARRAY = new double[] {63619.17, 57277.19, 50935.21, 44593.23,
+        38251.25, 31909.27, 28738.28, 25567.29, 22396.30, 19225.31, 16054.32, 15420.12, 14785.92, 14151.72, 13517.52,
+        12883.33, 12566.23, 12249.13, 11932.03, 11614.93, 11297.83, 10980.73, 10663.63, 10346.53, 10029.44, 9966.02,
+        9902.60, 9839.18, 9775.76, 9712.34, 9553.79, 9395.24, 9236.69, 9078.14, 9014.72, 8951.30, 8887.88, 8824.46,
+        8761.04, 8697.62, 8634.20, 8570.78, 8507.36, 8443.94, 8380.52, 8317.10, 8253.68, 8190.26, 8126.84, 8063.42,
+        8000.00, 7936.58, 7873.16, 7809.74, 7746.32, 7682.90, 7619.48, 7556.06, 7492.64, 7429.22, 7302.38, 7175.54,
+        6985.28, 6731.61, 6541.35, 6224.25, 5907.15, 5463.21, 4955.85, 4321.65, 3687.46, 3053.26, 2419.06, 1784.86,
+        1150.66, 833.56, 770.14, 706.72, 579.88, 326.21, 294.50, 262.79, 246.93, 231.08, 218.39, 212.05, 208.88,
+        205.71, 205.07, 204.44, 203.81, 203.17, 202.54, 202.22, 201.90, 201.59, 201.27, 200.95, 200.63, 200.32, 200.00};
+    
+    
+    
+    
+    
     public AudioService() {
+        
         updateThreshold();
+        
         int min_buffer_size = AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT);
         buffer_size = SAMPLES_PER_FRAME * 10;
         if (buffer_size < min_buffer_size) {
@@ -64,7 +80,6 @@ public class AudioService {
     
     private void reset() {
         if (audioRecord != null) {
-            Log.e(TAG, "--------------------- RESET ---------------------");
             audioRecord.stop();
             audioRecord.release();
             audioRecord = null;
@@ -76,10 +91,8 @@ public class AudioService {
     }
     
     public void setSensitivity(int sensitivity) {
-        if (this.sensitivity != sensitivity) {
-            this.sensitivity = sensitivity;
-            updateThreshold();
-        }
+        this.sensitivity = sensitivity;
+        updateThreshold();
     }
     
     public void startMe() {
@@ -94,40 +107,67 @@ public class AudioService {
     
     
     private void updateThreshold(){
-        //    float sensitivity = (float)Settings.sharedInstance.sensitivity;
-        //    float A = 0;
-        //    float B = 0;
-        //    float C = 0;
-        //
-        //    if (sensitivity < 20){
-        //        A = 7; B = 197; C = 19;
-        //    } else if (sensitivity < 90) {
-        //        A = 1; B = 95; C = 25;
-        //    } else {
-        //        A = 3; B = 310; C = 200;
-        //    }
-        //
-        //    _startThreshold = - (A * sensitivity - B ) / C;
-        
         startThreshold = START_THRESHOLD_ARRAY[sensitivity];
         endThreshold = 1.1 * startThreshold;
-        //    NSLog(@"%f - %f", _startThreshold, _endThreshold);
     }
     
+    short lastPositiveDS = 0; // data sample, only consider positive part of the sound wave
     private boolean inBeat = false;
+    
+    // stats
+    //short min=Short.MAX_VALUE, max=Short.MIN_VALUE;
+    //double min_e=Double.MAX_VALUE, max_e=Double.MIN_VALUE;
+    //short started_DS = 0, ended_DS = 0;
+    //double started_e = 0, ended_e = 0;
+    
     private void processDataInput(short[] buffer, int dataLength) {
         for (int i = 0; i < dataLength; i++) {
-            short dataSample = buffer[i];
-            double energyLevel = energyFunction.push(dataSample);
-            if (energyLevel > HIGH_THRESHOLD & !inBeat) { // TODO: HIGH_THRESHOLD -> startThreshold
-                inBeat = true;
-                Log.e(TAG, "inBeat " + energyLevel);
-            }else if(energyLevel<LOW_THRESHOLD && inBeat){ // TODO: LOW_THRESHOLD -> endThreshold
-                inBeat=false;
-                Log.e(TAG, "outBeat " + energyLevel);
-                if (beatListener != null) {
-                    beatListener.onBeat(System.currentTimeMillis());
+            short currentDS = buffer[i]; // data sample
+            
+            // stats
+            //if (currentDS < min) { min = currentDS; }
+            //if (currentDS > max) { max = currentDS; }
+            
+            if (currentDS > lastPositiveDS) {
+                // step 1: get positive data sample
+                lastPositiveDS = currentDS;
+            } else if (currentDS <= 0 && lastPositiveDS > 0) {
+                // step 2: when previous sample was positive and current is negative,
+                //         check if lastPositiveDS was a start of the beat of end of the beat
+    
+                // energyLevel = average of the last 4 positive samples
+                double energyLevel = energyFunction.push(lastPositiveDS);
+    
+                // stats
+                //if (energyLevel < min_e) min_e = energyLevel;
+                //if (energyLevel > max_e) max_e = energyLevel;
+    
+                if (energyLevel > startThreshold & !inBeat) { // TODO: startThreshold -> startThreshold
+                    // beat started
+                    inBeat = true;
+    
+                    // stats
+                    //started_DS = lastPositiveDS; started_e = energyLevel;
+                    
+                } else if (energyLevel < endThreshold && inBeat) { // TODO: endThreshold -> endThreshold
+                    // beat ended
+                    
+                    // stats
+                    //ended_DS = lastPositiveDS; ended_e = energyLevel;
+                    //
+                    //if (calibrationBeatListener != null) {
+                    //    calibrationBeatListener.onBeat(started_DS, started_e, ended_DS, ended_e);
+                    //}
+                    //min=Short.MAX_VALUE; max=Short.MIN_VALUE;
+                    //min_e=Double.MAX_VALUE; max_e=Double.MIN_VALUE;
+    
+                    inBeat = false;
+    
+                    if (beatListener != null) {
+                        beatListener.onBeat(System.currentTimeMillis());
+                    }
                 }
+                lastPositiveDS = 0;
             }
         }
     }
@@ -149,7 +189,6 @@ public class AudioService {
                         Log.e(TAG, "some error while trying to read the audio record " + dataLength);
                         break;
                     }
-                    Log.e(TAG, "Processing " + dataLength);
                     processDataInput(buffer, dataLength);
                 }
                 reset();
@@ -157,81 +196,30 @@ public class AudioService {
         }).start();
     }
     
-    
-    
-    
-    
-    
-    
-    
-    private int sensitivity = 100;
-    private double startThreshold;
-    private double endThreshold;
-    
-    private static final double[] START_THRESHOLD_ARRAY = new double[] {10, 9, 8, 7, 6, 5, 4.5, 4, 3.5, 3, 2.5, 2.4, 2.3,
-        2.2, 2.1, 2, 1.95, 1.9, 1.85, 1.8, 1.75, 1.7, 1.65, 1.6, 1.55, 1.54, 1.53, 1.52, 1.51, 1.5, 1.475, 1.45, 1.425,
-        1.4, 1.39, 1.38, 1.37, 1.36, 1.35, 1.34, 1.33, 1.32, 1.31, 1.3, 1.29, 1.28, 1.27, 1.26, 1.25, 1.24, 1.23, 1.22,
-        1.21, 1.2, 1.19, 1.18, 1.17, 1.16, 1.15, 1.14, 1.12, 1.1, 1.07, 1.03, 1, 0.95, 0.9, 0.83, 0.75, 0.65, 0.55, 0.45,
-        0.35, 0.25, 0.15, 0.1, 0.09, 0.08, 0.06, 0.02, 0.015, 0.01, 0.0075, 0.005, 0.003, 0.002, 0.0015, 0.001, 0.0009,
-        0.0008, 0.0007, 0.0006, 0.0005, 0.00045, 0.0004, 0.00035, 0.0003, 0.00025, 0.0002, 0.00015, 0.0001};
-    
-    
-    
-    
-    
-    //boolean inStrike = false;
-    //private static long MAX_STRIKE_DURATION = 200000000; // 200 000 000ns = 200ms
-    //private long strikeEndTime = 0;
-    //private void processData( short[] data, int numFrames) {
-    //    int i;
-    //    for (i=0; i<numFrames; i++) {
-    //
-    //        double energyLevel = energyFunction.push(data[i]);
-    //        long now = System.nanoTime();
-    //        long timeElapsedNs = now - strikeEndTime;
-    //
-    //        if (timeElapsedNs >= MAX_STRIKE_DURATION) {
-    //            // constant long noise, ignore
-    //            inStrike = false;
-    //            return;
-    //        }
-    //
-    //
-    //        // timeout ended, handle energy level
-    //        if (!inStrike && energyLevel >= startThreshold) {
-    //            inStrike = true;
-    //            //strikeStartTime = now;
-    //        } else if (inStrike && energyLevel <= endThreshold) {
-    //            inStrike = false;
-    //            strikeEndTime = now;
-    //            onBeat();
-    //        }
-    //    }
+    /******************************************************
+     *    Calibration helper
+     *
+     ******************************************************/
+
+    //public interface AudioServiceCalibrationBeatListener{
+    //    void onBeat(short started_DS, double started_e, short ended_DS, double ended_e);
     //}
     //
-    //private long lastBeatTime = 0;
-    //private int tapCount = 0;
-    //private void onBeat(){
-    //    long now = System.nanoTime();
-    //    long timeElapsedNs = now - lastBeatTime;
-    //    double delayFator = 0.1;
-    //    double timeElapsedInSec = (double)timeElapsedNs * 10.0e-6 * delayFator;
-    //
-    //    boolean isNewTapSeq = (timeElapsedInSec >= Constants.IDLE_TIMEOUT_IN_MS) ? true : false;
-    //
-    //    if (isNewTapSeq) {
-    //        tapCount = 0;
-    //        // flash sensitivity
-    //        // TODO: Report first beat
-    //    } else {
-    //        double bpm = 60.0 / timeElapsedInSec;
-    //        if (beatListener != null) {
-    //            beatListener.onBeat(bpm);
-    //        }
-    //    }
-    //
-    //    lastBeatTime = now;
-    //    tapCount += 1;
-    //
+    //private AudioServiceCalibrationBeatListener calibrationBeatListener;
+    
+    
+    //public void setCalibrationBeatListener(AudioServiceCalibrationBeatListener calibrationBeatListener) {
+    //    this.calibrationBeatListener = calibrationBeatListener;
     //}
+    
+    
+    
+    //public void setTestStartThreshold(double START_THRESHOLD) {
+    //    if (this.startThreshold != START_THRESHOLD) {
+    //        this.startThreshold = START_THRESHOLD;
+    //        this.endThreshold = 1.1 * this.startThreshold;
+    //    }
+    //}
+    
+    
 }
