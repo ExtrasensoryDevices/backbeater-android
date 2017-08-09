@@ -36,6 +36,7 @@ public class SlideButton extends View {
     private int tempSlideValue = 0;
     private TextPaint paint;
     private final Rect textBounds = new Rect();
+    private float strokeWidth = 0;
     
     private long eventStartTime = 0;
     private float eventStartY = 0;
@@ -70,7 +71,8 @@ public class SlideButton extends View {
         assentColor = context.getResources().getColor(R.color.assent_color);
         
         paint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
-        paint.setStrokeWidth(getResources().getDimension(R.dimen.circle_outline_width));
+        strokeWidth = getResources().getDimension(R.dimen.circle_outline_width);
+        paint.setStrokeWidth(strokeWidth);
         paint.setStyle(Paint.Style.STROKE);
         paint.setTextAlign(Paint.Align.CENTER);
         if(!isInEditMode()) {
@@ -114,79 +116,83 @@ public class SlideButton extends View {
     }
     
     
-    float oldDY = 0;
-    float fromControlCY = 0;
-    float fromTextCY = 0;
-    float controlCY = 0; // center of visible ui control
-    float textCY = 0; // center of text in ui control
-    long animationStartTime = 0;
+    // deltaY = distance between MotionEvent.getY and view center y (viewCY), saved on prev ACTION_MOVE
+    // value sign defines stretch direction (+ -> up, - -> down)
+    float deltaY = 0;
+    
+    // current vertical center of oval and text, oval position is based on this value
+    float controlCY = 0; // center Y of visible ui control (oval)
+    float textCY = 0;    // center Y of text in ui control
+    
+    // animation(expand, collapse, move up/down) starting points
+    // values used to calculate animation speed
+    float fromControlCY = 0; // visible oval center Y
+    float fromTextCY = 0;    // text center Y
+    long animationStartTime = 0;  // animation starting time
+    
     @Override
     protected void onDraw(Canvas canvas) {
         long now = System.currentTimeMillis();
     
         float W = getWidth();  // view width
-        float H = getHeight(); // view height
+        float H = getHeight(); // view height, expect W:H = 1:2
         float viewCX = W/2;    // view center X
         float viewCY = H/2;    // view center Y
-        float strokeW = paint.getStrokeWidth();
         int radius = (int) (Math.min(viewCX, viewCY));
     
+        // define collapsed click area, user only clicks on the visible part of the view
         clickArea = new Rect(0 ,(int)(viewCY-radius), (int)W, (int)(viewCY+radius));
-    
-
-    
     
         boolean isPressed = (eventStartY != 0) && (eventStartTime != 0);
         int borderColor = isPressed ? whiteColor : (selected ? assentColor : greyColor);
         int textColor = isPressed ? whiteColor : (selected ? whiteColor : greyColor);
     
-        
     
-        float newDY = eventY - viewCY;
+    
+        float oldDY = deltaY;
+        deltaY = eventY - viewCY; // deltaY = distance between MotionEvent.getY and view center y (viewCY)
         
         
         // -------------- 1 ------------------
     
-        if (action == MotionEvent.ACTION_DOWN) {
+        if (motionEventAction == MotionEvent.ACTION_DOWN) {
             controlCY = viewCY;
             Log.d("1", "ACTION_DOWN: controlCY: " + controlCY);
-        } else if (action == MotionEvent.ACTION_MOVE) {
+        } else if (motionEventAction == MotionEvent.ACTION_MOVE) {
             if  (animationStartTime == 0) {
                 // button just got pressed, after TAP_DURATION, animation start
                 animationStartTime = now;
-                oldDY = newDY;
                 fromControlCY = controlCY;
                 fromTextCY = controlCY;
                 Log.d("1", "was animationStartTime == 0, now animationStartTime= "+animationStartTime);
             } else {
                 // switch direction
-                if (oldDY * newDY <= 0){
+                if (oldDY * deltaY <= 0){
                     animationStartTime = now;
                     fromControlCY = controlCY;
                     fromTextCY = textCY;
-                    Log.d("1", "switch: oldDY = " + oldDY + ", newDY = " + newDY + ", animationStartTime= "+animationStartTime);
+                    Log.d("1", "switch: oldDY = " + oldDY + ", deltaY = " + deltaY + ", animationStartTime= "+animationStartTime);
                 } else {
-                    Log.d("1", "same direction: oldDY = " + oldDY + ", newDY = " + newDY+ ", animationStartTime= "+animationStartTime);
+                    Log.d("1", "same direction: oldDY = " + oldDY + ", deltaY = " + deltaY+ ", animationStartTime= "+animationStartTime);
                 }
             }
-        } else if (controlCY != viewCY && action == MotionEvent.ACTION_UP){
+        } else if (controlCY != viewCY && motionEventAction == MotionEvent.ACTION_UP){
             // ACTION_UP
             animationStartTime = now;
             fromControlCY = controlCY;
             fromTextCY = textCY;
-            action = -1;
+            motionEventAction = -1;
             Log.d("1", "ACTION_UP, animationStartTime= "+animationStartTime);
             
         }
     
-        long dT = now - eventStartTime; // deltaTime = time since ACTION_DOWN
         long dTa = now - animationStartTime; // deltaTimeAnimation = time since animation started
     
     
         // -------------- 2 ------------------
     
         float sideLength; // always positive
-        if (action == MotionEvent.ACTION_DOWN) {
+        if (motionEventAction == MotionEvent.ACTION_DOWN) {
             sideLength = 0;
         } else if (isPressed) {
             // expaning or expanded
@@ -209,17 +215,17 @@ public class SlideButton extends View {
     
     
         // -------------- 3 ------------------
+        
+        boolean isCollapsed = motionEventAction == MotionEvent.ACTION_DOWN || (!isPressed && dTa > ANIMATION_DURATION);
     
         // border
-        if (action == MotionEvent.ACTION_DOWN || (!isPressed && dTa > ANIMATION_DURATION)) {
-            // collapsed
+        if (isCollapsed) {
             paint.setColor(borderColor);
             canvas.drawCircle(viewCX, viewCY, radius, paint);
         } else {
             // expanded
             
-            //float oldControlCY = controlCY;
-            float toY = viewCY + (newDY >= 0 ? -1 : 1) * W/2;
+            float toY = viewCY + (deltaY >= 0 ? -W/2 : W/2);
             if (dTa > ANIMATION_DURATION) {
                 controlCY = toY;
             } else {
@@ -263,14 +269,13 @@ public class SlideButton extends View {
         paint.getTextBounds(t,0,t.length(),textBounds);
         
         
-        if (action == MotionEvent.ACTION_DOWN || (!isPressed && dTa > ANIMATION_DURATION)) {
-            // collapsed
+        if (isCollapsed) {
             canvas.drawText(t, viewCX, viewCY - textBounds.exactCenterY(), paint);
         } else {
             // expanded
             float textTop = controlCY - sideLength/2 + textBounds.height()/2;
             float textBottom = controlCY + sideLength/2 + textBounds.height()/2;
-            float toY = (newDY >= 0 ? textTop : textBottom);
+            float toY = (deltaY >= 0 ? textTop : textBottom);
             if (dTa > ANIMATION_DURATION) {
                 textCY = toY;
             } else {
@@ -280,65 +285,69 @@ public class SlideButton extends View {
         }
         
         
-        paint.setStrokeWidth(strokeW);
-    
-        oldDY = newDY;
+        paint.setStrokeWidth(strokeWidth);
     
     
     
-        // -------------- 5 ------------------
+        // -------------- invalidate if needed ------------------
     
         if (animationStartTime != 0) {
             if (dTa < ANIMATION_DURATION) {
+                // re-draw for animation
                 invalidate();
             } else if (!isPressed) {
-                // reset
-                eventY = 0;
-                eventStartTime = 0;
-                tempSlideValue = 0;
-                eventStartY = 0;
-                action = -1;
-                oldDY = 0;
-                fromControlCY = 0;
-                fromTextCY = 0;
-                controlCY = 0; // center of visible ui control
-                textCY = 0; // center of text in ui control
-                animationStartTime = 0;
-                Log.d("5", "reset");
+                // animation completed and view is not pressed, reset and re-draw to initial state
+                reset();
                 invalidate();
             }
         }
     }
     
     
+    private void reset() {
+        eventY = 0;
+        eventStartTime = 0;
+        tempSlideValue = 0;
+        eventStartY = 0;
+        motionEventAction = -1;
+        deltaY = 0;
+        fromControlCY = 0;
+        fromTextCY = 0;
+        controlCY = 0; // center of visible ui control
+        textCY = 0; // center of text in ui control
+        animationStartTime = 0;
+    }
     
-    int action = -1;
+    
+    
+    int motionEventAction = -1;
     boolean ignoreAction = false;
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         long now = System.currentTimeMillis();
         long clickDuration = 0;
-        action = event.getAction();
-        switch (action){
+        motionEventAction = event.getAction();
+        
+        switch (motionEventAction){
             case MotionEvent.ACTION_DOWN:
-                Log.d("ACTION", "-------------------- DOWN --------------------");
+                // check if user tapped on visible circle (view height is twice the initial circle)
                 if (clickArea != null && clickArea.contains((int)event.getX(),(int)event.getY())) {
+                    // user tapped on visible circle
                     ignoreAction = false;
                 } else {
+                    // user tapped at outside the visible circle, ignore following ACTION_MOVE and  ACTION_UP
                     ignoreAction = true;
                     return true;
                 }
-                eventY = 0;
                 eventStartY = event.getY();
                 eventStartTime = now;
                 tempSlideValue = slideValue;
                 break;
             case MotionEvent.ACTION_MOVE:
-                Log.d("ACTION", "-------------------- MOVE --------------------");
-    
                 clickDuration = now - eventStartTime;
                 if(ignoreAction || clickDuration < TAP_TIMEOUT) {
-                    // ignore for TAP_TIMEOUT milliseconds, may be it is TAP event
+                    // ignore tap outside the visible circle
+                    // ignore ACTION_MOVE for TAP_TIMEOUT milliseconds, may be it is TAP event
                     return true;
                 }
                 eventY = event.getY();
@@ -346,14 +355,13 @@ public class SlideButton extends View {
                 tempSlideValue = Math.min(Constants.MAX_TEMPO, Math.max(Constants.MIN_TEMPO, tempSlideValue));
                 break;
             case MotionEvent.ACTION_UP:
-                Log.d("ACTION", "-------------------- UP --------------------");
                 if(ignoreAction) {
-                    // ignore for TAP_TIMEOUT milliseconds, may be it is TAP event
+                    // ignore tap outside the visible circle
                     return true;
                 }
                 clickDuration = now - eventStartTime;
                 if(clickDuration <= TAP_TIMEOUT) {
-                    //click event has occurred, ignore value changed
+                    // TAP event has occurred, ignore value changed
                     handleClick();
                 } else if (slideValue != tempSlideValue) {
                     // handle swipe
