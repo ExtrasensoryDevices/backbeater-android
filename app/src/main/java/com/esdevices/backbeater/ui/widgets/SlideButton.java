@@ -148,36 +148,43 @@ public class SlideButton extends View {
         int textColor = isPressed ? whiteColor : (selected ? whiteColor : greyColor);
     
     
-    
-        float oldDY = deltaY;
-        deltaY = eventY - viewCY; // deltaY = distance between MotionEvent.getY and view center y (viewCY)
+        // deltaY = distance between MotionEvent.getY and view center Y (viewCY)
+        // value sign defines stretch direction ('+' -> up, '-' -> down)
+        // switching sign means switching expand direction
+        float oldDeltaY = deltaY;
+        deltaY = eventY - viewCY;
         
         
-        // -------------- 1 ------------------
+        // -------------- define animation start state ------------------
     
         if (motionEventAction == MotionEvent.ACTION_DOWN) {
+            // ACTION_DOWN - no stretch yet, only switch to white color
+            // prepare for ACTION_MOVE, define visible control center Y (controlCY)
             controlCY = viewCY;
             Log.d("1", "ACTION_DOWN: controlCY: " + controlCY);
         } else if (motionEventAction == MotionEvent.ACTION_MOVE) {
+            // ACTION_MOVE - start stretching
             if  (animationStartTime == 0) {
-                // button just got pressed, after TAP_DURATION, animation start
+                // button just got pressed, after TAP_DURATION, define animation start parameters
                 animationStartTime = now;
                 fromControlCY = controlCY;
                 fromTextCY = controlCY;
                 Log.d("1", "was animationStartTime == 0, now animationStartTime= "+animationStartTime);
             } else {
-                // switch direction
-                if (oldDY * deltaY <= 0){
+                // animation in progress or control expanded, user continues ACTION_MOVE
+                if (oldDeltaY * deltaY <= 0){
+                    // user finger crossed vertical center, switch stretch direction
                     animationStartTime = now;
                     fromControlCY = controlCY;
                     fromTextCY = textCY;
-                    Log.d("1", "switch: oldDY = " + oldDY + ", deltaY = " + deltaY + ", animationStartTime= "+animationStartTime);
+                    Log.d("1", "switch: oldDeltaY = " + oldDeltaY + ", deltaY = " + deltaY + ", animationStartTime= "+animationStartTime);
                 } else {
-                    Log.d("1", "same direction: oldDY = " + oldDY + ", deltaY = " + deltaY+ ", animationStartTime= "+animationStartTime);
+                    // stretch same direction/ do nothing
+                    Log.d("1", "same direction: oldDeltaY = " + oldDeltaY + ", deltaY = " + deltaY+ ", animationStartTime= "+animationStartTime);
                 }
             }
         } else if (controlCY != viewCY && motionEventAction == MotionEvent.ACTION_UP){
-            // ACTION_UP
+            // ACTION_UP, if control was expanded, collapse it
             animationStartTime = now;
             fromControlCY = controlCY;
             fromTextCY = textCY;
@@ -186,27 +193,33 @@ public class SlideButton extends View {
             
         }
     
-        long dTa = now - animationStartTime; // deltaTimeAnimation = time since animation started
+        // dTa = deltaTimeAnimation = time since animation started
+        long dTa = now - animationStartTime;
     
     
-        // -------------- 2 ------------------
+        // -------------- calculate flat side of an oval depending on time since animation started (dTa) ------------------
     
         float sideLength; // always positive
         if (motionEventAction == MotionEvent.ACTION_DOWN) {
+            // user tapped, no stretch yet
             sideLength = 0;
         } else if (isPressed) {
-            // expaning or expanded
+            // expaning now or expanded
             if (dTa > ANIMATION_DURATION) {
+                // animation time expired, state expanded, maximum stretch
                 sideLength = W/2;
             } else {
+                // playing animation, still expanding, calculate length proportional to dTa
                 sideLength = Math.round((float) dTa / (float) ANIMATION_DURATION * W/2);
             }
             Log.d("2", "isPressed");
         } else {
-            // collapsing or collapsed
+            // collapsing now or collapsed
             if (dTa > ANIMATION_DURATION) {
+                // animation time expired, state collapsed, 0 stretch
                 sideLength = 0;
             } else {
+                // playing animation, still collapsing, calculate length inversely proportional to dTa
                 sideLength = Math.round((1f - (float) dTa / (float) ANIMATION_DURATION) * W/2);
             }
             Log.d("2", "not pressed");
@@ -214,27 +227,39 @@ public class SlideButton extends View {
         Log.d("2", "sideLength = "+sideLength);
     
     
-        // -------------- 3 ------------------
+        // -------------- draw oval ------------------
         
-        boolean isCollapsed = motionEventAction == MotionEvent.ACTION_DOWN || (!isPressed && dTa > ANIMATION_DURATION);
+        // oval current position is defined by controlCY and sideLength
+        // current controlCY positioned between fromControlCY and toControlCY proportional to dTa
+        
+        // collapsed completely
+        boolean isCollapsed = (sideLength == 0);// motionEventAction == MotionEvent.ACTION_DOWN || (!isPressed && dTa > ANIMATION_DURATION);
     
         // border
         if (isCollapsed) {
+            // draw circle
             paint.setColor(borderColor);
             canvas.drawCircle(viewCX, viewCY, radius, paint);
         } else {
-            // expanded
+            // animating or fully expanded
             
-            float toY = viewCY + (deltaY >= 0 ? -W/2 : W/2);
+            // toControlCY - target control center Y position at the end of the animation
+            float toControlCY = viewCY + (deltaY >= 0 ? -W/2 : W/2);
             if (dTa > ANIMATION_DURATION) {
-                controlCY = toY;
+                // animation ended, move to the target position
+                controlCY = toControlCY;
             } else {
-                controlCY = fromControlCY + (float)dTa/(float)ANIMATION_DURATION * (toY - fromControlCY); //fromControlCY +
-                Log.d("3", "controlCY = "+controlCY + ", toY="+toY+", fromY="+fromControlCY + ", fraction="+((float)dTa/(float)ANIMATION_DURATION)+ ", animationStartTime= "+animationStartTime+ ", dTa= "+dTa);
+                // still animating
+                // calculate current control center Y position proportional to dTa,
+                // between fromControlCY and toControlCY
+                controlCY = fromControlCY + (float)dTa/(float)ANIMATION_DURATION * (toControlCY - fromControlCY);
+                Log.d("3", "controlCY = "+controlCY + ", toControlCY="+toControlCY+", fromY="+fromControlCY + ", fraction="+((float)dTa/(float)ANIMATION_DURATION)+ ", animationStartTime= "+animationStartTime+ ", dTa= "+dTa);
             }
             
+            // flat side Y coordinates
             float sideTop = controlCY - sideLength/2;
             float sideBottom = controlCY + sideLength/2;
+            // arc rectangles
             RectF arcRectTop = new RectF(0f, sideTop-(float)radius, W, sideTop+(float)radius);
             RectF arcRectBottom = new RectF(0f, sideBottom-(float)radius, W, sideBottom+(float)radius);
             
@@ -258,9 +283,8 @@ public class SlideButton extends View {
         }
     
     
-        // -------------- 4 ------------------
+        // -------------- draw text ------------------
     
-        // text
         
         paint.setStrokeWidth(0);
         paint.setColor(textColor);
@@ -270,21 +294,30 @@ public class SlideButton extends View {
         
         
         if (isCollapsed) {
+            // draw text in the center
             canvas.drawText(t, viewCX, viewCY - textBounds.exactCenterY(), paint);
         } else {
             // expanded
-            float textTop = controlCY - sideLength/2 + textBounds.height()/2;
-            float textBottom = controlCY + sideLength/2 + textBounds.height()/2;
-            float toY = (deltaY >= 0 ? textTop : textBottom);
-            if (dTa > ANIMATION_DURATION) {
-                textCY = toY;
+            float toTextCY = controlCY + textBounds.height()/2;
+            if (deltaY >= 0) {
+                toTextCY = toTextCY - sideLength/2;
             } else {
-                textCY = fromTextCY + (float)dTa/(float)ANIMATION_DURATION * (toY - fromTextCY); //fromTextCY +
+                toTextCY = toTextCY + sideLength/2;
+            }
+
+            if (dTa > ANIMATION_DURATION) {
+                // animation ended, move to the target position
+                textCY = toTextCY;
+            } else {
+                // still animating
+                // calculate current text center Y position proportional to dTa,
+                // between fromTextCY and toTextCY
+                textCY = fromTextCY + (float)dTa/(float)ANIMATION_DURATION * (toTextCY - fromTextCY); //fromTextCY +
             }
             canvas.drawText(t, viewCX, textCY, paint);
         }
         
-        
+        // reset stroke width
         paint.setStrokeWidth(strokeWidth);
     
     
