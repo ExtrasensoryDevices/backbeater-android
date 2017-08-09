@@ -268,9 +268,8 @@ public class SlideButton extends View {
             canvas.drawText(t, viewCX, viewCY - textBounds.exactCenterY(), paint);
         } else {
             // expanded
-            paint.setTextSize(radius*0.9f);
-            float textTop = controlCY - sideLength/2;
-            float textBottom = controlCY + sideLength/2 + textBounds.height();
+            float textTop = controlCY - sideLength/2 + textBounds.height()/2;
+            float textBottom = controlCY + sideLength/2 + textBounds.height()/2;
             float toY = (newDY >= 0 ? textTop : textBottom);
             if (dTa > ANIMATION_DURATION) {
                 textCY = toY;
