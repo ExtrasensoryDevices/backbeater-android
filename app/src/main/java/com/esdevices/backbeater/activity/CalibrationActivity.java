@@ -18,7 +18,7 @@ import com.esdevices.backbeater.audio.AudioService;
  * Created by Alina Kholcheva on 2017-08-04.
  */
 
-public class CalibrationActivity  extends Activity implements AudioService.AudioServiceCalibrationBeatListener {
+public class CalibrationActivity  extends Activity { //implements AudioService.AudioServiceCalibrationBeatListener {
     
     @Bind(R.id.thresholdText) EditText thresholdText;
     @Bind(R.id.sensitivityText) EditText sensitivityText;
@@ -44,7 +44,7 @@ public class CalibrationActivity  extends Activity implements AudioService.Audio
         };
     
         audioService = new AudioService();
-        audioService.setCalibrationBeatListener(this);
+        //audioService.setCalibrationBeatListener(this);
         
         audioService.startMe();
         
@@ -97,12 +97,12 @@ public class CalibrationActivity  extends Activity implements AudioService.Audio
         imm.hideSoftInputFromWindow(getWindow().getDecorView().getRootView().getWindowToken(), 0);
     }
     
-    @Override
-    public void onBeat(final short started_DS, final double started_e, final short ended_DS, final double ended_e) {
-        handler.post(new Runnable() {
-            @Override public void run() {
-                beatText.setText("Start: \n ds=" + started_DS + "\ne=" + started_e + "\nEnd:\nds=" + ended_DS + "\ne=" + ended_e);
-            }
-        });
-    }
+    //@Override
+    //public void onBeat(final short started_DS, final double started_e, final short ended_DS, final double ended_e) {
+    //    handler.post(new Runnable() {
+    //        @Override public void run() {
+    //            beatText.setText("Start: \n ds=" + started_DS + "\ne=" + started_e + "\nEnd:\nds=" + ended_DS + "\ne=" + ended_e);
+    //        }
+    //    });
+    //}
 }

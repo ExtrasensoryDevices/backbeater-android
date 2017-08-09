@@ -7,10 +7,15 @@
     
     <dimen name="button_small">30dp</dimen>
     <dimen name="button_medium">40dp</dimen>
-    <dimen name="button_large">65dp</dimen>
+    <dimen name="button_large">66dp</dimen>
+    
+    <dimen name="slide_button_width">66dp</dimen>
+    <dimen name="slide_button_height">132dp</dimen>
+    <dimen name="slide_button_offset">33dp</dimen>
+    
     <dimen name="button_about">35dp</dimen>
     
-    
+    <dimen name="padding_xsmall">7dp</dimen>
     <dimen name="padding_small">10dp</dimen>
     <dimen name="padding_medium">15dp</dimen>
     <dimen name="padding_large">20dp</dimen>

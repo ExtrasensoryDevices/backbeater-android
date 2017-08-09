@@ -3,8 +3,9 @@ package com.esdevices.backbeater.ui.widgets;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.Rect;
-import android.graphics.Typeface;
+import android.graphics.RectF;
 import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -23,8 +24,13 @@ public class SlideButton extends View {
         void onValueChanged(int newValue);
     }
     
+    //private enum State {COLLAPSED, EXPANDED_UP, EXPANDED_DOWN, EXPANDING_UP, EXPANDING_DOWN, MOVING_UP, MOVING_DOWN }
+    
+    //private State state = State.COLLAPSED;
+    
     private final float DP = isInEditMode()?3f:getResources().getDisplayMetrics().density;
-    private static final int MAX_CLICK_DURATION = 200;
+    private static final int TAP_TIMEOUT = 180;
+    private static final long ANIMATION_DURATION = 300;
     
     private int slideValue = Constants.DEFAULT_TEMPO;
     private int tempSlideValue = 0;
@@ -33,6 +39,7 @@ public class SlideButton extends View {
     
     private long eventStartTime = 0;
     private float eventStartY = 0;
+    private float eventY = 0;
     
     private int greyColor;
     private int whiteColor = -1;
@@ -41,6 +48,11 @@ public class SlideButton extends View {
     private boolean selected = false;
     
     private StateChangeListener stateChangeListener;
+    
+    private Rect clickArea = null;
+    
+    
+    
 
 
     public SlideButton(Context context) {
@@ -101,57 +113,264 @@ public class SlideButton extends View {
         }
     }
     
+    
+    float oldDY = 0;
+    float fromControlCY = 0;
+    float fromTextCY = 0;
+    float controlCY = 0; // center of visible ui control
+    float textCY = 0; // center of text in ui control
+    long animationStartTime = 0;
     @Override
     protected void onDraw(Canvas canvas) {
-        paint.setColor(selected ? assentColor : greyColor);
+        long now = System.currentTimeMillis();
     
-        int cX = getWidth()/2;
-        int cY = getWidth()/2;
-        int radius = (int)(Math.min(cX,cY) - paint.getStrokeWidth());
-        canvas.drawCircle(cX,cY,radius, paint);
+        float W = getWidth();  // view width
+        float H = getHeight(); // view height
+        float viewCX = W/2;    // view center X
+        float viewCY = H/2;    // view center Y
+        float strokeW = paint.getStrokeWidth();
+        int radius = (int) (Math.min(viewCX, viewCY));
+    
+        clickArea = new Rect(0 ,(int)(viewCY-radius), (int)W, (int)(viewCY+radius));
+    
 
-        float oldStrokeWidth = paint.getStrokeWidth();
+    
+    
+        boolean isPressed = (eventStartY != 0) && (eventStartTime != 0);
+        int borderColor = isPressed ? whiteColor : (selected ? assentColor : greyColor);
+        int textColor = isPressed ? whiteColor : (selected ? whiteColor : greyColor);
+    
+        
+    
+        float newDY = eventY - viewCY;
+        
+        
+        // -------------- 1 ------------------
+    
+        if (action == MotionEvent.ACTION_DOWN) {
+            controlCY = viewCY;
+            Log.d("1", "ACTION_DOWN: controlCY: " + controlCY);
+        } else if (action == MotionEvent.ACTION_MOVE) {
+            if  (animationStartTime == 0) {
+                // button just got pressed, after TAP_DURATION, animation start
+                animationStartTime = now;
+                oldDY = newDY;
+                fromControlCY = controlCY;
+                fromTextCY = controlCY;
+                Log.d("1", "was animationStartTime == 0, now animationStartTime= "+animationStartTime);
+            } else {
+                // switch direction
+                if (oldDY * newDY <= 0){
+                    animationStartTime = now;
+                    fromControlCY = controlCY;
+                    fromTextCY = textCY;
+                    Log.d("1", "switch: oldDY = " + oldDY + ", newDY = " + newDY + ", animationStartTime= "+animationStartTime);
+                } else {
+                    Log.d("1", "same direction: oldDY = " + oldDY + ", newDY = " + newDY+ ", animationStartTime= "+animationStartTime);
+                }
+            }
+        } else if (controlCY != viewCY && action == MotionEvent.ACTION_UP){
+            // ACTION_UP
+            animationStartTime = now;
+            fromControlCY = controlCY;
+            fromTextCY = textCY;
+            action = -1;
+            Log.d("1", "ACTION_UP, animationStartTime= "+animationStartTime);
+            
+        }
+    
+        long dT = now - eventStartTime; // deltaTime = time since ACTION_DOWN
+        long dTa = now - animationStartTime; // deltaTimeAnimation = time since animation started
+    
+    
+        // -------------- 2 ------------------
+    
+        float sideLength; // always positive
+        if (action == MotionEvent.ACTION_DOWN) {
+            sideLength = 0;
+        } else if (isPressed) {
+            // expaning or expanded
+            if (dTa > ANIMATION_DURATION) {
+                sideLength = W/2;
+            } else {
+                sideLength = Math.round((float) dTa / (float) ANIMATION_DURATION * W/2);
+            }
+            Log.d("2", "isPressed");
+        } else {
+            // collapsing or collapsed
+            if (dTa > ANIMATION_DURATION) {
+                sideLength = 0;
+            } else {
+                sideLength = Math.round((1f - (float) dTa / (float) ANIMATION_DURATION) * W/2);
+            }
+            Log.d("2", "not pressed");
+        }
+        Log.d("2", "sideLength = "+sideLength);
+    
+    
+        // -------------- 3 ------------------
+    
+        // border
+        if (action == MotionEvent.ACTION_DOWN || (!isPressed && dTa > ANIMATION_DURATION)) {
+            // collapsed
+            paint.setColor(borderColor);
+            canvas.drawCircle(viewCX, viewCY, radius, paint);
+        } else {
+            // expanded
+            
+            //float oldControlCY = controlCY;
+            float toY = viewCY + (newDY >= 0 ? -1 : 1) * W/2;
+            if (dTa > ANIMATION_DURATION) {
+                controlCY = toY;
+            } else {
+                controlCY = fromControlCY + (float)dTa/(float)ANIMATION_DURATION * (toY - fromControlCY); //fromControlCY +
+                Log.d("3", "controlCY = "+controlCY + ", toY="+toY+", fromY="+fromControlCY + ", fraction="+((float)dTa/(float)ANIMATION_DURATION)+ ", animationStartTime= "+animationStartTime+ ", dTa= "+dTa);
+            }
+            
+            float sideTop = controlCY - sideLength/2;
+            float sideBottom = controlCY + sideLength/2;
+            RectF arcRectTop = new RectF(0f, sideTop-(float)radius, W, sideTop+(float)radius);
+            RectF arcRectBottom = new RectF(0f, sideBottom-(float)radius, W, sideBottom+(float)radius);
+            
+            Log.d("3","viewCY = "+viewCY+", controlCY = "+controlCY+", radius = "+radius);
+            Log.d("3","sideTop = "+sideTop+", sideBottom = "+sideBottom+", sideLength = "+sideLength);
+            Log.d("3","arcRectTop    = "+arcRectTop + ", "+arcRectTop.width()+" x "+arcRectTop.height());
+            Log.d("3","arcRectBottom = "+arcRectBottom + ", "+arcRectBottom.width()+" x "+arcRectBottom.height());
+            
+
+        
+            Path path = new Path();
+            path.moveTo(0f, sideTop);
+            path.arcTo(arcRectTop, 180, 180, false);
+            path.lineTo(W, sideBottom);
+            path.arcTo(arcRectBottom, 0, 180, false);
+            path.close();
+    
+            
+            canvas.drawPath(path, paint);
+            
+        }
+    
+    
+        // -------------- 4 ------------------
+    
+        // text
+        
         paint.setStrokeWidth(0);
-        paint.setColor(selected ? whiteColor : greyColor);
+        paint.setColor(textColor);
         String t = ""+ (tempSlideValue==0 ? slideValue : tempSlideValue);
         paint.setTextSize(radius);
         paint.getTextBounds(t,0,t.length(),textBounds);
-        canvas.drawText(t,cX,cY-textBounds.exactCenterY(), paint);
-        paint.setStrokeWidth(oldStrokeWidth);
+        
+        
+        if (action == MotionEvent.ACTION_DOWN || (!isPressed && dTa > ANIMATION_DURATION)) {
+            // collapsed
+            canvas.drawText(t, viewCX, viewCY - textBounds.exactCenterY(), paint);
+        } else {
+            // expanded
+            paint.setTextSize(radius*0.9f);
+            float textTop = controlCY - sideLength/2;
+            float textBottom = controlCY + sideLength/2 + textBounds.height();
+            float toY = (newDY >= 0 ? textTop : textBottom);
+            if (dTa > ANIMATION_DURATION) {
+                textCY = toY;
+            } else {
+                textCY = fromTextCY + (float)dTa/(float)ANIMATION_DURATION * (toY - fromTextCY); //fromTextCY +
+            }
+            canvas.drawText(t, viewCX, textCY, paint);
+        }
+        
+        
+        paint.setStrokeWidth(strokeW);
+    
+        oldDY = newDY;
+    
+    
+    
+        // -------------- 5 ------------------
+    
+        if (animationStartTime != 0) {
+            if (dTa < ANIMATION_DURATION) {
+                invalidate();
+            } else if (!isPressed) {
+                // reset
+                eventY = 0;
+                eventStartTime = 0;
+                tempSlideValue = 0;
+                eventStartY = 0;
+                action = -1;
+                oldDY = 0;
+                fromControlCY = 0;
+                fromTextCY = 0;
+                controlCY = 0; // center of visible ui control
+                textCY = 0; // center of text in ui control
+                animationStartTime = 0;
+                Log.d("5", "reset");
+                invalidate();
+            }
+        }
     }
-
+    
+    
+    
+    int action = -1;
+    boolean ignoreAction = false;
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        switch (event.getAction()){
+        long now = System.currentTimeMillis();
+        long clickDuration = 0;
+        action = event.getAction();
+        switch (action){
             case MotionEvent.ACTION_DOWN:
+                Log.d("ACTION", "-------------------- DOWN --------------------");
+                if (clickArea != null && clickArea.contains((int)event.getX(),(int)event.getY())) {
+                    ignoreAction = false;
+                } else {
+                    ignoreAction = true;
+                    return true;
+                }
+                eventY = 0;
                 eventStartY = event.getY();
-                eventStartTime = System.currentTimeMillis();
+                eventStartTime = now;
                 tempSlideValue = slideValue;
                 break;
             case MotionEvent.ACTION_MOVE:
-                tempSlideValue = slideValue + (int)((eventStartY-event.getY())/(DP*5));
+                Log.d("ACTION", "-------------------- MOVE --------------------");
+    
+                clickDuration = now - eventStartTime;
+                if(ignoreAction || clickDuration < TAP_TIMEOUT) {
+                    // ignore for TAP_TIMEOUT milliseconds, may be it is TAP event
+                    return true;
+                }
+                eventY = event.getY();
+                tempSlideValue = slideValue + (int) ((eventStartY-eventY) /(DP*5));
                 tempSlideValue = Math.min(Constants.MAX_TEMPO, Math.max(Constants.MIN_TEMPO, tempSlideValue));
-                invalidate();
                 break;
             case MotionEvent.ACTION_UP:
-                boolean valueChanged = slideValue != tempSlideValue;
-                slideValue = tempSlideValue;
+                Log.d("ACTION", "-------------------- UP --------------------");
+                if(ignoreAction) {
+                    // ignore for TAP_TIMEOUT milliseconds, may be it is TAP event
+                    return true;
+                }
+                clickDuration = now - eventStartTime;
+                if(clickDuration <= TAP_TIMEOUT) {
+                    //click event has occurred, ignore value changed
+                    handleClick();
+                } else if (slideValue != tempSlideValue) {
+                    // handle swipe
+                    slideValue = tempSlideValue;
+                    handleValueChange();
+                    
+                }
+                eventY = 0;
+                eventStartTime = 0;
                 tempSlideValue = 0;
                 eventStartY = 0;
-                long clickDuration = System.currentTimeMillis() - eventStartTime;
-                if(clickDuration < MAX_CLICK_DURATION) {
-                    //click event has occurred
-                    handleClick();
-                }
-                eventStartTime = 0;
-                
-                if (valueChanged) {
-                    handleValueChange();
-                }
                 break;
             default:
                 Log.v("slide","event "+event.getAction());
         }
+        invalidate();
         return true;
     }
 }
