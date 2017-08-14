@@ -4,12 +4,30 @@ import android.content.Context;
 import android.graphics.Typeface;
 import android.support.annotation.RawRes;
 import com.esdevices.backbeater.R;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Alina Kholcheva on 2017-06-27.
  */
 
 public class Constants {
+    
+public static final String FLURRY_APP_OPENED="app_opened";
+public static final String FLURRY_APP_CLOSED="app_closed";
+public static final String FLURRY_TEMPO_LIST_CREATED="tempo_list_created";
+public static final String FLURRY_METRONOME_STATE_CHANGED="metronome_state_changed";
+public static final String FLURRY_SENSITIVITY_VALUE_CHANGED="sensitivity_value_changed";
+public static final String FLURRY_STRIKES_WINDOW_VALUE_CHANGED="strikes_window_value_changed";
+public static final String FLURRY_TIME_SIGNATURE_VALUE_CHANGED="time_signature_value_changed";
+public static final String FLURRY_METRONOME_TEMPO_VALUE_CHANGED="metronome_tempo_value_changed";
+public static Map<String, String> buildFlurryParams(String name, String value) {
+    Map<String, String> params = new HashMap();
+    params.put(name, value);
+    return params;
+}
+    
+
 
 public static final String HELP_URL = "http://backbeater.com/apphelp/?app=android";
 public static final String BUY_SENSOR_URL = "http://backbeater.com/appbuy/?app=android";
@@ -23,7 +41,7 @@ public static final long IDLE_TIMEOUT_IN_MS = 10000; // 10 000ms = 10sec
     
     
     
-    public static boolean isValidTempo(int tempo) {
+public static boolean isValidTempo(int tempo) {
     return (tempo >= Constants.MIN_TEMPO  && tempo <= Constants.MAX_TEMPO);
 }
     
@@ -100,9 +118,8 @@ public enum BBTypeface {
     
     public Typeface getTypeface(Context context) {
         return Typeface.createFromAsset(context.getResources().getAssets(), path);
-    }
-    
-    
+    }  
 }
+    
     
 }

@@ -31,7 +31,10 @@ import com.esdevices.backbeater.utils.Constants;
 import com.esdevices.backbeater.utils.DialogHelper;
 import com.esdevices.backbeater.utils.NetworkInfoHelper;
 import com.esdevices.backbeater.utils.Preferences;
+import com.flurry.android.FlurryAgent;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends Activity implements SlideButton.StateChangeListener, SensitivitySlider.ValueChangeListener,
     AudioService.AudioServiceBeatListener {
@@ -118,8 +121,8 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         handleSensorDetected(false);
         
         setSound(Preferences.getSound(sound));
-        setWindow(Preferences.getWindow(window));
-        setBeat(Preferences.getBeat(beat));
+        setWindow(Preferences.getWindow(window), false);
+        setBeat(Preferences.getBeat(beat), false);
         
         setSensitivity(Preferences.getSensitivity(sensitivity));
         sensitivitySlider.setValue(sensitivity);
@@ -297,6 +300,8 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         } else {
             tempoDisplay.setMetronomeOff();
         }
+    
+        FlurryAgent.logEvent(Constants.FLURRY_METRONOME_STATE_CHANGED, Constants.buildFlurryParams("value", isOn? "1" : "0"));
     }
     
     // Tempo Slide Button
@@ -304,10 +309,13 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         if (tempoSlideButton.isSelected()) {
             tempoDisplay.setMetronomeOn(Constants.Sound.fromIndex(sound), tempoSlideButton.getValue());
         }
+        FlurryAgent.logEvent(Constants.FLURRY_METRONOME_TEMPO_VALUE_CHANGED, Constants.buildFlurryParams("value", ""+newValue));
+    
     }
     
     @Override public void onSensitivityValueChanged(int newValue) {
         setSensitivity(newValue);
+        FlurryAgent.logEvent(Constants.FLURRY_SENSITIVITY_VALUE_CHANGED, Constants.buildFlurryParams("value", ""+newValue));
     }
     
     
@@ -317,7 +325,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     //  NAV DRAWER
     //================================================================================
  
-     public void setBeat(int beat){
+     public void setBeat(int beat, boolean logFlurry){
         beat1Button.enable(beat==1);
         beat2Button.enable(beat==2);
         beat3Button.enable(beat==3);
@@ -325,9 +333,16 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         this.beat = beat;
         Preferences.putBeat(beat);
         tempoDisplay.setBeat(beat);
-    }
+        
+        if (logFlurry) {
+            FlurryAgent.logEvent(Constants.FLURRY_TIME_SIGNATURE_VALUE_CHANGED,
+                Constants.buildFlurryParams("value", "" + beat));
+        }
+    
+    
+     }
 
-    public void setWindow(int window){
+    public void setWindow(int window, boolean logFlurry){
         window2Button.enable(window==2);
         window3Button.enable(window==3);
         window4Button.enable(window==4);
@@ -335,6 +350,10 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         this.window = window;
         Preferences.putWindow(window);
         tempoDisplay.setWindow(window);
+        if (logFlurry) {
+            FlurryAgent.logEvent(Constants.FLURRY_STRIKES_WINDOW_VALUE_CHANGED,
+                Constants.buildFlurryParams("value", "" + window));
+        }
     }
 
     public void setSound(int sound){
@@ -373,28 +392,28 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
                 setSound(3);
                 break;
             case R.id.window2:
-                setWindow(2);
+                setWindow(2, true);
                 break;
             case R.id.window3:
-                setWindow(3);
+                setWindow(3, true);
                 break;
             case R.id.window4:
-                setWindow(4);
+                setWindow(4, true);
                 break;
             case R.id.window5:
-                setWindow(5);
+                setWindow(5, true);
                 break;
             case R.id.beat1:
-                setBeat(1);
+                setBeat(1, true);
                 break;
             case R.id.beat2:
-                setBeat(2);
+                setBeat(2, true);
                 break;
             case R.id.beat3:
-                setBeat(3);
+                setBeat(3, true);
                 break;
             case R.id.beat4:
-                setBeat(4);
+                setBeat(4, true);
                 break;
             case R.id.aboutButton:
                 drawerLayout.closeDrawer(Gravity.LEFT);

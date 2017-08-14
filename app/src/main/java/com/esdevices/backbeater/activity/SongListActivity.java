@@ -25,6 +25,7 @@ import com.esdevices.backbeater.ui.widgets.BBEditTextView;
 import com.esdevices.backbeater.ui.widgets.BBTextView;
 import com.esdevices.backbeater.utils.Constants;
 import com.esdevices.backbeater.utils.Preferences;
+import com.flurry.android.FlurryAgent;
 import java.util.List;
 
 /**
@@ -39,6 +40,7 @@ public class SongListActivity extends Activity  {
     private List<Song> songList;
     
     boolean dataChanged = false;
+    boolean oldSongLIstIsEmpty = false;
     
     
     @Override protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -48,6 +50,7 @@ public class SongListActivity extends Activity  {
         ButterKnife.bind(this);
     
         songList = Preferences.getSongList();
+        oldSongLIstIsEmpty = songList.isEmpty();
         updateView();
         updateSongListView();
     }
@@ -60,6 +63,14 @@ public class SongListActivity extends Activity  {
             Preferences.putSongList(songList);
         }
         onBackPressed();
+    }
+    
+    @Override
+    public void onBackPressed() {
+        if (oldSongLIstIsEmpty && !songList.isEmpty()) {
+            FlurryAgent.logEvent(Constants.FLURRY_TEMPO_LIST_CREATED);
+        }
+        super.onBackPressed();
     }
     
     @OnClick(R.id.addButton)
