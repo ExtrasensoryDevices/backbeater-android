@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import com.crashlytics.android.Crashlytics;
+import com.esdevices.backbeater.activity.MainActivity;
 import com.esdevices.backbeater.activity.SplashActivity;
 import com.esdevices.backbeater.utils.Constants;
 import com.flurry.android.FlurryAgent;
@@ -59,7 +60,7 @@ public class App extends android.app.Application implements Application.Activity
     }
     
     
-    
+    private boolean mainActivityIsInBackground = false;
     private static final int USER_QUIT_TIMEOUT = 1000;
     private long sessionStarted;
     private Handler handler = new Handler(Looper.getMainLooper());
@@ -68,9 +69,7 @@ public class App extends android.app.Application implements Application.Activity
         public void run() {
             long now = new Date().getTime();
             long sessionDuration = (now - sessionStarted) / 1000;
-            Map<String, String> params = new HashMap();
-            params.put("sessionLength", ""+sessionDuration);
-            FlurryAgent.logEvent(Constants.FLURRY_APP_CLOSED, params);
+            FlurryAgent.logEvent(Constants.FLURRY_APP_CLOSED, Constants.buildFlurryParams("sessionLength", ""+sessionDuration));
         }
     };
 
@@ -82,8 +81,16 @@ public class App extends android.app.Application implements Application.Activity
     @Override public void onActivityStarted(Activity activity) {
         handler.removeCallbacks(runReportUserQuit);
         if (activity instanceof SplashActivity) {
-            sessionStarted = new Date().getTime();
-            FlurryAgent.logEvent(Constants.FLURRY_APP_OPENED);
+            // ignore
+        } else if (activity instanceof MainActivity) {
+            if (mainActivityIsInBackground) {
+                mainActivityIsInBackground = false;
+            } else {
+                sessionStarted = new Date().getTime();
+                FlurryAgent.logEvent(Constants.FLURRY_APP_OPENED);
+            }
+        } else {
+            mainActivityIsInBackground = true;
         }
     }
     

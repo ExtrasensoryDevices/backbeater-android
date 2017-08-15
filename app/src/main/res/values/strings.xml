@@ -1,8 +1,6 @@
 <resources>
     <string name="app_name">Backbeater</string>
     
-    <string name="crashlytics_api_key">2005672959a305e58471f44a4dc2d921baa415aa</string>
-    
     <string name="facebook_app_id">231862296860666</string>
     <string name="fb_login_protocol_scheme">fb231862296860666</string>
     
