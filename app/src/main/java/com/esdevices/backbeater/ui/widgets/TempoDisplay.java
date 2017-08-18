@@ -240,7 +240,7 @@ public class TempoDisplay extends AppCompatTextView {
         if (_cptIsValid && (!isIdle || metronomeIsOn) ) {
     
             double oneLapTime = getOneLapTime();
-            double degree = ((double)timeSinceLastTimerBeat * 2*Math.PI) / oneLapTime + Math.PI;
+            double degree = (((double)timeSinceLastTimerBeat/oneLapTime) % 1) * 2*Math.PI + Math.PI;
             
             int ocX = (int) (radius * Math.sin(degree) + cX);
             int ocY = (int) (radius * Math.cos(degree) + cY);
@@ -306,22 +306,22 @@ public class TempoDisplay extends AppCompatTextView {
     private boolean isIdle = true;
     
     private double getOneLapTime(){ // time to run one whole circle
-        double CPT = isMetronomeOn() ? (double)metronomeTempo : (double) this.CPT /(double)beat;
-        return  (double) MS_IN_MIN / CPT;
+        double _CPT = isMetronomeOn() ? (double)metronomeTempo : (double) this.CPT /(double)beat;
+        return  (double) MS_IN_MIN / _CPT;
     }
 
     
     // beat handler
-    public void beat(long hitTime) {
+    public void beat(long beatTime) {
         if (lastBeatTime == 0){
-            lastBeatTime = hitTime;
+            lastBeatTime = beatTime;
             if (!isMetronomeOn()) {
-                lastTimerBeatTime = hitTime;
+                lastTimerBeatTime = beatTime;
             }
             return;
         }
         
-        long timeSinceLastBeat = hitTime - lastBeatTime;
+        long timeSinceLastBeat = beatTime - lastBeatTime;
         
         if (timeSinceLastBeat == 0) {
             return;
@@ -329,26 +329,28 @@ public class TempoDisplay extends AppCompatTextView {
         
         
         double tapBpm = (double) (MS_IN_MIN /timeSinceLastBeat);
-        lastBeatTime = hitTime;
-        processBeat(tapBpm, hitTime);
+        processBeat(tapBpm, beatTime);
     }
     
     private void processBeat(double bpm, long beatTime) {
         double multiplier = isMetronomeOn() ? 1 : (double) beat;
         double instantTempo = multiplier * bpm;
         CPT = windowQueue.enqueue(instantTempo).average();
-        
+        lastBeatTime = beatTime;
+    
         offDegree = 0;
         if (this.CPT > 0) {
             double oneLapTime = getOneLapTime();
             long timeSinceLastTimerBeat = beatTime - lastTimerBeatTime;
-            hit = (oneLapTime-timeSinceLastTimerBeat <= 10) || (timeSinceLastTimerBeat >= oneLapTime);
+            hit = Math.abs(oneLapTime-timeSinceLastTimerBeat) <= 10;
             if (hit && Constants.isValidTempo(CPT)) {
-                Log.d("HIT", "--------- HIT ------------");
+                //Log.d("HIT", "--------- HIT ------------");
                 leftStrike = !leftStrike;
             } else {
-                offDegree = ((double)timeSinceLastTimerBeat * 2*Math.PI) / oneLapTime + Math.PI;
+                offDegree = (((double)timeSinceLastTimerBeat/oneLapTime) % 1) * 2*Math.PI + Math.PI;
+    
             }
+            
         }
         invalidate();
     }
@@ -380,7 +382,6 @@ public class TempoDisplay extends AppCompatTextView {
     
     
     public void setMetronomeOn(Sound sound, int metronomeTempo) {
-        //TODO: think of initializing MetronomePlayer in constructor
         if (metronome == null) {
             metronome = new MetronomePlayer();
         }

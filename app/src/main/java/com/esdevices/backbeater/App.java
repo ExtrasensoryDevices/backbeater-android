@@ -8,6 +8,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import com.crashlytics.android.Crashlytics;
 import com.esdevices.backbeater.activity.MainActivity;
 import com.esdevices.backbeater.activity.SplashActivity;
@@ -61,7 +62,7 @@ public class App extends android.app.Application implements Application.Activity
     
     
     private boolean mainActivityIsInBackground = false;
-    private static final int USER_QUIT_TIMEOUT = 1000;
+    private static final int USER_QUIT_TIMEOUT = 500;
     private long sessionStarted;
     private Handler handler = new Handler(Looper.getMainLooper());
     private Runnable runReportUserQuit = new Runnable() {
@@ -70,6 +71,11 @@ public class App extends android.app.Application implements Application.Activity
             long now = new Date().getTime();
             long sessionDuration = (now - sessionStarted) / 1000;
             FlurryAgent.logEvent(Constants.FLURRY_APP_CLOSED, Constants.buildFlurryParams("sessionLength", ""+sessionDuration));
+            Log.d("Flurry", Constants.FLURRY_APP_CLOSED);
+            // IMPORTANT!!!
+            // TIMED EVENTS exist but duratione does not show up anywhere on the Flurry dashboatrd
+            //FlurryAgent.endTimedEvent(Constants.FLURRY_APP_CLOSED);
+            FlurryAgent.onEndSession(getContext());
         }
     };
 
@@ -87,7 +93,12 @@ public class App extends android.app.Application implements Application.Activity
                 mainActivityIsInBackground = false;
             } else {
                 sessionStarted = new Date().getTime();
+                Log.d("Flurry", Constants.FLURRY_APP_OPENED);
+                FlurryAgent.onStartSession(getContext());
                 FlurryAgent.logEvent(Constants.FLURRY_APP_OPENED);
+                // IMPORTANT!!!
+                // TIMED EVENTS exist but duratione does not show up anywhere on the Flurry dashboatrd
+                //FlurryAgent.logEvent(Constants.FLURRY_APP_CLOSED, true);
             }
         } else {
             mainActivityIsInBackground = true;
