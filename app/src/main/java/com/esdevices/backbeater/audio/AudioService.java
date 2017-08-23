@@ -80,7 +80,6 @@ public class AudioService {
     
     private void reset() {
         if (audioRecord != null) {
-            audioRecord.stop();
             audioRecord.release();
             audioRecord = null;
         }
