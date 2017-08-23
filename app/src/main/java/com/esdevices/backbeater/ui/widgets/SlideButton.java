@@ -166,6 +166,10 @@ public class SlideButton extends View {
         float toControlBY = collapsedBY;
         float toTextCY = viewCY;
     
+        //Log.d("0", "----------------------");
+        //Log.d("0", "Action: "+motionEventAction);
+        //Log.d("0","viewCY = "+viewCY+", controlTY = "+controlTY+", controlBY = "+controlBY+", eventStartY = "+eventStartY+", eventY = "+eventY);
+        //Log.d("0","collapsedTY = "+collapsedTY+", collapsedBY = "+collapsedBY);
     
         // -------------- define animation start state ------------------
     
@@ -178,7 +182,7 @@ public class SlideButton extends View {
             fromControlBY = controlBY;
             toControlTY = collapsedTY;
             toControlBY = collapsedBY;
-            Log.d("1", "ACTION_DOWN: controlCY: " + controlTY + " - " + controlBY);
+            //Log.d("1", "ACTION_DOWN: "+" controlTY = "+controlTY+", controlBY = "+controlBY);
         } else if (motionEventAction == MotionEvent.ACTION_MOVE) {
             // ACTION_MOVE - start stretching
     
@@ -199,7 +203,7 @@ public class SlideButton extends View {
                 fromControlTY = controlTY;
                 fromControlBY = controlBY;
                 fromTextCY = viewCY;
-                Log.d("1", "was animationStartTime == 0, now animationStartTime= "+animationStartTime);
+                //Log.d("1", "was animationStartTime == 0, now animationStartTime= "+animationStartTime);
             } else {
                 // animation in progress or control expanded, user continues ACTION_MOVE
                 if (oldDeltaY * deltaY <= 0){
@@ -208,10 +212,10 @@ public class SlideButton extends View {
                     fromControlTY = controlTY;
                     fromControlBY = controlBY;
                     fromTextCY = textCY;
-                    Log.d("1", "switch: oldDeltaY = " + oldDeltaY + ", deltaY = " + deltaY + ", animationStartTime= "+animationStartTime);
+                    ////Log.d("1", "switch: oldDeltaY = " + oldDeltaY + ", deltaY = " + deltaY + ", animationStartTime= "+animationStartTime);
                 } else {
                     // stretch same direction/ do nothing
-                    Log.d("1", "same direction: oldDeltaY = " + oldDeltaY + ", deltaY = " + deltaY+ ", animationStartTime= "+animationStartTime);
+                    //Log.d("1", "same direction: oldDeltaY = " + oldDeltaY + ", deltaY = " + deltaY+ ", animationStartTime= "+animationStartTime);
                 }
             }
         } else if ((motionEventAction == MotionEvent.ACTION_UP) && (controlTY != collapsedTY || controlBY != collapsedBY)){
@@ -224,10 +228,13 @@ public class SlideButton extends View {
             toControlBY = collapsedBY;
             toTextCY = viewCY;
             motionEventAction = -1;
-            Log.d("1", "ACTION_UP, animationStartTime= "+animationStartTime);
+            //Log.d("1", "ACTION_UP, animationStartTime= "+animationStartTime);
         }
     
-        
+        //Log.d("1","controlTY = "+controlTY+", controlBY = "+controlBY);
+    
+    
+    
         // dTa = deltaTimeAnimation = time since animation started
         long dTa = now - animationStartTime;
     
@@ -252,13 +259,17 @@ public class SlideButton extends View {
                     controlBY = collapsedBY;
                     textCY = viewCY;
                 }
+                //Log.d("2","after anim: controlTY = "+controlTY+", controlBY = "+controlBY);
             } else {
                 // playing animation, still collapsing or expanding, calculate length inversely proportional to dTa
                 controlTY = fromControlTY + (float) dTa / (float) ANIMATION_DURATION * (toControlTY - fromControlTY);
                 controlBY = fromControlBY + (float) dTa / (float) ANIMATION_DURATION * (toControlBY - fromControlBY);
                 textCY = fromTextCY + (float) dTa / (float) ANIMATION_DURATION * (toTextCY - fromTextCY);
+                //Log.d("2","inside anim: controlTY = "+controlTY+", controlBY = "+controlBY);
             }
         }
+    
+        
     
         // -------------- draw oval ------------------
         
@@ -286,11 +297,11 @@ public class SlideButton extends View {
             RectF arcRectTop = new RectF(0f, controlTY, W, sideTop+radius);
             RectF arcRectBottom = new RectF(0f, sideBottom-radius, W, controlBY);
     
-            Log.d("3", "----------------------");
-            Log.d("3","viewCY = "+viewCY+", controlTY = "+controlTY+", controlBY = "+controlBY);
-            Log.d("3","sideTop = "+sideTop+", sideBottom = "+sideBottom+", sideLength = "+(sideBottom-sideTop));
-            Log.d("3","arcRectTop    = "+arcRectTop + ", "+arcRectTop.width()+" x "+arcRectTop.height());
-            Log.d("3","arcRectBottom = "+arcRectBottom + ", "+arcRectBottom.width()+" x "+arcRectBottom.height());
+            ////Log.d("3", "----------------------");
+            //Log.d("3","controlTY = "+controlTY+", controlBY = "+controlBY);
+            //Log.d("3","sideTop = "+sideTop+", sideBottom = "+sideBottom+", sideLength = "+(sideBottom-sideTop));
+            //Log.d("3","arcRectTop    = "+arcRectTop + ", "+arcRectTop.width()+" x "+arcRectTop.height());
+            //Log.d("3","arcRectBottom = "+arcRectBottom + ", "+arcRectBottom.width()+" x "+arcRectBottom.height());
             
 
         
@@ -370,9 +381,10 @@ public class SlideButton extends View {
     public boolean onTouchEvent(MotionEvent event) {
         long now = System.currentTimeMillis();
         long clickDuration = 0;
-        motionEventAction = event.getAction();
+    
+        //motionEventAction = event.getAction();
         
-        switch (motionEventAction){
+        switch (event.getAction()){
             case MotionEvent.ACTION_DOWN:
                 // check if user tapped on visible circle (view height is twice the initial circle)
                 if (clickArea != null && clickArea.contains((int)event.getX(),(int)event.getY())) {
@@ -383,6 +395,7 @@ public class SlideButton extends View {
                     ignoreAction = true;
                     return true;
                 }
+                motionEventAction = MotionEvent.ACTION_DOWN;
                 eventStartY = event.getY();
                 eventStartTime = now;
                 tempSlideValue = slideValue;
@@ -394,6 +407,7 @@ public class SlideButton extends View {
                     // ignore ACTION_MOVE for TAP_TIMEOUT milliseconds, may be it is TAP event
                     return true;
                 }
+                motionEventAction = MotionEvent.ACTION_MOVE;
                 eventY = event.getY();
                 tempSlideValue = slideValue + (int) ((eventStartY-eventY) /(DP*5));
                 tempSlideValue = Math.min(Constants.MAX_TEMPO, Math.max(Constants.MIN_TEMPO, tempSlideValue));
@@ -413,14 +427,16 @@ public class SlideButton extends View {
                     handleValueChange();
                     
                 }
+                motionEventAction = MotionEvent.ACTION_UP;
                 eventY = 0;
                 eventStartTime = 0;
                 tempSlideValue = 0;
                 eventStartY = 0;
                 break;
             default:
-                Log.v("slide","event "+event.getAction());
+                //Log.v("slide","event "+event.getAction());
         }
+        //Log.d("onTouchEvent", "Action: "+motionEventAction);
         invalidate();
         return true;
     }
