@@ -59,9 +59,9 @@ public class AudioService {
         }
     
         // make sure MetronomePlayer plays through speakers when sensor is plugged in
-        AudioManager am = (AudioManager) App.getInstance().getSystemService(App.getContext().AUDIO_SERVICE);
-        am.setMode(AudioManager.MODE_IN_COMMUNICATION);
-        am.setSpeakerphoneOn(true);
+        //AudioManager am = (AudioManager) App.getInstance().getSystemService(App.getContext().AUDIO_SERVICE);
+        //am.setMode(AudioManager.MODE_IN_COMMUNICATION);
+        //am.setSpeakerphoneOn(true);
     
         setupAudioRecord();
     }
@@ -141,14 +141,14 @@ public class AudioService {
                 //if (energyLevel < min_e) min_e = energyLevel;
                 //if (energyLevel > max_e) max_e = energyLevel;
     
-                if (energyLevel > startThreshold & !inBeat) { // TODO: startThreshold -> startThreshold
+                if (energyLevel > startThreshold & !inBeat) {
                     // beat started
                     inBeat = true;
     
                     // stats
                     //started_DS = lastPositiveDS; started_e = energyLevel;
                     
-                } else if (energyLevel < endThreshold && inBeat) { // TODO: endThreshold -> endThreshold
+                } else if (energyLevel < endThreshold && inBeat) {
                     // beat ended
                     
                     // stats
@@ -179,6 +179,11 @@ public class AudioService {
             @Override public void run() {
                 running = true;
                 setupAudioRecord();
+                Log.d("STATE", ""+audioRecord.getState());
+                int state = audioRecord.getState();
+                if (audioRecord.getState() != AudioRecord.STATE_INITIALIZED) {
+                    Log.d("STATE", "NOT INITIALIZED");
+                }
                 audioRecord.startRecording();
                 short[] buffer = new short[buffer_size];
     

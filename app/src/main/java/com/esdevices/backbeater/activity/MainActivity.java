@@ -1,14 +1,23 @@
 package com.esdevices.backbeater.activity;
 
+import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.Settings;
+import android.support.annotation.StringRes;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.view.Gravity;
 import android.view.View;
@@ -157,13 +166,17 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     }
     
     
+    private boolean sensorPluggedIn = false;
     private void handleSensorDetected(boolean pluggedIn){
+        sensorPluggedIn = pluggedIn;
         if (pluggedIn) {
-            // sensor plugged in
-            getSensorButton.setVisibility(View.INVISIBLE);
-            setTempoButton.setVisibility(View.VISIBLE);
-            tempoDisplay.handleTap = false;
-            audioService.startMe();
+            if (permissionCheck()) {
+                // sensor plugged in
+                getSensorButton.setVisibility(View.INVISIBLE);
+                setTempoButton.setVisibility(View.VISIBLE);
+                tempoDisplay.handleTap = false;
+                audioService.startMe();
+            }
         } else {
             // sensor unplugged
             getSensorButton.setVisibility(View.VISIBLE);
@@ -436,7 +449,77 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         startActivity(intent);
     }
     
+    //================================================================================
+    //  PERMISSIONS
+    //================================================================================
     
     
+    private static final int PERMISSIONS_REQUEST_RECORD_AUDIO = 1001;
+    private boolean permissionCheck() {
+        // Assume thisActivity is the current activity
+        int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO);
+        if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
+            return true;
+        } else {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.RECORD_AUDIO)) {
+                handleSensorDetected(false);
+                showRequestPermissionRationale(R.string.dlg_mic_permission_msg_1);
+                return false;
+            } else {
+                // No explanation needed, we can request the permission.
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, PERMISSIONS_REQUEST_RECORD_AUDIO);
+                return false;
+            }
+        }
+    }
+    
+    
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+        String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSIONS_REQUEST_RECORD_AUDIO: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // permission was granted, yay! Do the
+                    handleSensorDetected(sensorPluggedIn);
+                } else {
+                    // permission denied
+                    handleSensorDetected(false);
+                    showRequestPermissionRationale(R.string.dlg_mic_permission_msg_2);
+                }
+                return;
+            }
+            
+            // other 'case' lines to check for other
+            // permissions this app might request
+        }
+    }
+    
+    private void showRequestPermissionRationale(@StringRes int msg) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.dlg_mic_permission_ttl);
+        builder.setMessage(msg);
+        builder.setPositiveButton(R.string.open_settings, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                dialog.cancel();
+                openSettings();
+            }
+        });builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                dialog.cancel();
+            }
+        });
+        builder.show();
+    }
+    
+    
+    private void openSettings() {
+        Intent intent = new Intent();
+        intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+        Uri uri = Uri.fromParts("package", getPackageName(), null);
+        intent.setData(uri);
+        startActivity(intent);
+    }
     
 }
