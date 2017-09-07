@@ -15,6 +15,8 @@
     
     <dimen name="button_about">35dp</dimen>
     
+    <dimen name="progress_indicator_size">75dp</dimen>
+    
     <dimen name="padding_xsmall">7dp</dimen>
     <dimen name="padding_small">10dp</dimen>
     <dimen name="padding_medium">15dp</dimen>

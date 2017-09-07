@@ -1,14 +1,13 @@
 package com.esdevices.backbeater.activity;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.View;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.ProgressBar;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -23,14 +22,26 @@ public class AboutActivity extends Activity {
     
     @Bind(R.id.webView) WebView webView;
     
+    @Bind(R.id.progressIndicator) ProgressBar progressIndicator;
+    
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_about);
         ButterKnife.bind(this);
     
+        progressIndicator.setVisibility(View.VISIBLE);
+    
+        
         webView.setBackgroundColor(getResources().getColor(R.color.main_color));
-        webView.setWebViewClient(new WebViewClient());
+        webView.setWebViewClient(new WebViewClient() {
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                progressIndicator.setVisibility(View.GONE);
+            }
+        });
+        webView.getSettings().setCacheMode(WebSettings.LOAD_DEFAULT);
+        webView.getSettings().setJavaScriptEnabled(true);
         webView.loadUrl(Constants.HELP_URL);
     }
     
@@ -39,16 +50,5 @@ public class AboutActivity extends Activity {
         onBackPressed();
     }
     
-    
-    //private void showErrorDialog() {
-    //    AlertDialog.Builder builder = new AlertDialog.Builder(this);
-    //    builder.setTitle("An error occurred");
-    //    builder.setMessage("Failed to connect to the server, please try again later.");
-    //    builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-    //        public void onClick(DialogInterface dialog, int id) {
-    //            dialog.cancel();
-    //        }
-    //    }).show();
-    //}
 }
 
