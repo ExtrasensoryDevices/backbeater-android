@@ -21,7 +21,7 @@ public class AudioService {
     private static final int AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT;
     private static final int SAMPLES_PER_FRAME = 1024;
     private int buffer_size;
-    private boolean running = false;
+    private volatile boolean running = false;
     
     private double startThreshold;
     private double endThreshold;
@@ -29,9 +29,6 @@ public class AudioService {
     
     private AudioServiceBeatListener beatListener;
     private EnergyFunction energyFunction = new EnergyFunction();
-    
-    
-    private AudioRecord audioRecord;
     
     
     private static final double[] START_THRESHOLD_ARRAY = new double[] {63619.17, 57277.19, 50935.21, 44593.23,
@@ -63,28 +60,18 @@ public class AudioService {
         //am.setMode(AudioManager.MODE_IN_COMMUNICATION);
         //am.setSpeakerphoneOn(true);
     
-        setupAudioRecord();
     }
 
-    private void setupAudioRecord() {
+    private AudioRecord setupAudioRecord() {
     
-        reset();
-        
-        audioRecord = new AudioRecord(
+        return new AudioRecord(
                 MediaRecorder.AudioSource.MIC,       // source
                 SAMPLE_RATE,                         // sample rate, hz
                 CHANNEL_CONFIG,                      // channels
                 AUDIO_FORMAT,                        // audio format
                 buffer_size);                        // buffer size (bytes)
     }
-    
-    private void reset() {
-        if (audioRecord != null) {
-            audioRecord.release();
-            audioRecord = null;
-        }
-    }
-    
+     
     public void setBeatListener(AudioServiceBeatListener beatListener) {
         this.beatListener = beatListener;
     }
@@ -95,7 +82,7 @@ public class AudioService {
     }
     
     public void startMe() {
-        energyFunction.clear();
+        stopMe();
         subscribe();
     }
     
@@ -178,7 +165,7 @@ public class AudioService {
         new Thread(new Runnable() {
             @Override public void run() {
                 running = true;
-                setupAudioRecord();
+                AudioRecord audioRecord = setupAudioRecord();
                 Log.d("STATE", ""+audioRecord.getState());
                 int state = audioRecord.getState();
                 if (audioRecord.getState() != AudioRecord.STATE_INITIALIZED) {
@@ -190,14 +177,15 @@ public class AudioService {
                 while (running) {
                     int dataLength = audioRecord.read(buffer, 0, buffer.length);
                     if (dataLength < 0) {
-                        Log.e(TAG, "some error while trying to read the audio record " + dataLength);
+                        Log.e(TAG, "Some error while trying to read the audio record " + dataLength);
                         break;
                     }
                     processDataInput(buffer, dataLength);
                 }
-                reset();
+                audioRecord.release();
             }
-        }).start();
+    
+    }).start();
     }
     
     /******************************************************

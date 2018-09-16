@@ -4,7 +4,6 @@ package com.esdevices.backbeater;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
-
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -17,8 +16,6 @@ import com.flurry.android.FlurryAgent;
 import com.flurry.android.FlurryAgentListener;
 import io.fabric.sdk.android.Fabric;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by Alina Kholcheva on 2017-02-21.
@@ -49,7 +46,7 @@ public class App extends android.app.Application implements Application.Activity
         new FlurryAgent.Builder()
             .withLogEnabled(false)
             .withCaptureUncaughtExceptions(false)
-            .withContinueSessionMillis(10)
+            .withContinueSessionMillis(10000)
             .withListener(new FlurryAgentListener() {
                 @Override public void onSessionStarted() {
         
