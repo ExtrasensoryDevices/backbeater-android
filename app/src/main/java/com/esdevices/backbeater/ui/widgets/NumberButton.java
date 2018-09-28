@@ -5,12 +5,11 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.graphics.Typeface;
 import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.view.View;
-import android.widget.Button;
 
+import android.widget.Button;
 import com.esdevices.backbeater.R;
 import com.esdevices.backbeater.utils.Constants;
 

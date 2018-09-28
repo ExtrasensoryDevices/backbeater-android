@@ -6,7 +6,6 @@ import android.media.AudioManager;
 import android.media.SoundPool;
 import android.os.Build;
 import com.esdevices.backbeater.App;
-import com.esdevices.backbeater.R;
 import com.esdevices.backbeater.utils.Constants.Sound;
 
 /**

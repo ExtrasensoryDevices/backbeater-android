@@ -7,7 +7,6 @@ import android.graphics.Rect;
 import android.graphics.drawable.AnimationDrawable;
 import android.text.TextPaint;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.support.v7.widget.AppCompatTextView;
 

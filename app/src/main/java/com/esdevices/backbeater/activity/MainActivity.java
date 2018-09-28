@@ -3,13 +3,13 @@ package com.esdevices.backbeater.activity;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.hardware.usb.UsbManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -41,9 +41,7 @@ import com.esdevices.backbeater.utils.DialogHelper;
 import com.esdevices.backbeater.utils.NetworkInfoHelper;
 import com.esdevices.backbeater.utils.Preferences;
 import com.flurry.android.FlurryAgent;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class MainActivity extends Activity implements SlideButton.StateChangeListener, SensitivitySlider.ValueChangeListener,
     AudioService.AudioServiceBeatListener {
@@ -97,11 +95,30 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
+            
+            // check if it is audio jack HEADSET_PLUG_IN event
             if (Intent.ACTION_HEADSET_PLUG.equals(action)) {
                 boolean hasMicrophone = intent.getIntExtra("microphone", -1) == 1;
                 int state = intent.getIntExtra("state", -1);
-                handleSensorDetected(hasMicrophone && state == 1);
+    
+                // if found
+                if (hasMicrophone) {
+                    handleSensorDetected(state == 1);
+                    return;
+                }
             }
+    
+            // check if it is USB_C type PLUG_IN event
+            // Pixel 2 does not have Audio Jack, headset is USB_C type device
+            if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action) ||
+                UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action))
+            {
+                boolean found = AudioService.isUSBCDevicePluggedIn(MainActivity.this);
+                handleSensorDetected(found);
+                
+            }
+    
+            handleSensorDetected(false);
         }
     };
 
@@ -147,8 +164,12 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
    @Override
     protected void onResume() {
         super.onResume();
+        
         // register sensor listener
-        IntentFilter filter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_HEADSET_PLUG);
+        filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
+        filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
         getApplicationContext().registerReceiver(broadcastReceiver, filter);
     }
 

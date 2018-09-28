@@ -70,7 +70,8 @@ public class App extends android.app.Application implements Application.Activity
             FlurryAgent.logEvent(Constants.FLURRY_APP_CLOSED, Constants.buildFlurryParams("sessionLength", ""+sessionDuration));
             Log.d("Flurry", Constants.FLURRY_APP_CLOSED);
             // IMPORTANT!!!
-            // TIMED EVENTS exist but duratione does not show up anywhere on the Flurry dashboatrd
+            // TIMED EVENTS exist but duration does not show up anywhere on the Flurry dashboard
+            // that is why we do not use timed events here
             //FlurryAgent.endTimedEvent(Constants.FLURRY_APP_CLOSED);
             FlurryAgent.onEndSession(getContext());
         }
@@ -94,7 +95,8 @@ public class App extends android.app.Application implements Application.Activity
                 FlurryAgent.onStartSession(getContext());
                 FlurryAgent.logEvent(Constants.FLURRY_APP_OPENED);
                 // IMPORTANT!!!
-                // TIMED EVENTS exist but duratione does not show up anywhere on the Flurry dashboatrd
+                // TIMED EVENTS exist but duration does not show up anywhere on the Flurry dashboard
+                // that is why we do not use timed events here
                 //FlurryAgent.logEvent(Constants.FLURRY_APP_CLOSED, true);
             }
         } else {

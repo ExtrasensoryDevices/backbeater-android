@@ -1,11 +1,14 @@
 package com.esdevices.backbeater.audio;
 
+import android.content.Context;
+import android.media.AudioDeviceInfo;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.util.Log;
-import com.esdevices.backbeater.App;
+
+import static android.media.AudioManager.GET_DEVICES_INPUTS;
 
 /**
  * Created by aeboyd on 7/13/15.
@@ -31,18 +34,18 @@ public class AudioService {
     private EnergyFunction energyFunction = new EnergyFunction();
     
     
-    private static final double[] START_THRESHOLD_ARRAY = new double[] {63619.17, 57277.19, 50935.21, 44593.23,
-        38251.25, 31909.27, 28738.28, 25567.29, 22396.30, 19225.31, 16054.32, 15420.12, 14785.92, 14151.72, 13517.52,
-        12883.33, 12566.23, 12249.13, 11932.03, 11614.93, 11297.83, 10980.73, 10663.63, 10346.53, 10029.44, 9966.02,
-        9902.60, 9839.18, 9775.76, 9712.34, 9553.79, 9395.24, 9236.69, 9078.14, 9014.72, 8951.30, 8887.88, 8824.46,
-        8761.04, 8697.62, 8634.20, 8570.78, 8507.36, 8443.94, 8380.52, 8317.10, 8253.68, 8190.26, 8126.84, 8063.42,
-        8000.00, 7936.58, 7873.16, 7809.74, 7746.32, 7682.90, 7619.48, 7556.06, 7492.64, 7429.22, 7302.38, 7175.54,
-        6985.28, 6731.61, 6541.35, 6224.25, 5907.15, 5463.21, 4955.85, 4321.65, 3687.46, 3053.26, 2419.06, 1784.86,
-        1150.66, 833.56, 770.14, 706.72, 579.88, 326.21, 294.50, 262.79, 246.93, 231.08, 218.39, 212.05, 208.88,
-        205.71, 205.07, 204.44, 203.81, 203.17, 202.54, 202.22, 201.90, 201.59, 201.27, 200.95, 200.63, 200.32, 200.00};
+    //private static final double[] START_THRESHOLD_ARRAY = new double[] {63619.17, 57277.19, 50935.21, 44593.23,
+    //    38251.25, 31909.27, 28738.28, 25567.29, 22396.30, 19225.31, 16054.32, 15420.12, 14785.92, 14151.72, 13517.52,
+    //    12883.33, 12566.23, 12249.13, 11932.03, 11614.93, 11297.83, 10980.73, 10663.63, 10346.53, 10029.44, 9966.02,
+    //    9902.60, 9839.18, 9775.76, 9712.34, 9553.79, 9395.24, 9236.69, 9078.14, 9014.72, 8951.30, 8887.88, 8824.46,
+    //    8761.04, 8697.62, 8634.20, 8570.78, 8507.36, 8443.94, 8380.52, 8317.10, 8253.68, 8190.26, 8126.84, 8063.42,
+    //    8000.00, 7936.58, 7873.16, 7809.74, 7746.32, 7682.90, 7619.48, 7556.06, 7492.64, 7429.22, 7302.38, 7175.54,
+    //    6985.28, 6731.61, 6541.35, 6224.25, 5907.15, 5463.21, 4955.85, 4321.65, 3687.46, 3053.26, 2419.06, 1784.86,
+    //    1150.66, 833.56, 770.14, 706.72, 579.88, 326.21, 294.50, 262.79, 246.93, 231.08, 218.39, 212.05, 208.88,
+    //    205.71, 205.07, 204.44, 203.81, 203.17, 202.54, 202.22, 201.90, 201.59, 201.27, 200.95, 200.63, 200.32, 200.00};
+    //
     
-    
-    
+    private static final double[] START_THRESHOLD_ARRAY = new double[] {1000, 966.6666667, 933.3333333, 900, 866.6666667, 833.3333333, 800, 775.5555556, 751.1111111, 726.6666667, 702.2222222, 677.7777778, 653.3333333, 628.8888889, 604.4444444, 580, 570, 560, 550, 540, 530, 520, 510, 500, 490, 480, 473.75, 467.5, 461.25, 455, 448.75, 442.5, 436.25, 430, 427.2727273, 424.5454545, 421.8181818, 419.0909091, 416.3636364, 413.6363636, 410.9090909, 408.1818182, 405.4545455, 402.7272727, 400, 397.2727273, 394.5454545, 391.8181818, 389.0909091, 386.3636364, 383.6363636, 380.9090909, 378.1818182, 375.4545455, 372.7272727, 370, 363, 356, 349, 342, 335, 328, 321, 314, 307, 300, 291, 282, 273, 264, 255, 246, 237, 228, 219, 210, 201, 195.5384615, 190.0769231, 184.6153846, 179.1538462, 173.6923077, 168.2307692, 162.7692308, 157.3076923, 151.8461538, 146.3846154, 140.9230769, 135.4615385, 130, 127.2727273, 124.5454545, 121.8181818, 119.0909091, 116.3636364, 113.6363636, 110.9090909, 108.1818182, 105.4545455, 102.7272727, 100};
     
     
     public AudioService() {
@@ -55,21 +58,40 @@ public class AudioService {
             buffer_size = ((min_buffer_size / SAMPLES_PER_FRAME) + 1) * SAMPLES_PER_FRAME * 2;
         }
     
-        // make sure MetronomePlayer plays through speakers when sensor is plugged in
-        //AudioManager am = (AudioManager) App.getInstance().getSystemService(App.getContext().AUDIO_SERVICE);
-        //am.setMode(AudioManager.MODE_IN_COMMUNICATION);
-        //am.setSpeakerphoneOn(true);
+        /* Commented out because Metronome should go through the same sensor output
     
+        // make sure MetronomePlayer plays through speakers when sensor is plugged in
+        AudioManager am = (AudioManager) App.getInstance().getSystemService(App.getContext().AUDIO_SERVICE);
+        am.setMode(AudioManager.MODE_IN_COMMUNICATION);
+        am.setSpeakerphoneOn(true);
+        
+        */
+    
+    }
+    
+    public static boolean isUSBCDevicePluggedIn(Context ctx) {
+        if (android.os.Build.VERSION.SDK_INT < 23) {
+            return false;
+        }
+        
+        AudioManager audioManager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
+        AudioDeviceInfo[] devices = audioManager.getDevices(GET_DEVICES_INPUTS);
+        for (AudioDeviceInfo device: devices) {
+            if (device.getType() == AudioDeviceInfo.TYPE_USB_DEVICE) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private AudioRecord setupAudioRecord() {
     
         return new AudioRecord(
-                MediaRecorder.AudioSource.MIC,       // source
-                SAMPLE_RATE,                         // sample rate, hz
-                CHANNEL_CONFIG,                      // channels
-                AUDIO_FORMAT,                        // audio format
-                buffer_size);                        // buffer size (bytes)
+                MediaRecorder.AudioSource.MIC,  // source
+                SAMPLE_RATE,                    // sample rate, hz
+                CHANNEL_CONFIG,                 // channels
+                AUDIO_FORMAT,                   // audio format
+                buffer_size);                   // buffer size (bytes)
     }
      
     public void setBeatListener(AudioServiceBeatListener beatListener) {
@@ -140,9 +162,10 @@ public class AudioService {
                     
                     // stats
                     //ended_DS = lastPositiveDS; ended_e = energyLevel;
-                    //
+
                     //if (calibrationBeatListener != null) {
                     //    calibrationBeatListener.onBeat(started_DS, started_e, ended_DS, ended_e);
+                    //    energyFunction.clear();
                     //}
                     //min=Short.MAX_VALUE; max=Short.MIN_VALUE;
                     //min_e=Double.MAX_VALUE; max_e=Double.MIN_VALUE;
@@ -193,25 +216,28 @@ public class AudioService {
      *
      ******************************************************/
 
-    //public interface AudioServiceCalibrationBeatListener{
-    //    void onBeat(short started_DS, double started_e, short ended_DS, double ended_e);
-    //}
+    public interface AudioServiceCalibrationBeatListener{
+        void onBeat(short started_DS, double started_e, short ended_DS, double ended_e);
+    }
     //
-    //private AudioServiceCalibrationBeatListener calibrationBeatListener;
+    private AudioServiceCalibrationBeatListener calibrationBeatListener;
+
+
+    public void setCalibrationBeatListener(AudioServiceCalibrationBeatListener calibrationBeatListener) {
+        this.calibrationBeatListener = calibrationBeatListener;
+    }
+
+
+
+    public void setTestStartThreshold(double START_THRESHOLD) {
+        if (this.startThreshold != START_THRESHOLD) {
+            this.startThreshold = START_THRESHOLD;
+            this.endThreshold = 1.1 * this.startThreshold;
+        }
+        energyFunction.clear();
+    }
     
     
-    //public void setCalibrationBeatListener(AudioServiceCalibrationBeatListener calibrationBeatListener) {
-    //    this.calibrationBeatListener = calibrationBeatListener;
-    //}
-    
-    
-    
-    //public void setTestStartThreshold(double START_THRESHOLD) {
-    //    if (this.startThreshold != START_THRESHOLD) {
-    //        this.startThreshold = START_THRESHOLD;
-    //        this.endThreshold = 1.1 * this.startThreshold;
-    //    }
-    //}
     
     
 }

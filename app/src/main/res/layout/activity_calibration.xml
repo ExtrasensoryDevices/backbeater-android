@@ -2,7 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:layout_margin="20dp">
     
     <LinearLayout android:orientation="horizontal"
         android:layout_width="match_parent"
@@ -20,13 +21,14 @@
             android:layout_height="wrap_content"
             android:layout_weight="0.5"
             android:imeOptions="actionDone"
-            android:inputType="number"
+            android:inputType="numberDecimal"
             android:maxLines="1"
             android:gravity="center"
             android:text="4000"/>
     
     
-        <TextView android:layout_width="wrap_content"
+        <TextView android:id="@+id/sensitivityLabel"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Sensitivity: "/>
     
@@ -41,7 +43,6 @@
             android:gravity="center"
             android:text="100"/>
     </LinearLayout>
-    
     
     <TextView android:id="@+id/beatText"
         android:layout_width="match_parent"
