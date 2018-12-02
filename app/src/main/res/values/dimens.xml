@@ -11,12 +11,13 @@
     
     <dimen name="slide_button_width">66dp</dimen>
     <dimen name="slide_button_height">132dp</dimen>
-    <dimen name="slide_button_offset">33dp</dimen>
+    <dimen name="slide_button_offset">27dp</dimen>
     
     <dimen name="button_about">35dp</dimen>
-    
+
     <dimen name="progress_indicator_size">75dp</dimen>
-    
+    <dimen name="progress_indicator_size_large">80dp</dimen>
+
     <dimen name="padding_xsmall">7dp</dimen>
     <dimen name="padding_small">10dp</dimen>
     <dimen name="padding_medium">15dp</dimen>

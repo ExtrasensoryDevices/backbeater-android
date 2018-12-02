@@ -59,32 +59,49 @@
         android:layout_alignParentEnd="true"
         android:layout_alignBottom="@+id/songListButton"
         android:layout_marginRight="@dimen/padding_medium"/>
-    
-    
-    <com.esdevices.backbeater.ui.widgets.BBTextView
-        android:id="@+id/getSensorButton"
-        android:layout_width="@dimen/button_large"
-        android:layout_height="@dimen/button_large"
+
+
+
+    <FrameLayout
+        android:layout_width="@dimen/progress_indicator_size_large"
+        android:layout_height="@dimen/progress_indicator_size_large"
         android:layout_alignParentBottom="false"
         android:layout_alignParentStart="true"
         android:layout_alignBottom="@+id/tempoSlideButton"
         android:layout_marginBottom="@dimen/slide_button_offset"
-        android:layout_marginLeft="@dimen/padding_small"
-        android:paddingBottom="@dimen/padding_xsmall"
-        android:text="@string/get_sensor"
-        android:textSize="14dp"
-        android:textColor="@color/main_color"
-        android:gravity="center"
-        android:background="@drawable/circle_red"/>
-    
-    <View android:id="@+id/setTempoButton"
-        android:layout_width="@dimen/button_large"
-        android:layout_height="@dimen/button_large"
-        android:layout_alignTop="@+id/getSensorButton"
-        android:layout_alignLeft="@+id/getSensorButton"
-        android:background="@drawable/set_tempo_background"
-        android:visibility="gone"/>
-    
+        android:layout_marginLeft="@dimen/padding_xsmall"
+        android:gravity="center">
+
+        <com.esdevices.backbeater.ui.widgets.BBTextView
+            android:id="@+id/getSensorButton"
+            android:layout_width="@dimen/button_large"
+            android:layout_height="@dimen/button_large"
+            android:layout_gravity="center"
+            android:text="@string/get_sensor"
+            android:textSize="14dp"
+            android:textColor="@color/main_color"
+            android:gravity="center"
+            android:background="@drawable/circle_red"
+            android:visibility="visible"/>
+
+        <View android:id="@+id/setTempoButton"
+            android:layout_width="@dimen/button_large"
+            android:layout_height="@dimen/button_large"
+            android:layout_gravity="center"
+            android:background="@drawable/set_tempo_background"
+            android:visibility="gone"/>
+
+        <ProgressBar
+            android:id="@+id/progressIndicator"
+            android:layout_width="@dimen/progress_indicator_size_large"
+            android:layout_height="@dimen/progress_indicator_size_large"
+            android:layout_gravity="center"
+            android:indeterminate="true"
+            style="?android:attr/progressBarStyle"
+            android:indeterminateTintMode="src_atop"
+            android:indeterminateTint="@color/assent_color"
+            android:visibility="gone"/>
+    </FrameLayout>
     
     <LinearLayout android:id="@+id/songListLayout"
         android:orientation="horizontal"

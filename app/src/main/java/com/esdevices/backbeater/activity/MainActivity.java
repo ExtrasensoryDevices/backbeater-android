@@ -9,6 +9,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.PorterDuff.Mode;
 import android.hardware.usb.UsbManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -22,34 +24,36 @@ import android.support.v4.widget.DrawerLayout;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 
-import com.esdevices.backbeater.audio.AudioService;
 import com.esdevices.backbeater.BuildConfig;
 import com.esdevices.backbeater.R;
+import com.esdevices.backbeater.audio.AudioService;
 import com.esdevices.backbeater.model.Song;
 import com.esdevices.backbeater.ui.widgets.BBTextView;
 import com.esdevices.backbeater.ui.widgets.NumberButton;
 import com.esdevices.backbeater.ui.widgets.SensitivitySlider;
 import com.esdevices.backbeater.ui.widgets.SlideButton;
 import com.esdevices.backbeater.ui.widgets.TempoDisplay;
-
-import butterknife.ButterKnife;
-import butterknife.Bind;
-import butterknife.OnClick;
 import com.esdevices.backbeater.utils.Constants;
 import com.esdevices.backbeater.utils.DialogHelper;
 import com.esdevices.backbeater.utils.NetworkInfoHelper;
 import com.esdevices.backbeater.utils.Preferences;
+import com.esdevices.backbeater.utils.UsbScanner;
 import com.flurry.android.FlurryAgent;
+
 import java.util.List;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+
 
 public class MainActivity extends Activity implements SlideButton.StateChangeListener, SensitivitySlider.ValueChangeListener,
     AudioService.AudioServiceBeatListener {
     
     static final int EDIT_SONG_LIST_REQUEST = 1;
 
-    private static final int BLACK = -16777216;
-    
     private int sound = 1;
     private int window = 2;
     private int beat = 1;
@@ -89,38 +93,46 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     @Bind(R.id.songNameText) BBTextView songNameText;
     @Bind(R.id.prevButton) ImageView prevButton;
     @Bind(R.id.nextButton) ImageView nextButton;
-    
-    
+
+    @Bind(R.id.progressIndicator) ProgressBar progressIndicator;
+
+    private UsbScanner usbScanner;
+
+    private final Object lock = new Object();
+
     private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
-            
-            // check if it is audio jack HEADSET_PLUG_IN event
-            if (Intent.ACTION_HEADSET_PLUG.equals(action)) {
-                boolean hasMicrophone = intent.getIntExtra("microphone", -1) == 1;
-                int state = intent.getIntExtra("state", -1);
-    
-                // if found
-                if (hasMicrophone) {
-                    handleSensorDetected(state == 1);
-                    return;
+
+            synchronized (MainActivity.this.lock) {
+                // looking for thre microphone
+                if (Intent.ACTION_HEADSET_PLUG.equals(action)) {
+                    boolean hasMicrophone = intent.getIntExtra("microphone", -1) == 1;
+
+                    // if found
+                    if (hasMicrophone) {
+                        int state = intent.getIntExtra("state", -1);
+                        boolean detected = state == 1;
+                        handleSensorDetected(detected, false);
+                    }
+                } else if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action)) {
+                    UsbScanner usbScanner = MainActivity.this.usbScanner;
+                    if (usbScanner != null) {
+                        boolean shouldCheckForMic = usbScanner.isUsbClassAudioDeviceConnected();
+                        if (shouldCheckForMic){
+                            startWaitingForMic();
+                            usbScanner.checkForUSBMic();
+                        }
+                    }
+                } else if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
+                    handleSensorDetected(false, false);
                 }
             }
-    
-            // check if it is USB_C type PLUG_IN event
-            // Pixel 2 does not have Audio Jack, headset is USB_C type device
-            if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action) ||
-                UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action))
-            {
-                boolean found = AudioService.isUSBCDevicePluggedIn(MainActivity.this);
-                handleSensorDetected(found);
-                
-            }
-    
-            handleSensorDetected(false);
         }
     };
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -142,9 +154,19 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         audioService.setBeatListener(this);
         
         versionNumber.setText("Version "+ BuildConfig.VERSION_NAME+ "("+BuildConfig.VERSION_CODE+")");
+
+
+        if (android.os.Build.VERSION.SDK_INT >= 23) {
+            usbScanner = new UsbScanner(this, new UsbScanner.UsbMicrophoneListener() {
+                @Override
+                public void onUSBScanComplete(boolean microphoneFound) {
+                    handleSensorDetected(microphoneFound, false);
+                }
+            });
+        }
         
         // RESTORE SETTINGS
-        handleSensorDetected(false);
+        handleSensorDetected(false, false);
         
         setSound(Preferences.getSound(sound));
         setWindow(Preferences.getWindow(window), false);
@@ -163,45 +185,89 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
 
    @Override
     protected void onResume() {
-        super.onResume();
-        
-        // register sensor listener
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(Intent.ACTION_HEADSET_PLUG);
-        filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
-        filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
-        getApplicationContext().registerReceiver(broadcastReceiver, filter);
-    }
+       super.onResume();
+
+       synchronized (lock) {
+           // check if USB mic is pluged in already
+           if (usbScanner != null) {
+               boolean shouldCheckForMic = usbScanner.isUsbClassAudioDeviceConnected();
+               if (shouldCheckForMic){
+                   startWaitingForMic();
+               }
+           }
+       }
+
+       // register sensor listener
+       IntentFilter intentFilter = new IntentFilter();
+       intentFilter.addAction(Intent.ACTION_HEADSET_PLUG);
+       intentFilter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
+       intentFilter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+
+       getApplicationContext().registerReceiver(broadcastReceiver, intentFilter);
+   }
 
     @Override
     protected void onPause() {
         super.onPause();
         // unregister sensor listener
-        getApplicationContext().unregisterReceiver(broadcastReceiver);
+        try {getApplicationContext().unregisterReceiver(broadcastReceiver); } catch (Exception e) {};
+        // stop audio service
         audioService.stopMe();
         if (tempoSlideButton.isSelected()) {
             tempoSlideButton.toggle();
             tempoDisplay.setMetronomeOff();
         }
+        // save CPT
         Preferences.putCPT(tempoDisplay.getCPT());
+
+        // stop waiting for USB mic
+        if (usbScanner != null) {
+            usbScanner.stopCheckingForUSBMic();
+        }
+        stopWaitingForMic(false);
+    }
+
+
+    private void startWaitingForMic() {
+        getSensorButton.setVisibility(View.INVISIBLE);
+        setTempoButton.setVisibility(View.INVISIBLE);
+        progressIndicator.setVisibility(View.VISIBLE);
+    }
+
+    private void stopWaitingForMic(boolean micConnected){
+        getSensorButton.setVisibility(micConnected ? View.INVISIBLE : View.VISIBLE);
+        setTempoButton.setVisibility(micConnected ? View.VISIBLE : View.INVISIBLE);
+        progressIndicator.setVisibility(View.INVISIBLE);
     }
     
-    
     private boolean sensorPluggedIn = false;
-    private void handleSensorDetected(boolean pluggedIn){
+    private void handleSensorDetected(boolean pluggedIn, boolean permissionCheckInProgress){
+
+        if (this.sensorPluggedIn && audioService.isRunning() && pluggedIn) {
+            // already listening to sound, do nothing
+            return;
+        }
+
         sensorPluggedIn = pluggedIn;
+
+        if (permissionCheckInProgress) {
+            stopWaitingForMic(false);
+            tempoDisplay.handleTap = true;
+            audioService.stopMe();
+            return;
+        }
+
         if (pluggedIn) {
-            if (permissionCheck()) {
+            boolean allowed = permissionCheck();
+            if (allowed) {
                 // sensor plugged in
-                getSensorButton.setVisibility(View.INVISIBLE);
-                setTempoButton.setVisibility(View.VISIBLE);
+                stopWaitingForMic(true);
                 tempoDisplay.handleTap = false;
                 audioService.startMe();
             }
         } else {
             // sensor unplugged
-            getSensorButton.setVisibility(View.VISIBLE);
-            setTempoButton.setVisibility(View.INVISIBLE);
+            stopWaitingForMic(false);
             tempoDisplay.handleTap = true;
             audioService.stopMe();
         }
@@ -258,9 +324,8 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     
     
     //================================================================================
-    
-    //================================================================================
     //  Hit processing
+    //================================================================================
     
     public void setTempo(int tempo, boolean startMetronome) {
         tempo = Math.min(Constants.MAX_TEMPO, (Math.max(Constants.MIN_TEMPO, tempo)));
@@ -391,10 +456,10 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     }
 
     public void setSound(int sound){
-        drumButton.setColorFilter(sound==0?BLACK:-1,android.graphics.PorterDuff.Mode.MULTIPLY);
-        sticksButton.setColorFilter(sound==1?BLACK:-1,android.graphics.PorterDuff.Mode.MULTIPLY);
-        metronomeButton.setColorFilter(sound==2?BLACK:-1,android.graphics.PorterDuff.Mode.MULTIPLY);
-        surpriseButton.setColorFilter(sound==3?BLACK:-1,android.graphics.PorterDuff.Mode.MULTIPLY);
+        drumButton.setColorFilter     (sound==0 ? Color.BLACK : Color.WHITE, Mode.MULTIPLY);
+        sticksButton.setColorFilter   (sound==1 ? Color.BLACK : Color.WHITE, Mode.MULTIPLY);
+        metronomeButton.setColorFilter(sound==2 ? Color.BLACK : Color.WHITE, Mode.MULTIPLY);
+        surpriseButton.setColorFilter (sound==3 ? Color.BLACK : Color.WHITE, Mode.MULTIPLY);
         this.sound = sound;
         Preferences.putSound(sound);
         tempoDisplay.setMetronomeSond(Constants.Sound.fromIndex(this.sound));
@@ -477,13 +542,13 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     
     private static final int PERMISSIONS_REQUEST_RECORD_AUDIO = 1001;
     private boolean permissionCheck() {
-        // Assume thisActivity is the current activity
+        // thisActivity is the current activity
         int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO);
         if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
             return true;
         } else {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.RECORD_AUDIO)) {
-                handleSensorDetected(false);
+                handleSensorDetected(false, true);
                 showRequestPermissionRationale(R.string.dlg_mic_permission_msg_1);
                 return false;
             } else {
@@ -502,11 +567,11 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
             case PERMISSIONS_REQUEST_RECORD_AUDIO: {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // permission was granted, yay! Do the
-                    handleSensorDetected(sensorPluggedIn);
+                    // permission was granted, yay!
+                    handleSensorDetected(sensorPluggedIn, false);
                 } else {
                     // permission denied
-                    handleSensorDetected(false);
+                    handleSensorDetected(false, false);
                     showRequestPermissionRationale(R.string.dlg_mic_permission_msg_2);
                 }
                 return;
@@ -516,19 +581,27 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
             // permissions this app might request
         }
     }
-    
+
+
+    private boolean showingRationaleDialog = false;
     private void showRequestPermissionRationale(@StringRes int msg) {
+        if (showingRationaleDialog) { return; }
+        showingRationaleDialog = true;
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.dlg_mic_permission_ttl);
         builder.setMessage(msg);
         builder.setPositiveButton(R.string.open_settings, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 dialog.cancel();
+                showingRationaleDialog = false;
                 openSettings();
             }
-        });builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+        });
+        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 dialog.cancel();
+                showingRationaleDialog = false;
             }
         });
         builder.show();

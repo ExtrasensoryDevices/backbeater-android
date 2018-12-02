@@ -9,7 +9,7 @@ android {
         applicationId "com.esdevices.backbeater"
         minSdkVersion 18
         targetSdkVersion 27
-        versionCode 3
+        versionCode 9
         versionName "1.0.2"
     }
     buildTypes {
@@ -29,11 +29,6 @@ dependencies {
   implementation "com.jakewharton:butterknife:$butterknifeVer"
   annotationProcessor "com.jakewharton:butterknife:$butterknifeVer"
   implementation 'com.google.code.gson:gson:2.8.1'
-
-  //implementation 'com.facebook.android:facebook-android-sdk:4.25.0'
-  // Facebook SDK Dependencies, need to be excluded.
-  // compile 'com.android.support:support-v4:25.3.1'
-  // compile 'com.android.support:appcompat-v7:25.3.1'
 
   implementation ('com.facebook.android:facebook-android-sdk:4.36.0') {
     exclude group: 'com.android.support', module: 'support-v4'

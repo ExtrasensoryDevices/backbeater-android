@@ -1,14 +1,9 @@
 package com.esdevices.backbeater.audio;
 
-import android.content.Context;
-import android.media.AudioDeviceInfo;
 import android.media.AudioFormat;
-import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.util.Log;
-
-import static android.media.AudioManager.GET_DEVICES_INPUTS;
 
 /**
  * Created by aeboyd on 7/13/15.
@@ -33,7 +28,7 @@ public class AudioService {
     private AudioServiceBeatListener beatListener;
     private EnergyFunction energyFunction = new EnergyFunction();
     
-    
+    // old array, converted from iOS
     //private static final double[] START_THRESHOLD_ARRAY = new double[] {63619.17, 57277.19, 50935.21, 44593.23,
     //    38251.25, 31909.27, 28738.28, 25567.29, 22396.30, 19225.31, 16054.32, 15420.12, 14785.92, 14151.72, 13517.52,
     //    12883.33, 12566.23, 12249.13, 11932.03, 11614.93, 11297.83, 10980.73, 10663.63, 10346.53, 10029.44, 9966.02,
@@ -45,7 +40,15 @@ public class AudioService {
     //    205.71, 205.07, 204.44, 203.81, 203.17, 202.54, 202.22, 201.90, 201.59, 201.27, 200.95, 200.63, 200.32, 200.00};
     //
     
-    private static final double[] START_THRESHOLD_ARRAY = new double[] {1000, 966.6666667, 933.3333333, 900, 866.6666667, 833.3333333, 800, 775.5555556, 751.1111111, 726.6666667, 702.2222222, 677.7777778, 653.3333333, 628.8888889, 604.4444444, 580, 570, 560, 550, 540, 530, 520, 510, 500, 490, 480, 473.75, 467.5, 461.25, 455, 448.75, 442.5, 436.25, 430, 427.2727273, 424.5454545, 421.8181818, 419.0909091, 416.3636364, 413.6363636, 410.9090909, 408.1818182, 405.4545455, 402.7272727, 400, 397.2727273, 394.5454545, 391.8181818, 389.0909091, 386.3636364, 383.6363636, 380.9090909, 378.1818182, 375.4545455, 372.7272727, 370, 363, 356, 349, 342, 335, 328, 321, 314, 307, 300, 291, 282, 273, 264, 255, 246, 237, 228, 219, 210, 201, 195.5384615, 190.0769231, 184.6153846, 179.1538462, 173.6923077, 168.2307692, 162.7692308, 157.3076923, 151.8461538, 146.3846154, 140.9230769, 135.4615385, 130, 127.2727273, 124.5454545, 121.8181818, 119.0909091, 116.3636364, 113.6363636, 110.9090909, 108.1818182, 105.4545455, 102.7272727, 100};
+    private static final double[] START_THRESHOLD_ARRAY = new double[] {1000, 966.6666667, 933.3333333, 900, 866.6666667,
+            833.3333333, 800, 775.5555556, 751.1111111, 726.6666667, 702.2222222, 677.7777778, 653.3333333, 628.8888889,
+            604.4444444, 580, 570, 560, 550, 540, 530, 520, 510, 500, 490, 480, 473.75, 467.5, 461.25, 455, 448.75, 442.5,
+            436.25, 430, 427.2727273, 424.5454545, 421.8181818, 419.0909091, 416.3636364, 413.6363636, 410.9090909, 408.1818182,
+            405.4545455, 402.7272727, 400, 397.2727273, 394.5454545, 391.8181818, 389.0909091, 386.3636364, 383.6363636, 380.9090909,
+            378.1818182, 375.4545455, 372.7272727, 370, 363, 356, 349, 342, 335, 328, 321, 314, 307, 300, 291, 282, 273, 264, 255,
+            246, 237, 228, 219, 210, 201, 195.5384615, 190.0769231, 184.6153846, 179.1538462, 173.6923077, 168.2307692,
+            162.7692308, 157.3076923, 151.8461538, 146.3846154, 140.9230769, 135.4615385, 130, 127.2727273, 124.5454545,
+            121.8181818, 119.0909091, 116.3636364, 113.6363636, 110.9090909, 108.1818182, 105.4545455, 102.7272727, 100};
     
     
     public AudioService() {
@@ -67,21 +70,6 @@ public class AudioService {
         
         */
     
-    }
-    
-    public static boolean isUSBCDevicePluggedIn(Context ctx) {
-        if (android.os.Build.VERSION.SDK_INT < 23) {
-            return false;
-        }
-        
-        AudioManager audioManager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
-        AudioDeviceInfo[] devices = audioManager.getDevices(GET_DEVICES_INPUTS);
-        for (AudioDeviceInfo device: devices) {
-            if (device.getType() == AudioDeviceInfo.TYPE_USB_DEVICE) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private AudioRecord setupAudioRecord() {
@@ -111,6 +99,10 @@ public class AudioService {
     public void stopMe() {
         running = false;
         energyFunction.clear();
+    }
+
+    public boolean isRunning() {
+        return running;
     }
     
     
