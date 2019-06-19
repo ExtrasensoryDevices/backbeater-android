@@ -21,4 +21,6 @@
     <string name="cancel">Cancel</string>
     <string name="open_settings">Open Settings</string>
 
+    <string name="avg_help_text">This is how many beats are averaged to show your current tempo. \nA lower setting is more accurate, a higher setting is more foregiving.</string>
+    <string name="beat_help_text">This setting compensates for songs with unusual rhythms.\nA default setting of 1 is best for most music, like rock songs.\nExample: If your song is 90 BPM and the app says you\'re playing 45 BPM, you can switch this setting to 2 and the tempo reading will correctly read 90 BPM.</string>
 </resources>

@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.Point;
 import android.graphics.PorterDuff.Mode;
 import android.hardware.usb.UsbManager;
 import android.net.Uri;
@@ -21,10 +22,12 @@ import android.support.annotation.StringRes;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 
 import com.esdevices.backbeater.BuildConfig;
 import com.esdevices.backbeater.R;
@@ -32,6 +35,7 @@ import com.esdevices.backbeater.audio.AudioService;
 import com.esdevices.backbeater.model.Song;
 import com.esdevices.backbeater.ui.widgets.BBTextView;
 import com.esdevices.backbeater.ui.widgets.NumberButton;
+import com.esdevices.backbeater.ui.widgets.PopoverView;
 import com.esdevices.backbeater.ui.widgets.SensitivitySlider;
 import com.esdevices.backbeater.ui.widgets.SlideButton;
 import com.esdevices.backbeater.ui.widgets.TempoDisplay;
@@ -50,7 +54,7 @@ import butterknife.OnClick;
 
 
 public class MainActivity extends Activity implements SlideButton.StateChangeListener, SensitivitySlider.ValueChangeListener,
-    AudioService.AudioServiceBeatListener {
+    AudioService.AudioServiceBeatListener, PopoverView.PopoverViewDelegate {
     
     static final int EDIT_SONG_LIST_REQUEST = 1;
 
@@ -474,7 +478,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     @OnClick({R.id.window2, R.id.window3, R.id.window4, R.id.window5,
         R.id.beat1, R.id.beat2, R.id.beat3, R.id.beat4,
         R.id.soundDrum, R.id.soundSticks, R.id.soundMetronom, R.id.soundSurprise,
-        R.id.aboutButton,
+        R.id.aboutButton,R.id.avgHelpButton, R.id.beatHelpButton,
         R.id.menuButton})
     public void onSettingsClick(View v) {
         switch (v.getId()){
@@ -521,7 +525,12 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
             case R.id.menuButton:
                 drawerLayout.openDrawer(Gravity.LEFT);
                 break;
-
+            case R.id.avgHelpButton:
+                showHelpPopover(R.id.avgHelpButton);
+                break;
+            case R.id.beatHelpButton:
+                showHelpPopover(R.id.beatHelpButton);
+                break;
         }
     }
     
@@ -533,6 +542,26 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         
         Intent intent = new Intent(this, AboutActivity.class);
         startActivity(intent);
+    }
+
+    private void showHelpPopover(int buttonId) {
+        RelativeLayout rootView = findViewById(R.id.pop_bar);
+
+        PopoverView popoverView = new PopoverView(this, R.layout.popover_showed_view);
+        int resid;
+        View v = findViewById(buttonId);
+        if (buttonId == R.id.avgHelpButton) {
+            popoverView.setContentSizeForViewInPopover(new Point(480, 220));
+            resid = R.string.avg_help_text;
+        }
+        else {
+            popoverView.setContentSizeForViewInPopover(new Point(480, 340));
+            resid = R.string.beat_help_text;
+        }
+
+        popoverView.setDelegate(null);
+
+        popoverView.showPopoverFromRectInViewGroup(rootView, resid, PopoverView.getFrameForView(v), PopoverView.PopoverArrowDirectionAny, true);
     }
     
     //================================================================================
@@ -615,5 +644,24 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         intent.setData(uri);
         startActivity(intent);
     }
-    
+
+    @Override
+    public void popoverViewWillShow(PopoverView view) {
+        Log.i("POPOVER", "Will show");
+    }
+
+    @Override
+    public void popoverViewDidShow(PopoverView view) {
+        Log.i("POPOVER", "Did show");
+    }
+
+    @Override
+    public void popoverViewWillDismiss(PopoverView view) {
+        Log.i("POPOVER", "Will dismiss");
+    }
+
+    @Override
+    public void popoverViewDidDismiss(PopoverView view) {
+        Log.i("POPOVER", "Did dismiss");
+    }
 }

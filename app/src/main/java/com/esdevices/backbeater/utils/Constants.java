@@ -29,8 +29,8 @@ public static Map<String, String> buildFlurryParams(String name, String value) {
     
 
 
-public static final String HELP_URL = "http://backbeater.com/apphelp/?app=android";
-public static final String BUY_SENSOR_URL = "http://backbeater.com/appbuy/?app=android";
+public static final String HELP_URL = "https://www.backbeater.com/apphelp/?app=android";
+public static final String BUY_SENSOR_URL = "https://backbeater.com/buy-now";
     
 public static final int DEFAULT_TEMPO = 120;
 public static final int MAX_TEMPO = 200;
