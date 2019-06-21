@@ -155,7 +155,7 @@ public class TempoDisplay extends AppCompatTextView {
         long timeSinceLastBeat = now - lastBeatTime;
         long timeSinceLastTimerBeat = now - lastTimerBeatTime;
         
-        int cY = drumBounds.height()/2+radius+getPaddingTop();
+        int cY = drumBounds.height()/2+radius+getPaddingTop() + width/2;
         
         
         // beat - beat registered
@@ -165,14 +165,14 @@ public class TempoDisplay extends AppCompatTextView {
         // draw big circle
         if (beat && hit){
             // hit in right time
-            
+            /*
             // draw big circle (flash white)
             float halfDrumAnimation = DRUM_ANIMATION_DURATION / 2f;
             paint.setColor(NumberButton.mixTwoColors(accentColor, WHITE_COLOR,
                 Math.abs((timeSinceLastBeat-halfDrumAnimation)/halfDrumAnimation)));
             canvas.drawCircle(cX, cY, radius, paint);
             paint.setColor(accentColor);
-            
+            */
             // select drim animation frame
             int drumAnimationFrameIndex = (int) (timeSinceLastBeat / DRUM_ANIMATION_DURATION * DRUM_ANIMATION_FRAMES);
             if(!leftStrike) {
@@ -182,7 +182,7 @@ public class TempoDisplay extends AppCompatTextView {
             drum.selectDrawable(drumAnimationFrameIndex);
         }else {
             // missed the hit time
-            
+            /*
             // draw big circle with accent color
             paint.setColor(accentColor);
             canvas.drawCircle(cX, cY, radius, paint);
@@ -199,7 +199,7 @@ public class TempoDisplay extends AppCompatTextView {
                 paint.setColor(accentColor);
                 paint.setAlpha(255);
             }
-    
+            */
             drum.selectDrawable(leftStrike ? DRUM_ANIMATION_FRAMES-1 : 2*DRUM_ANIMATION_FRAMES-1);
         }
         
@@ -235,6 +235,7 @@ public class TempoDisplay extends AppCompatTextView {
         boolean _cptIsValid = Constants.isValidTempo(_CPT);
     
         //paint the red circle that goes on the ring
+        /*
         paint.setStyle(Paint.Style.FILL);
         if (_cptIsValid && (!isIdle || metronomeIsOn) ) {
     
@@ -253,7 +254,7 @@ public class TempoDisplay extends AppCompatTextView {
                 }
             }
         }
-
+        */
         // draw drum
         drum.draw(canvas);
         
@@ -263,7 +264,7 @@ public class TempoDisplay extends AppCompatTextView {
         paint.setStyle(Paint.Style.STROKE);
         float stroke = paint.getStrokeWidth();
         paint.setStrokeWidth(0);
-        paint.setTextSize(radius);
+        paint.setTextSize(radius/2);
         paint.getTextBounds(cptString, 0, cptString.length(), textBounds);
         paint.setColor(WHITE_COLOR);
         canvas.drawText(cptString, cX, cY - textBounds.exactCenterY(), paint);
@@ -336,7 +337,7 @@ public class TempoDisplay extends AppCompatTextView {
         double instantTempo = multiplier * bpm;
         CPT = windowQueue.enqueue(instantTempo).average();
         lastBeatTime = beatTime;
-    
+
         offDegree = 0;
         if (this.CPT > 0) {
             double oneLapTime = getOneLapTime();

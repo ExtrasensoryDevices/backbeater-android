@@ -45,11 +45,19 @@
         android:layout_height="match_parent"
         android:layout_below="@+id/topLogo"
         android:layout_above="@+id/songListButton"
+
         android:paddingLeft="@dimen/padding_medium"
         android:paddingRight="@dimen/padding_medium"
         android:paddingTop="@dimen/padding_small"
         android:paddingBottom="@dimen/padding_small"/>
 
+    <com.esdevices.backbeater.ui.widgets.SmGaugeView
+        android:id="@+id/gaugeView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_centerInParent="true" />
     
     <com.esdevices.backbeater.ui.widgets.SlideButton
         android:id="@+id/tempoSlideButton"

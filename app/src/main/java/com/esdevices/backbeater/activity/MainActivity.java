@@ -38,6 +38,7 @@ import com.esdevices.backbeater.ui.widgets.NumberButton;
 import com.esdevices.backbeater.ui.widgets.PopoverView;
 import com.esdevices.backbeater.ui.widgets.SensitivitySlider;
 import com.esdevices.backbeater.ui.widgets.SlideButton;
+import com.esdevices.backbeater.ui.widgets.SmGaugeView;
 import com.esdevices.backbeater.ui.widgets.TempoDisplay;
 import com.esdevices.backbeater.utils.Constants;
 import com.esdevices.backbeater.utils.DialogHelper;
@@ -99,6 +100,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     @Bind(R.id.nextButton) ImageView nextButton;
 
     @Bind(R.id.progressIndicator) ProgressBar progressIndicator;
+    @Bind(R.id.gaugeView)  SmGaugeView gaugeView;
 
     private UsbScanner usbScanner;
 
@@ -339,6 +341,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
             tempoSlideButton.toggle();
         }
         if (tempoSlideButton.isSelected()) {
+            gaugeView.setTargetNumber(tempoSlideButton.getValue());
             tempoDisplay.setMetronomeOn(Constants.Sound.fromIndex(sound), tempoSlideButton.getValue());
         }
     }
@@ -410,6 +413,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     // Tempo Slide Button
     @Override public void onValueChanged(int newValue) {
         if (tempoSlideButton.isSelected()) {
+            gaugeView.setTargetNumber(tempoSlideButton.getValue());
             tempoDisplay.setMetronomeOn(Constants.Sound.fromIndex(sound), tempoSlideButton.getValue());
         }
         FlurryAgent.logEvent(Constants.FLURRY_METRONOME_TEMPO_VALUE_CHANGED, Constants.buildFlurryParams("value", ""+newValue));
