@@ -9,6 +9,7 @@ import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.support.v7.widget.AppCompatTextView;
+import android.widget.TextView;
 
 import com.esdevices.backbeater.R;
 
@@ -52,8 +53,8 @@ public class TempoDisplay extends AppCompatTextView {
     
     public boolean handleTap = true;
     
-    
-    
+    public SmGaugeView gaugeView;
+    public TextView targetLabel;
     
     public TempoDisplay(Context context) {
         this(context, null, 0);
@@ -93,7 +94,13 @@ public class TempoDisplay extends AppCompatTextView {
     //  Window queue settings
     //================================================================================
     
-    
+    public void setGaugeView(SmGaugeView view) {
+        this.gaugeView = view;
+    }
+
+    public void setTargetLabel(TextView view) {
+        this.targetLabel = view;
+    }
     
     public void setWindow(int window) {
         if (this.window != window) {
@@ -338,8 +345,27 @@ public class TempoDisplay extends AppCompatTextView {
         CPT = windowQueue.enqueue(instantTempo).average();
         lastBeatTime = beatTime;
 
+        if (targetLabel != null) {
+            if (bpm > 13.0) {
+                targetLabel.setAlpha(1);
+            } else {
+                targetLabel.setAlpha(0);
+            }
+        }
+
         offDegree = 0;
         if (this.CPT > 0) {
+
+            int pos = this.CPT - metronomeTempo;
+            if (pos > 4)        pos = 4;
+            else if (pos < -4)  pos = -4;
+            if (gaugeView != null)
+                gaugeView.setSpeed(pos + 4);
+
+            if (pos == 0) {
+                //self.screenFlash()
+            }
+
             double oneLapTime = getOneLapTime();
             long timeSinceLastTimerBeat = beatTime - lastTimerBeatTime;
             hit = Math.abs(oneLapTime-timeSinceLastTimerBeat) <= 10;

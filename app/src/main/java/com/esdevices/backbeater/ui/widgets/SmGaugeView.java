@@ -16,13 +16,13 @@ public class SmGaugeView extends View {
 
     private static final String TAG = SmGaugeView.class.getSimpleName();
 
-    public static final double DEFAULT_MAX_SPEED = 100.0;
+    public static final double DEFAULT_MAX_SPEED = 8;
     public static final int DEFAULT_MAJOR_TICK_COUNT = 8;
     public static final int DEFAULT_MINOR_TICKS = 1;
     public static final int DEFAULT_LABEL_TEXT_SIZE_DP = 12;
 
     private double maxSpeed = DEFAULT_MAX_SPEED;
-    private double speed = 0;
+    private double speed = 4;
     private int defaultColor = Color.rgb(180, 180, 180);
     private int majorTickStep = DEFAULT_MAJOR_TICK_COUNT;
     private int minorTicks = DEFAULT_MINOR_TICKS;
@@ -30,8 +30,8 @@ public class SmGaugeView extends View {
     private int offsetY = 80;
     private int majorTicksLength = 48;
 
-    private int labelColor1 = 0xFF4F7A28;
-    private int labelColor2 = 0xFFB51A00;
+    private int labelColor1 = 0xFFB51A00;
+    private int labelColor2 = 0xFF4F7A28;
 
     private Paint backgroundPaint;
     private Paint backgroundInnerPaint;
@@ -253,7 +253,7 @@ public class SmGaugeView extends View {
         RectF innerOval = new RectF(oval.centerX() - innerCenterWidth, oval.centerY() - innerCenterWidth,
                 oval.centerX() + innerCenterWidth, oval.centerY() + innerCenterWidth);
 
-        float angle = 10 + (float) (getSpeed()/ getMaxSpeed()*160);
+        float angle = (float) (getSpeed()/ getMaxSpeed()*180);
         canvas.drawLine(
                 (float) (oval.centerX() + Math.cos((180 - angle) / 180 * Math.PI) * outerOval.width() *0.5f),
                 (float) (oval.centerY() - Math.sin(angle / 180 * Math.PI) * outerOval.width()*0.5f),

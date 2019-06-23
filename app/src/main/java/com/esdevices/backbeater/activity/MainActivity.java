@@ -28,6 +28,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.esdevices.backbeater.BuildConfig;
 import com.esdevices.backbeater.R;
@@ -101,6 +102,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
 
     @Bind(R.id.progressIndicator) ProgressBar progressIndicator;
     @Bind(R.id.gaugeView)  SmGaugeView gaugeView;
+    @Bind(R.id.targetLabel) TextView targetLabel;
 
     private UsbScanner usbScanner;
 
@@ -147,6 +149,8 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         ButterKnife.bind(this);
     
         drawerLayout.setScrimColor(getResources().getColor(R.color.main_color_transparent));
+        tempoDisplay.setGaugeView(gaugeView);
+        tempoDisplay.setTargetLabel(targetLabel);
         
         handler = new Handler(getMainLooper()){
             @Override
@@ -238,12 +242,14 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         getSensorButton.setVisibility(View.INVISIBLE);
         setTempoButton.setVisibility(View.INVISIBLE);
         progressIndicator.setVisibility(View.VISIBLE);
+        targetLabel.setVisibility(View.INVISIBLE);
     }
 
     private void stopWaitingForMic(boolean micConnected){
         getSensorButton.setVisibility(micConnected ? View.INVISIBLE : View.VISIBLE);
         setTempoButton.setVisibility(micConnected ? View.VISIBLE : View.INVISIBLE);
         progressIndicator.setVisibility(View.INVISIBLE);
+        targetLabel.setVisibility(micConnected ? View.INVISIBLE : View.VISIBLE);
     }
     
     private boolean sensorPluggedIn = false;
@@ -336,12 +342,12 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     public void setTempo(int tempo, boolean startMetronome) {
         tempo = Math.min(Constants.MAX_TEMPO, (Math.max(Constants.MIN_TEMPO, tempo)));
         tempoSlideButton.setValue(tempo);
+        gaugeView.setTargetNumber(tempo);
         // update metronome if needed
         if (!tempoSlideButton.isSelected() && startMetronome) {
             tempoSlideButton.toggle();
         }
         if (tempoSlideButton.isSelected()) {
-            gaugeView.setTargetNumber(tempoSlideButton.getValue());
             tempoDisplay.setMetronomeOn(Constants.Sound.fromIndex(sound), tempoSlideButton.getValue());
         }
     }

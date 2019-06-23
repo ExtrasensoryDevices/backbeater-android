@@ -43,13 +43,15 @@
         android:id="@+id/tempoDisplay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/topLogo"
         android:layout_above="@+id/songListButton"
+        android:layout_below="@+id/topLogo"
 
+        android:layout_marginTop="-2dp"
+        android:layout_marginBottom="12dp"
         android:paddingLeft="@dimen/padding_medium"
-        android:paddingRight="@dimen/padding_medium"
         android:paddingTop="@dimen/padding_small"
-        android:paddingBottom="@dimen/padding_small"/>
+        android:paddingRight="@dimen/padding_medium"
+        android:paddingBottom="@dimen/padding_small" />
 
     <com.esdevices.backbeater.ui.widgets.SmGaugeView
         android:id="@+id/gaugeView"
@@ -68,7 +70,17 @@
         android:layout_alignBottom="@+id/songListButton"
         android:layout_marginRight="@dimen/padding_medium"/>
 
-
+    <TextView
+        android:id="@+id/targetLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="set to new target"
+        android:textColor="#fff"
+        android:textSize="12dp"
+        android:alpha="0"
+        android:layout_above="@id/frameLayout1"
+        android:visibility="invisible"
+        />
 
     <FrameLayout
         android:layout_width="@dimen/progress_indicator_size_large"
@@ -78,7 +90,8 @@
         android:layout_alignBottom="@+id/tempoSlideButton"
         android:layout_marginBottom="@dimen/slide_button_offset"
         android:layout_marginLeft="@dimen/padding_xsmall"
-        android:gravity="center">
+        android:gravity="center"
+        android:id="@+id/frameLayout1">
 
         <com.esdevices.backbeater.ui.widgets.BBTextView
             android:id="@+id/getSensorButton"
