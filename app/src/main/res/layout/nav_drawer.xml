@@ -81,32 +81,32 @@
             android:layout_weight="1" />
     </LinearLayout>
 
-    <LinearLayout
+    <RelativeLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
+
         android:layout_marginTop="@dimen/padding_xxlarge"
-        android:layout_marginBottom="@dimen/padding_large">
+        android:layout_marginBottom="@dimen/padding_medium">
 
         <com.esdevices.backbeater.ui.widgets.BBTextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/button_xsmall"
             android:text="averaging window"
-
+            android:gravity="center"
             android:id="@+id/textView3"
             android:textAllCaps="true"
             android:textColor="#fff" />
 
         <ImageView
             android:id="@+id/avgHelpButton"
-            android:layout_width="@dimen/button_about"
-            android:layout_height="@dimen/button_about"
-            android:layout_marginLeft="@dimen/padding_medium"
-            android:layout_marginStart="@dimen/padding_medium"
+            android:layout_width="@dimen/button_xsmall"
+            android:layout_height="@dimen/button_xsmall"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
             android:src="@drawable/help" />
 
-    </LinearLayout>
+    </RelativeLayout>
 
     <LinearLayout
         android:orientation="horizontal"
@@ -140,31 +140,32 @@
             android:layout_weight="1" />
     </LinearLayout>
 
-    <LinearLayout
+    <RelativeLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
+        android:gravity="center_vertical"
         android:layout_marginTop="@dimen/padding_xxlarge"
-        android:layout_marginBottom="@dimen/padding_large">
+        android:layout_marginBottom="@dimen/padding_medium">
 
         <com.esdevices.backbeater.ui.widgets.BBTextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/button_xsmall"
             android:text="beat"
+            android:gravity="center"
             android:id="@+id/textView4"
             android:textAllCaps="true"
             android:textColor="#fff" />
 
         <ImageView
             android:id="@+id/beatHelpButton"
-            android:layout_width="@dimen/button_about"
-            android:layout_height="@dimen/button_about"
-            android:layout_marginLeft="@dimen/padding_medium"
-            android:layout_marginStart="@dimen/padding_medium"
+            android:layout_width="@dimen/button_xsmall"
+            android:layout_height="@dimen/button_xsmall"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
             android:src="@drawable/help" />
 
-    </LinearLayout>
+    </RelativeLayout>
 
     <LinearLayout
         android:orientation="horizontal"
