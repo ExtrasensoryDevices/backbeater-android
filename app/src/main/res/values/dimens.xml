@@ -31,5 +31,5 @@
     
     <dimen name="drum_animation_delta_y">7dp</dimen>
 
-
+    <dimen name="downwards_drop_shadow_height">16dp</dimen>
 </resources>

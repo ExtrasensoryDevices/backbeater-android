@@ -4,6 +4,7 @@ package com.esdevices.backbeater.ui.widgets;
 import java.util.HashMap;
 import java.util.Map;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
@@ -726,8 +727,27 @@ public class PopoverView extends RelativeLayout implements OnTouchListener {
 			delegate.popoverViewWillShow(this);
 
 		TextView helpText = popoverView.findViewById(R.id.helpText);
-		if (helpText != null)
+		if (helpText != null) {
+
+			int screenSize = getResources().getConfiguration().screenLayout &
+					Configuration.SCREENLAYOUT_SIZE_MASK;
+			int fontSize = 8;
+			switch(screenSize) {
+				case Configuration.SCREENLAYOUT_SIZE_LARGE:
+					fontSize = 17;
+					break;
+				case Configuration.SCREENLAYOUT_SIZE_NORMAL:
+					fontSize = 14;
+					break;
+				case Configuration.SCREENLAYOUT_SIZE_SMALL:
+					fontSize = 12;
+					break;
+				default:
+					fontSize = 10;
+			}
+			helpText.setTextSize(fontSize);
 			helpText.setText(resid);
+		}
 		//Save superview
 		superview = group;
 		

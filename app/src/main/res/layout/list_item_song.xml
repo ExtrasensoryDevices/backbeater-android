@@ -9,6 +9,8 @@
     android:gravity="center_vertical"
     android:paddingTop="@dimen/padding_small"
     android:paddingBottom="@dimen/padding_small"
+    android:paddingRight="@dimen/padding_small"
+    android:paddingEnd="@dimen/padding_small"
     android:descendantFocusability="beforeDescendants"
 >
     
@@ -17,6 +19,7 @@
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1"
+        android:layout_marginLeft="@dimen/padding_small"
         android:layout_marginRight="@dimen/padding_small"
         android:gravity="center_vertical"
         tools:text="Song #1"

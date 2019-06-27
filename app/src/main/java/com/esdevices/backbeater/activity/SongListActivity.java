@@ -14,6 +14,8 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
+
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -23,9 +25,12 @@ import com.esdevices.backbeater.R;
 import com.esdevices.backbeater.model.Song;
 import com.esdevices.backbeater.ui.widgets.BBEditTextView;
 import com.esdevices.backbeater.ui.widgets.BBTextView;
+import com.esdevices.backbeater.ui.widgets.DragLinearLayout;
 import com.esdevices.backbeater.utils.Constants;
 import com.esdevices.backbeater.utils.Preferences;
 import com.flurry.android.FlurryAgent;
+
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -34,14 +39,15 @@ import java.util.List;
 
 public class SongListActivity extends Activity  {
     
-    @Bind(R.id.songListLayout) LinearLayout songListLayout;
+    @Bind(R.id.songListLayout) DragLinearLayout songListLayout;
     @Bind(R.id.hintText) BBTextView hintText;
+    @Bind(R.id.scrollView) ScrollView scrollView;
     
     private List<Song> songList;
     
     boolean dataChanged = false;
     boolean oldSongLIstIsEmpty = false;
-    
+    int firstPos = -1, secondPos = -1;
     
     @Override protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,10 +59,29 @@ public class SongListActivity extends Activity  {
         oldSongLIstIsEmpty = songList.isEmpty();
         updateView();
         updateSongListView();
+//        songListLayout.setContainerScrollView(scrollView);
+        songListLayout.setOnViewSwapListener(new DragLinearLayout.OnViewSwapListener() {
+            @Override
+            public void onSwap(View firstView, int firstPosition,
+                               View secondView, int secondPosition) {
+                if (firstPos == -1)
+                    firstPos = firstPosition;
+                secondPos = secondPosition;
+            }
+
+            @Override
+            public void onSwapFinished() {
+                if (firstPos != -1 && secondPos != -1 && firstPos != secondPos) {
+                    Collections.swap(songList, firstPos, secondPos);
+                }
+                firstPos = -1;
+                secondPos = -1;
+            }
+
+        });
     }
     
-    
-    
+
     @OnClick(R.id.backButton)
     public void onBackButtonClick(View v) {
         if (dataChanged) {
@@ -112,8 +137,10 @@ public class SongListActivity extends Activity  {
             ViewGroup.LayoutParams.WRAP_CONTENT);
         ViewHolder viewHolder = new ViewHolder(position, song, row);
         row.setTag(viewHolder);
-        
+
         songListLayout.addView(row, position, payoutParams);
+        songListLayout.setViewDraggable(row, row);
+
         if (startEdit) {
             BBEditTextView songNameText = ((ViewHolder)row.getTag()).songNameText;
             songNameText.requestFocus();

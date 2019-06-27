@@ -9,6 +9,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.PorterDuff.Mode;
@@ -249,7 +250,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         getSensorButton.setVisibility(micConnected ? View.INVISIBLE : View.VISIBLE);
         setTempoButton.setVisibility(micConnected ? View.VISIBLE : View.INVISIBLE);
         progressIndicator.setVisibility(View.INVISIBLE);
-        targetLabel.setVisibility(micConnected ? View.INVISIBLE : View.VISIBLE);
+        targetLabel.setVisibility(micConnected ? View.VISIBLE : View.INVISIBLE);
     }
     
     private boolean sensorPluggedIn = false;
@@ -560,12 +561,30 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         PopoverView popoverView = new PopoverView(this, R.layout.popover_showed_view);
         int resid;
         View v = findViewById(buttonId);
+
+        int screenSize = getResources().getConfiguration().screenLayout &
+                Configuration.SCREENLAYOUT_SIZE_MASK;
+        int width = 400;
+        switch(screenSize) {
+            case Configuration.SCREENLAYOUT_SIZE_LARGE:
+                width = 480;
+                break;
+            case Configuration.SCREENLAYOUT_SIZE_NORMAL:
+                width = 400;
+                break;
+            case Configuration.SCREENLAYOUT_SIZE_SMALL:
+                width = 380;
+                break;
+            default:
+                width = 380;
+        }
+
         if (buttonId == R.id.avgHelpButton) {
-            popoverView.setContentSizeForViewInPopover(new Point(480, 220));
+            popoverView.setContentSizeForViewInPopover(new Point(width, (int)(width*0.45f)));
             resid = R.string.avg_help_text;
         }
         else {
-            popoverView.setContentSizeForViewInPopover(new Point(480, 340));
+            popoverView.setContentSizeForViewInPopover(new Point(width, (int)(width*0.7f)));
             resid = R.string.beat_help_text;
         }
 

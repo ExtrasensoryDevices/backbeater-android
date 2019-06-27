@@ -49,12 +49,12 @@
         android:layout_marginLeft="@dimen/padding_medium"
         android:layout_marginRight="@dimen/padding_medium"
         android:scrollbars="none">
-        <LinearLayout android:id="@+id/songListLayout"
+        <com.esdevices.backbeater.ui.widgets.DragLinearLayout android:id="@+id/songListLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
             <include layout="@layout/list_item_add"/>
-        </LinearLayout>
+        </com.esdevices.backbeater.ui.widgets.DragLinearLayout>
     </ScrollView>
     
     <com.esdevices.backbeater.ui.widgets.BBTextView
