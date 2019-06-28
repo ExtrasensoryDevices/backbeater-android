@@ -412,6 +412,7 @@ public class TempoDisplay extends AppCompatTextView {
             metronome = new MetronomePlayer();
         }
         metronome.setCurrentSound(sound);
+        metronome.play();
         this.metronomeTempo = metronomeTempo;
         lastTimerBeatTime = System.currentTimeMillis();
         invalidate();
@@ -423,7 +424,7 @@ public class TempoDisplay extends AppCompatTextView {
         invalidate();
     }
     
-    public void setMetronomeSond(Sound sound) {
+    public void setMetronomeSound(Sound sound) {
         if (metronome != null) {
             metronome.setCurrentSound(sound);
         }

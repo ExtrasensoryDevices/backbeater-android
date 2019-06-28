@@ -377,9 +377,12 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
             return;
         }
         
-        Intent i = new Intent(Intent.ACTION_VIEW);
-        i.setData(Uri.parse(Constants.BUY_SENSOR_URL));
-        startActivity(i);
+//        Intent i = new Intent(Intent.ACTION_VIEW);
+//        i.setData(Uri.parse(Constants.BUY_SENSOR_URL));
+//        startActivity(i);
+        Intent intent = new Intent(this, AboutActivity.class);
+        intent.putExtra("url", 1);
+        startActivity(intent);
     }
     
     @OnClick(R.id.setTempoButton)
@@ -477,7 +480,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         surpriseButton.setColorFilter (sound==3 ? Color.BLACK : Color.WHITE, Mode.MULTIPLY);
         this.sound = sound;
         Preferences.putSound(sound);
-        tempoDisplay.setMetronomeSond(Constants.Sound.fromIndex(this.sound));
+        tempoDisplay.setMetronomeSound(Constants.Sound.fromIndex(this.sound));
     }
     
     public void setSensitivity(int sensitivity) {
@@ -552,6 +555,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         }
         
         Intent intent = new Intent(this, AboutActivity.class);
+        intent.putExtra("url", 0);
         startActivity(intent);
     }
 
