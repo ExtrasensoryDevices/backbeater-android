@@ -411,15 +411,19 @@ public class TempoDisplay extends AppCompatTextView {
         if (metronome == null) {
             metronome = new MetronomePlayer();
         }
+        float rTempo = 1;
+        if (metronomeTempo > 0) {
+            rTempo = 60.f / metronomeTempo;
+        }
         metronome.setCurrentSound(sound);
-        metronome.play();
+        metronome.play(rTempo);
         this.metronomeTempo = metronomeTempo;
         lastTimerBeatTime = System.currentTimeMillis();
         invalidate();
     }
     
     public void setMetronomeOff() {
-        metronome = null;
+        metronome.stop();
         reset();
         invalidate();
     }

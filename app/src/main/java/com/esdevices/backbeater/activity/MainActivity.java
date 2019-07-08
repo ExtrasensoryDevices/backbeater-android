@@ -115,7 +115,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
             final String action = intent.getAction();
 
             synchronized (MainActivity.this.lock) {
-                // looking for thre microphone
+                // looking for the microphone
                 if (Intent.ACTION_HEADSET_PLUG.equals(action)) {
                     boolean hasMicrophone = intent.getIntExtra("microphone", -1) == 1;
 
@@ -186,6 +186,8 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         setSensitivity(Preferences.getSensitivity(sensitivity));
         sensitivitySlider.setValue(sensitivity);
         sensitivitySlider.setValueChangeListener(this);
+
+        setTempo(sensitivity, false);
         
         tempoSlideButton.setStateChangeListener(this);
         
@@ -306,7 +308,13 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         songList = Preferences.getSongList();
         setCurrentSongIndex(0);
         if (currentSongIndex != -1) {
-            tempoSlideButton.setValue(songList.get(currentSongIndex).tempo);
+            try {
+                int tempo = songList.get(currentSongIndex).tempo;
+                tempoSlideButton.setValue(tempo);
+                gaugeView.setTargetNumber(tempo);
+            } catch (Exception e ){
+
+            }
         }
     }
     
@@ -348,8 +356,16 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         if (!tempoSlideButton.isSelected() && startMetronome) {
             tempoSlideButton.toggle();
         }
-        if (tempoSlideButton.isSelected()) {
+        //if (tempoSlideButton.isSelected()) {
             tempoDisplay.setMetronomeOn(Constants.Sound.fromIndex(sound), tempoSlideButton.getValue());
+        //}
+        if (currentSongIndex != -1 && songList.size() > 0) {
+            Song song = songList.get(currentSongIndex);
+            if (song.tempo != tempo) {
+                song.tempo = tempo;
+                songList.set(currentSongIndex, song);
+                Preferences.putSongList(songList);
+            }
         }
     }
     
@@ -422,10 +438,16 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     
     // Tempo Slide Button
     @Override public void onValueChanged(int newValue) {
-        if (tempoSlideButton.isSelected()) {
-            gaugeView.setTargetNumber(tempoSlideButton.getValue());
-            tempoDisplay.setMetronomeOn(Constants.Sound.fromIndex(sound), tempoSlideButton.getValue());
-        }
+
+        setTempo(newValue, tempoDisplay.isMetronomeOn());
+
+//        gaugeView.setTargetNumber(newValue);
+        MainActivity.this.setSensitivity(newValue);
+//        tempoDisplay.setMetronomeOn(Constants.Sound.fromIndex(sound), newValue);
+
+//        if (tempoSlideButton.isSelected()) {
+//
+//        }
         FlurryAgent.logEvent(Constants.FLURRY_METRONOME_TEMPO_VALUE_CHANGED, Constants.buildFlurryParams("value", ""+newValue));
     
     }
@@ -485,7 +507,11 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     
     public void setSensitivity(int sensitivity) {
         this.sensitivity = sensitivity;
-        audioService.setSensitivity(this.sensitivity);
+        try {
+            audioService.setSensitivity(this.sensitivity);
+        } catch (Exception e) {
+
+        }
         Preferences.putSensitivity(sensitivity);
     }
     
@@ -568,19 +594,19 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
 
         int screenSize = getResources().getConfiguration().screenLayout &
                 Configuration.SCREENLAYOUT_SIZE_MASK;
-        int width = 400;
+        int width = 440;
         switch(screenSize) {
             case Configuration.SCREENLAYOUT_SIZE_LARGE:
                 width = 480;
                 break;
             case Configuration.SCREENLAYOUT_SIZE_NORMAL:
-                width = 400;
+                width = 440;
                 break;
             case Configuration.SCREENLAYOUT_SIZE_SMALL:
-                width = 380;
+                width = 440;
                 break;
             default:
-                width = 380;
+                width = 440;
         }
 
         if (buttonId == R.id.avgHelpButton) {

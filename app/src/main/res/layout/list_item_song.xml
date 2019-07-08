@@ -13,7 +13,10 @@
     android:paddingEnd="@dimen/padding_small"
     android:descendantFocusability="beforeDescendants"
 >
-    
+    <ImageView android:id="@+id/tapbar"
+        android:layout_width="@dimen/button_xsmall"
+        android:layout_height="@dimen/button_medium"
+        android:src="@drawable/bar"/>
     <com.esdevices.backbeater.ui.widgets.BBEditTextView
         android:id="@+id/songNameText"
         android:layout_width="0dp"
