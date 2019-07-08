@@ -23,6 +23,7 @@ import android.support.annotation.StringRes;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -62,7 +63,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     static final int EDIT_SONG_LIST_REQUEST = 1;
 
     private int sound = 1;
-    private int window = 2;
+    private int window = 5;
     private int beat = 1;
     private int sensitivity = 100;
     
@@ -356,9 +357,9 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         if (!tempoSlideButton.isSelected() && startMetronome) {
             tempoSlideButton.toggle();
         }
-        //if (tempoSlideButton.isSelected()) {
+        if (tempoSlideButton.isSelected()) {
             tempoDisplay.setMetronomeOn(Constants.Sound.fromIndex(sound), tempoSlideButton.getValue());
-        //}
+        }
         if (currentSongIndex != -1 && songList.size() > 0) {
             Song song = songList.get(currentSongIndex);
             if (song.tempo != tempo) {
@@ -439,7 +440,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     // Tempo Slide Button
     @Override public void onValueChanged(int newValue) {
 
-        setTempo(newValue, tempoDisplay.isMetronomeOn());
+        setTempo(newValue, tempoSlideButton.isSelected());
 
 //        gaugeView.setTargetNumber(newValue);
         MainActivity.this.setSensitivity(newValue);
@@ -592,35 +593,37 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         int resid;
         View v = findViewById(buttonId);
 
+        Configuration conf = getResources().getConfiguration();
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        int width = (int)( 288 * metrics.density );
+        int fontSize = 18;
         int screenSize = getResources().getConfiguration().screenLayout &
                 Configuration.SCREENLAYOUT_SIZE_MASK;
-        int width = 440;
         switch(screenSize) {
             case Configuration.SCREENLAYOUT_SIZE_LARGE:
-                width = 480;
+                fontSize = 18;
                 break;
             case Configuration.SCREENLAYOUT_SIZE_NORMAL:
-                width = 440;
+                fontSize = 18;
                 break;
             case Configuration.SCREENLAYOUT_SIZE_SMALL:
-                width = 440;
+                fontSize = 12;
                 break;
-            default:
-                width = 440;
         }
 
         if (buttonId == R.id.avgHelpButton) {
-            popoverView.setContentSizeForViewInPopover(new Point(width, (int)(width*0.45f)));
+            popoverView.setContentSizeForViewInPopover(new Point(width, (int)(width*0.56f)));
             resid = R.string.avg_help_text;
         }
         else {
-            popoverView.setContentSizeForViewInPopover(new Point(width, (int)(width*0.7f)));
+            popoverView.setContentSizeForViewInPopover(new Point(width, (int)(width*0.95f)));
             resid = R.string.beat_help_text;
         }
 
         popoverView.setDelegate(null);
 
-        popoverView.showPopoverFromRectInViewGroup(rootView, resid, PopoverView.getFrameForView(v), PopoverView.PopoverArrowDirectionAny, true);
+        popoverView.showPopoverFromRectInViewGroup(rootView, resid, PopoverView.getFrameForView(v), PopoverView.PopoverArrowDirectionAny, true, fontSize);
     }
     
     //================================================================================

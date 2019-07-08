@@ -1,14 +1,20 @@
 package com.esdevices.backbeater.ui.widgets;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.AnimationDrawable;
+import android.os.Build;
 import android.text.TextPaint;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
+import android.view.KeyCharacterMap;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.support.v7.widget.AppCompatTextView;
+import android.view.ViewConfiguration;
 import android.widget.TextView;
 
 import com.esdevices.backbeater.R;
@@ -129,9 +135,33 @@ public class TempoDisplay extends AppCompatTextView {
     //================================================================================
     //  Drawing
     //================================================================================
-    
-    
-    
+
+    public static boolean hasNavBar(Context context) {
+        // Kitkat and less shows container above nav bar
+        if (android.os.Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) {
+            return false;
+        }
+        // Emulator
+        if (Build.FINGERPRINT.startsWith("generic")) {
+            return true;
+        }
+        boolean hasMenuKey = ViewConfiguration.get(context).hasPermanentMenuKey();
+        boolean hasBackKey = KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_BACK);
+        boolean hasNoCapacitiveKeys = !hasMenuKey && !hasBackKey;
+        Resources resources = context.getResources();
+        int id = resources.getIdentifier("config_showNavigationBar", "bool", "android");
+        boolean hasOnScreenNavBar = id > 0 && resources.getBoolean(id);
+        return hasOnScreenNavBar || hasNoCapacitiveKeys || getNavigationBarHeight(context, true) > 0;
+    }
+
+    public static int getNavigationBarHeight(Context context, boolean skipRequirement) {
+        int resourceId = context.getResources().getIdentifier("navigation_bar_height", "dimen", "android");
+        if (resourceId > 0 && (skipRequirement || hasNavBar(context))) {
+            return context.getResources().getDimensionPixelSize(resourceId);
+        }
+        return 0;
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         boolean metronomeIsOn = isMetronomeOn();
@@ -161,10 +191,13 @@ public class TempoDisplay extends AppCompatTextView {
         long now = System.currentTimeMillis();
         long timeSinceLastBeat = now - lastBeatTime;
         long timeSinceLastTimerBeat = now - lastTimerBeatTime;
-        
-        int cY = drumBounds.height()/2+radius+getPaddingTop() + width/2;
-        
-        
+
+        DisplayMetrics dm = new DisplayMetrics();
+        this.getDisplay().getMetrics(dm);
+
+        int navbar = (int)(getNavigationBarHeight(getContext(), false) / dm.density + 0.5f);
+        int cY = drumBounds.height()/2+radius+getPaddingTop() + width/2 + navbar;
+
         // beat - beat registered
         // hit - beat in time accourding to CPT
         boolean beat = Constants.isValidTempo(CPT) && timeSinceLastBeat < DRUM_ANIMATION_DURATION;

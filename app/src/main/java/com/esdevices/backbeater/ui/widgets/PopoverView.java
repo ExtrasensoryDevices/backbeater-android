@@ -9,6 +9,7 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -720,7 +721,7 @@ public class PopoverView extends RelativeLayout implements OnTouchListener {
 	 * @param arrowDirections The mask of bits to tell in which directions we want the popover to be shown
 	 * @param animated Whether is animated, or not
 	 */
-	public void showPopoverFromRectInViewGroup(ViewGroup group, int resid, Rect originRect, int arrowDirections, boolean animated){
+	public void showPopoverFromRectInViewGroup(ViewGroup group, int resid, Rect originRect, int arrowDirections, boolean animated, int fontSize){
 		
 		//First, tell delegate we will show
 		if (delegate != null)
@@ -729,22 +730,6 @@ public class PopoverView extends RelativeLayout implements OnTouchListener {
 		TextView helpText = popoverView.findViewById(R.id.helpText);
 		if (helpText != null) {
 
-			int screenSize = getResources().getConfiguration().screenLayout &
-					Configuration.SCREENLAYOUT_SIZE_MASK;
-			int fontSize = 8;
-			switch(screenSize) {
-				case Configuration.SCREENLAYOUT_SIZE_LARGE:
-					fontSize = 17;
-					break;
-				case Configuration.SCREENLAYOUT_SIZE_NORMAL:
-					fontSize = 14;
-					break;
-				case Configuration.SCREENLAYOUT_SIZE_SMALL:
-					fontSize = 12;
-					break;
-				default:
-					fontSize = 10;
-			}
 			helpText.setTextSize(fontSize);
 			helpText.setText(resid);
 		}
