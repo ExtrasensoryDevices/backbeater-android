@@ -1,11 +1,14 @@
 package com.esdevices.backbeater.ui.widgets;
 
+import android.animation.ObjectAnimator;
+import android.animation.PropertyValuesHolder;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.AnimationDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.text.TextPaint;
 import android.util.AttributeSet;
@@ -29,39 +32,43 @@ import com.esdevices.backbeater.utils.Preferences;
  * Created by aeboyd on 7/15/15.
  */
 public class TempoDisplay extends AppCompatTextView {
-    
+
     public static final long MS_IN_MIN = 60000;
     public static final int WHITE_COLOR = -1;
     private final int accentColor;
     private final AnimationDrawable drum;
+    private final Drawable drumFlash;
     private final TextPaint paint;
     private int height = 0;
     private int width = 0;
     private final Rect textBounds = new Rect();
     private Rect drumBounds = new Rect();
+    private Rect drumPulseBounds = new Rect();
+    private Rect drumFlashBounds = new Rect();
+
     private static final float PCT_DRUM = .4f;
     private static final float DRUM_ANIMATION_DURATION = 600f;
     private final int DRUM_ANIMATION_FRAMES;
     private boolean leftStrike = false;
     private static final float DRUM_PULSE_ANIMATION_DURATION = DRUM_ANIMATION_DURATION/10f;
     private final float DRUM_PULSE_DELTA_Y;
-    
-    
-    
+
+
+
     private int CPT = Constants.DEFAULT_TEMPO;  // = Currently Playing Tempo (multiplied by Beat, averaged in Window) or Metronome Tempo
     private int metronomeTempo = Constants.DEFAULT_TEMPO;
-    
+
     private MetronomePlayer metronome;
-    
+
     private int beat = 1;
     private int window = 5;
     private WindowQueue windowQueue;
-    
+
     public boolean handleTap = true;
-    
+
     public SmGaugeView gaugeView;
     public TextView targetLabel;
-    
+
     public TempoDisplay(Context context) {
         this(context, null, 0);
     }
@@ -72,20 +79,23 @@ public class TempoDisplay extends AppCompatTextView {
 
     public TempoDisplay(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        
+
         beat = Preferences.getBeat(beat);
         window = Preferences.getWindow(window);
         CPT = Preferences.getCPT(CPT);
         windowQueue = new WindowQueue(window);
-    
+
         accentColor = getResources().getColor(R.color.assent_color);
-        
+
         drum = (AnimationDrawable)getResources().getDrawable(R.drawable.drum_hit_animation);
         int totalFrames = drum.getNumberOfFrames();
         DRUM_ANIMATION_FRAMES = totalFrames / 2; // one pass = half of the frames
         DRUM_PULSE_DELTA_Y = getResources().getDimension(R.dimen.drum_animation_delta_y);
         drum.selectDrawable(totalFrames - 1); // last frame
-        
+
+        drumFlash = getResources().getDrawable(R.drawable.style_button_circle);
+        drumFlash.setAlpha(0);
+
         paint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
         paint.setColor(WHITE_COLOR);
         paint.setStyle(Paint.Style.STROKE);
@@ -95,11 +105,11 @@ public class TempoDisplay extends AppCompatTextView {
         }
         paint.setTextAlign(Paint.Align.CENTER);
     }
-    
+
     //================================================================================
     //  Window queue settings
     //================================================================================
-    
+
     public void setGaugeView(SmGaugeView view) {
         this.gaugeView = view;
     }
@@ -107,7 +117,7 @@ public class TempoDisplay extends AppCompatTextView {
     public void setTargetLabel(TextView view) {
         this.targetLabel = view;
     }
-    
+
     public void setWindow(int window) {
         if (this.window != window) {
             reset();
@@ -115,23 +125,23 @@ public class TempoDisplay extends AppCompatTextView {
             windowQueue.setCapacity(window);
         }
     }
-    
+
     public void setBeat(int beat) {
         if (this.beat != beat) {
             reset();
             this.beat = beat;
         }
     }
-    
+
     //================================================================================
     //  Currently Playing Tempo (use for saving state)
     //================================================================================
-    
+
     public int getCPT() {
         return CPT;
     }
-    
-    
+
+
     //================================================================================
     //  Drawing
     //================================================================================
@@ -165,10 +175,10 @@ public class TempoDisplay extends AppCompatTextView {
     @Override
     protected void onDraw(Canvas canvas) {
         boolean metronomeIsOn = isMetronomeOn();
-        
+
         int contentWidth = getWidth()-getPaddingLeft()-getPaddingRight();
         int contentHeight = getHeight()-getPaddingBottom()-getPaddingTop();
-        
+
         // size of the CPT display
         if (height != contentHeight || width != contentWidth) {
             height = contentHeight;
@@ -177,11 +187,16 @@ public class TempoDisplay extends AppCompatTextView {
             int drumT = getPaddingTop();
             int drumR = (int) (.5*width*(1+PCT_DRUM)+getPaddingLeft());
             int drumB =(int)(width*PCT_DRUM*drum.getIntrinsicHeight()/drum.getIntrinsicWidth()+getPaddingTop());
-            drumBounds = new Rect(drumL, drumT, drumR, drumB);
+            drumBounds.set(drumL, drumT, drumR, drumB);
             drum.setBounds(drumBounds);
-    
+
+            int h2 = (drumB - drumT) / 2;
+            int cx = (drumL + drumR) / 2;
+
+            drumFlashBounds.set(cx-h2, drumT, cx+h2, drumB);
+            drumFlash.setBounds(drumFlashBounds);
         }
-        
+
         // (cX, cY), radius - centre and radius of the big circle,
         int cX = width/2+getPaddingLeft();
         int radius = (int) (width/2-paint.getStrokeWidth());
@@ -201,7 +216,7 @@ public class TempoDisplay extends AppCompatTextView {
         // beat - beat registered
         // hit - beat in time accourding to CPT
         boolean beat = Constants.isValidTempo(CPT) && timeSinceLastBeat < DRUM_ANIMATION_DURATION;
-    
+
         // draw big circle
         if (beat && hit){
             // hit in right time
@@ -226,7 +241,7 @@ public class TempoDisplay extends AppCompatTextView {
             // draw big circle with accent color
             paint.setColor(accentColor);
             canvas.drawCircle(cX, cY, radius, paint);
-    
+
             // draw fading white circle
             if (beat && offDegree > 0) {
                 paint.setColor(NumberButton.mixTwoColors(accentColor, WHITE_COLOR, timeSinceLastBeat / DRUM_ANIMATION_DURATION));
@@ -242,11 +257,9 @@ public class TempoDisplay extends AppCompatTextView {
             */
             drum.selectDrawable(leftStrike ? DRUM_ANIMATION_FRAMES-1 : 2*DRUM_ANIMATION_FRAMES-1);
         }
-        
+
         // drum pulse animation
         if (beat && timeSinceLastBeat < DRUM_PULSE_ANIMATION_DURATION) {
-
-            Rect drumPulseBounds = drumBounds;
 
             float halfDrumPulseAnimation = DRUM_PULSE_ANIMATION_DURATION / 2f;
             float timeElapsed = (float) timeSinceLastBeat - halfDrumPulseAnimation;
@@ -262,31 +275,37 @@ public class TempoDisplay extends AppCompatTextView {
             int deltaY = (int) (coefficient * DRUM_PULSE_DELTA_Y);
             int deltaX = (int) ((float)deltaY*(float)drumBounds.width() / (float)drumBounds.height());
 
-            drumPulseBounds = new Rect(drumPulseBounds.left+deltaX, drumPulseBounds.top+deltaY, drumPulseBounds.right-deltaX, drumPulseBounds.bottom-deltaY);
+            drumPulseBounds.set(drumBounds.left+deltaX, drumBounds.top+deltaY, drumBounds.right-deltaX, drumBounds.bottom-deltaY);
             drum.setBounds(drumPulseBounds);
+
+            drumFlashBounds.set(drumBounds.centerX()-drumBounds.height()/2, drumBounds.top, drumBounds.centerX()+drumBounds.height()/2, drumBounds.bottom);
+            drumFlash.setBounds(drumFlashBounds);
         } else {
             drum.setBounds(drumBounds);
+
+            drumFlashBounds.set(drumBounds.centerX()-drumBounds.height()/2, drumBounds.top, drumBounds.centerX()+drumBounds.height()/2, drumBounds.bottom);
+            drumFlash.setBounds(drumFlashBounds);
         }
-    
+
         boolean oldIsIdle = isIdle;
         isIdle = Constants.IDLE_TIMEOUT_IN_MS - timeSinceLastBeat < 200;
-        
+
         int _CPT = metronomeIsOn ? metronomeTempo : CPT;
         boolean _cptIsValid = Constants.isValidTempo(_CPT);
-    
+
         //paint the red circle that goes on the ring
         /*
         paint.setStyle(Paint.Style.FILL);
         if (_cptIsValid && (!isIdle || metronomeIsOn) ) {
-    
+
             double oneLapTime = getOneLapTime();
             double degree = (((double)timeSinceLastTimerBeat/oneLapTime) % 1) * 2*Math.PI + Math.PI;
-            
+
             int ocX = (int) (radius * Math.sin(degree) + cX);
             int ocY = (int) (radius * Math.cos(degree) + cY);
             canvas.drawCircle(ocX, ocY, 3 * paint.getStrokeWidth(), paint);
-    
-            
+
+
             if ((oneLapTime-timeSinceLastTimerBeat <= 5) || (timeSinceLastTimerBeat >= oneLapTime)) {
                 lastTimerBeatTime = now;
                 if (metronomeIsOn) {
@@ -297,33 +316,36 @@ public class TempoDisplay extends AppCompatTextView {
         */
         // draw drum
         drum.draw(canvas);
-        
+        drumFlash.draw(canvas);
+
         // draw CPT text
         String cptString = Constants.getTempoString(CPT);
-        
+
         paint.setStyle(Paint.Style.STROKE);
         float stroke = paint.getStrokeWidth();
         paint.setStrokeWidth(0);
-        paint.setTextSize(radius/2);
+
+        float density = getResources().getDisplayMetrics().density * 1.25f;
+        paint.setTextSize(radius/density);
         paint.getTextBounds(cptString, 0, cptString.length(), textBounds);
         paint.setColor(WHITE_COLOR);
         canvas.drawText(cptString, cX, cY - textBounds.exactCenterY(), paint);
         paint.setStrokeWidth(stroke);
-    
-    
+
+
         // if become idle
         if (!oldIsIdle && isIdle) {
             reset();
         }
-        
+
         // repeat onDraw() if needed
         if (metronomeIsOn || (CPT > 0 && !isIdle)){
             invalidate();
         }
 
     }
-    
-    
+
+
     private void reset() {
         lastTimerBeatTime = 0;
         lastBeatTime=0;
@@ -332,25 +354,25 @@ public class TempoDisplay extends AppCompatTextView {
         isIdle = true;
         windowQueue.clear();
     }
-    
-    
+
+
     //================================================================================
     //  BPM processing
     //================================================================================
-    
-    
+
+
     private long lastTimerBeatTime = 0;
     private long lastBeatTime=0;
     private boolean hit = false;
     private double offDegree = 0;
     private boolean isIdle = true;
-    
+
     private double getOneLapTime(){ // time to run one whole circle
         double _CPT = isMetronomeOn() ? (double)metronomeTempo : (double) this.CPT /(double)beat;
         return  (double) MS_IN_MIN / _CPT;
     }
 
-    
+
     // beat handler
     public void beat(long beatTime) {
         if (lastBeatTime == 0){
@@ -360,18 +382,18 @@ public class TempoDisplay extends AppCompatTextView {
             }
             return;
         }
-        
+
         long timeSinceLastBeat = beatTime - lastBeatTime;
-        
+
         if (timeSinceLastBeat == 0) {
             return;
         }
-        
-        
+
+
         double tapBpm = (double) (MS_IN_MIN /timeSinceLastBeat);
         processBeat(tapBpm, beatTime);
     }
-    
+
     private void processBeat(double bpm, long beatTime) {
         double multiplier = isMetronomeOn() ? 1 : (double) beat;
         double instantTempo = multiplier * bpm;
@@ -394,9 +416,43 @@ public class TempoDisplay extends AppCompatTextView {
             else if (pos < -4)  pos = -4;
             if (gaugeView != null)
                 gaugeView.setSpeed(pos + 4);
-
+            
             if (pos == 0) {
                 //self.screenFlash()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    if (drumFlash.getAlpha() == 0) {
+                        ObjectAnimator animator = ObjectAnimator
+                                .ofPropertyValuesHolder(drumFlash,
+                                        PropertyValuesHolder.ofInt("alpha", 0, 180));
+                        animator.setTarget(drumFlash);
+                        animator.setDuration(250);
+                        animator.start();
+
+                        ObjectAnimator animator1 = ObjectAnimator
+                                .ofPropertyValuesHolder(drumFlash,
+                                        PropertyValuesHolder.ofInt("alpha", 180, 0));
+                        animator1.setTarget(drumFlash);
+                        animator1.setStartDelay(250);
+                        animator1.setDuration(250);
+                        animator1.start();
+                    }
+                }
+                else {
+                    ObjectAnimator animator = ObjectAnimator
+                            .ofPropertyValuesHolder(drumFlash,
+                                    PropertyValuesHolder.ofInt("alpha", 0, 180));
+                    animator.setTarget(drumFlash);
+                    animator.setDuration(250);
+                    animator.start();
+
+                    ObjectAnimator animator1 = ObjectAnimator
+                            .ofPropertyValuesHolder(drumFlash,
+                                    PropertyValuesHolder.ofInt("alpha", 180, 0));
+                    animator1.setTarget(drumFlash);
+                    animator1.setStartDelay(250);
+                    animator1.setDuration(250);
+                    animator1.start();
+                }
             }
 
             double oneLapTime = getOneLapTime();
@@ -407,21 +463,21 @@ public class TempoDisplay extends AppCompatTextView {
                 leftStrike = !leftStrike;
             } else {
                 offDegree = (((double)timeSinceLastTimerBeat/oneLapTime) % 1) * 2*Math.PI + Math.PI;
-    
+
             }
-            
+
         }
         invalidate();
     }
-    
-    
-    
+
+
+
     //================================================================================
     //  Touch handler
     //================================================================================
-    
-    
-    
+
+
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (handleTap) {
@@ -432,14 +488,14 @@ public class TempoDisplay extends AppCompatTextView {
         }
         return super.onTouchEvent(event);
     }
-    
-    
-    
+
+
+
     //================================================================================
     //  METRONOME
     //================================================================================
-    
-    
+
+
     public void setMetronomeOn(Sound sound, int metronomeTempo) {
         if (metronome == null) {
             metronome = new MetronomePlayer();
@@ -454,19 +510,19 @@ public class TempoDisplay extends AppCompatTextView {
         lastTimerBeatTime = System.currentTimeMillis();
         invalidate();
     }
-    
+
     public void setMetronomeOff() {
         metronome.stop();
         reset();
         invalidate();
     }
-    
+
     public void setMetronomeSound(Sound sound) {
         if (metronome != null) {
             metronome.setCurrentSound(sound);
         }
     }
-    
+
     public boolean isMetronomeOn() {
         return metronome != null;
     }
