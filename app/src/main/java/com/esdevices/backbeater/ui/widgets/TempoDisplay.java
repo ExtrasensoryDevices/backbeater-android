@@ -211,7 +211,7 @@ public class TempoDisplay extends AppCompatTextView {
         this.getDisplay().getMetrics(dm);
 
         int navbar = (int)(getNavigationBarHeight(getContext(), false) / dm.density + 0.5f);
-        int cY = drumBounds.height()/2+radius+getPaddingTop() + width/2 + navbar;
+        int cY = drumBounds.height()/2+radius+getPaddingTop() + width/2 + navbar/2;
 
         // beat - beat registered
         // hit - beat in time accourding to CPT
@@ -326,6 +326,7 @@ public class TempoDisplay extends AppCompatTextView {
         paint.setStrokeWidth(0);
 
         float density = getResources().getDisplayMetrics().density * 1.25f;
+        if (density < 2.5f)  density = 2.5f;
         paint.setTextSize(radius/density);
         paint.getTextBounds(cptString, 0, cptString.length(), textBounds);
         paint.setColor(WHITE_COLOR);
@@ -416,7 +417,7 @@ public class TempoDisplay extends AppCompatTextView {
             else if (pos < -4)  pos = -4;
             if (gaugeView != null)
                 gaugeView.setSpeed(pos + 4);
-            
+
             if (pos == 0) {
                 //self.screenFlash()
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -494,7 +495,9 @@ public class TempoDisplay extends AppCompatTextView {
     //================================================================================
     //  METRONOME
     //================================================================================
-
+    public void setMetronomeTempo(int tempo) {
+        this.metronomeTempo = tempo;
+    }
 
     public void setMetronomeOn(Sound sound, int metronomeTempo) {
         if (metronome == null) {
@@ -506,7 +509,7 @@ public class TempoDisplay extends AppCompatTextView {
         }
         metronome.setCurrentSound(sound);
         metronome.play(rTempo);
-        this.metronomeTempo = metronomeTempo;
+        setMetronomeTempo(metronomeTempo);
         lastTimerBeatTime = System.currentTimeMillis();
         invalidate();
     }

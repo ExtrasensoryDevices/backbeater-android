@@ -358,7 +358,10 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
             tempoSlideButton.toggle();
         }
         if (tempoSlideButton.isSelected()) {
-            tempoDisplay.setMetronomeOn(Constants.Sound.fromIndex(sound), tempoSlideButton.getValue());
+            tempoDisplay.setMetronomeOn(Constants.Sound.fromIndex(sound),tempo);
+        }
+        else {
+            tempoDisplay.setMetronomeTempo(tempo);
         }
         if (currentSongIndex != -1 && songList.size() > 0) {
             Song song = songList.get(currentSongIndex);
