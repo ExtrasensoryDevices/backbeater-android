@@ -9,7 +9,7 @@ android {
         applicationId "com.esdevices.backbeater"
         minSdkVersion 16
         targetSdkVersion 28
-        versionCode 15
+        versionCode 16
         versionName "1.0.3"
     }
     buildTypes {
