@@ -207,14 +207,13 @@ public class TempoDisplay extends AppCompatTextView {
         long timeSinceLastBeat = now - lastBeatTime;
         long timeSinceLastTimerBeat = now - lastTimerBeatTime;
 
-        DisplayMetrics dm = new DisplayMetrics();
-        this.getDisplay().getMetrics(dm);
+        float density = getResources().getDisplayMetrics().density;
 
-        int navbar = (int)(getNavigationBarHeight(getContext(), false) / dm.density + 0.5f);
-        int cY = drumBounds.height()/2+radius+getPaddingTop() + width/2 + navbar/2;
+        int navbar = (int)(getNavigationBarHeight(getContext(), false) / density + 0.5f);
+        int cY = drumBounds.height()/2+getPaddingTop() + contentHeight * 3/4;// width/2;//+radius + navbar/2;
 
         // beat - beat registered
-        // hit - beat in time accourding to CPT
+        // hit - beat in time according to CPT
         boolean beat = Constants.isValidTempo(CPT) && timeSinceLastBeat < DRUM_ANIMATION_DURATION;
 
         // draw big circle
@@ -325,7 +324,7 @@ public class TempoDisplay extends AppCompatTextView {
         float stroke = paint.getStrokeWidth();
         paint.setStrokeWidth(0);
 
-        float density = getResources().getDisplayMetrics().density * 1.25f;
+        density *= 1.25f;
         if (density < 2.5f)  density = 2.5f;
         paint.setTextSize(radius/density);
         paint.getTextBounds(cptString, 0, cptString.length(), textBounds);
@@ -386,7 +385,7 @@ public class TempoDisplay extends AppCompatTextView {
 
         long timeSinceLastBeat = beatTime - lastBeatTime;
 
-        if (timeSinceLastBeat == 0) {
+        if (timeSinceLastBeat == 0 || timeSinceLastBeat < 50) {
             return;
         }
 

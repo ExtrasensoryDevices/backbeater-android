@@ -58,6 +58,14 @@ public class SmGaugeView extends View {
         init();
 
         float density = getResources().getDisplayMetrics().density;
+        int wid = getResources().getDisplayMetrics().widthPixels;
+        if (wid < 300) {
+            backWidth = 3;
+            outerCenterWidth = 14;
+            innerCenterWidth = 10;
+            majorTicksLength = 24;
+            needleWidth = 3;
+        }
         setLabelTextSize(Math.round(DEFAULT_LABEL_TEXT_SIZE_DP * density));
     }
 
@@ -66,6 +74,15 @@ public class SmGaugeView extends View {
         init();
 
         float density = getResources().getDisplayMetrics().density;
+        int wid = getResources().getDisplayMetrics().widthPixels;
+        if (wid < 300) {
+            backWidth = 3;
+            outerCenterWidth = 14;
+            innerCenterWidth = 10;
+            majorTicksLength = 24;
+            needleWidth = 3;
+        }
+
         setLabelTextSize(Math.round(DEFAULT_LABEL_TEXT_SIZE_DP * density));
     }
 
@@ -269,7 +286,6 @@ public class SmGaugeView extends View {
     private void drawTicks(Canvas canvas) {
         float availableAngle = 180;
         float majorStep = (availableAngle / majorTickStep);
-        float majorTicksLength = 48;
 
         RectF oval = getOval(canvas, 1);
         float radius = oval.width()*0.5f;

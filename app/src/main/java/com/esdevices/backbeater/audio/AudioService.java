@@ -23,8 +23,11 @@ public class AudioService {
     
     private double startThreshold;
     private double endThreshold;
-    private int sensitivity = 100;
-    
+    private int sensitivity = 0;
+
+    private long lastTime = 0;
+    private final int KnockTime = 250;
+
     private AudioServiceBeatListener beatListener;
     private EnergyFunction energyFunction = new EnergyFunction();
     
@@ -107,7 +110,9 @@ public class AudioService {
     
     
     private void updateThreshold(){
-        startThreshold = START_THRESHOLD_ARRAY[sensitivity];
+        int sensor = sensitivity;
+        if (sensor >= START_THRESHOLD_ARRAY.length) sensor = START_THRESHOLD_ARRAY.length-1;
+        startThreshold = START_THRESHOLD_ARRAY[sensor];
         endThreshold = 1.1 * startThreshold;
     }
     
@@ -123,7 +128,12 @@ public class AudioService {
     private void processDataInput(short[] buffer, int dataLength) {
         for (int i = 0; i < dataLength; i++) {
             short currentDS = buffer[i]; // data sample
-            
+
+            long diffTime = System.currentTimeMillis() - lastTime;
+
+            if (diffTime < KnockTime) {
+                return;
+            }
             // stats
             //if (currentDS < min) { min = currentDS; }
             //if (currentDS > max) { max = currentDS; }
@@ -151,7 +161,10 @@ public class AudioService {
                     
                 } else if (energyLevel < endThreshold && inBeat) {
                     // beat ended
-                    
+
+                    // added July 15
+                    lastTime = System.currentTimeMillis();
+
                     // stats
                     //ended_DS = lastPositiveDS; ended_e = energyLevel;
 
@@ -165,7 +178,7 @@ public class AudioService {
                     inBeat = false;
     
                     if (beatListener != null) {
-                        beatListener.onBeat(System.currentTimeMillis());
+                        beatListener.onBeat(lastTime);
                     }
                 }
                 lastPositiveDS = 0;
@@ -176,7 +189,7 @@ public class AudioService {
    
     
     private void subscribe() {
-    
+        lastTime = System.currentTimeMillis();
         new Thread(new Runnable() {
             @Override public void run() {
                 running = true;
