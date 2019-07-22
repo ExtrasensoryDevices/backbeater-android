@@ -151,6 +151,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         ButterKnife.bind(this);
     
         drawerLayout.setScrimColor(getResources().getColor(R.color.main_color_transparent));
+        tempoDisplay.setParent(this);
         tempoDisplay.setGaugeView(gaugeView);
         tempoDisplay.setTargetLabel(targetLabel);
         
@@ -193,7 +194,6 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         tempoSlideButton.setStateChangeListener(this);
         
         updateSongList();
-
     }
 
 
@@ -372,8 +372,24 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
             }
         }
     }
-    
-    
+
+    public void setTargetTemp(int tempo) {
+        tempo = Math.min(Constants.MAX_TEMPO, (Math.max(Constants.MIN_TEMPO, tempo)));
+        tempoSlideButton.setValue(tempo);
+        gaugeView.setTargetNumber(tempo);
+        // update metronome if needed
+
+        tempoDisplay.setMetronomeTempo(tempo);
+
+        if (currentSongIndex != -1 && songList.size() > 0) {
+            Song song = songList.get(currentSongIndex);
+            if (song.tempo != tempo) {
+                song.tempo = tempo;
+                songList.set(currentSongIndex, song);
+                Preferences.putSongList(songList);
+            }
+        }
+    }
     
     @Override
     public void onBeat(final long hitTime){

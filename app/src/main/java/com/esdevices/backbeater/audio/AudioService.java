@@ -26,7 +26,7 @@ public class AudioService {
     private int sensitivity = 0;
 
     private long lastTime = 0;
-    private final int KnockTime = 250;
+    private final int KnockTime = 10;
 
     private AudioServiceBeatListener beatListener;
     private EnergyFunction energyFunction = new EnergyFunction();
@@ -129,11 +129,10 @@ public class AudioService {
         for (int i = 0; i < dataLength; i++) {
             short currentDS = buffer[i]; // data sample
 
-            long diffTime = System.currentTimeMillis() - lastTime;
-
-            if (diffTime < KnockTime) {
-                return;
-            }
+//            long diffTime = System.currentTimeMillis() - lastTime;
+//            if (diffTime < KnockTime) {
+//                return;
+//            }
             // stats
             //if (currentDS < min) { min = currentDS; }
             //if (currentDS > max) { max = currentDS; }

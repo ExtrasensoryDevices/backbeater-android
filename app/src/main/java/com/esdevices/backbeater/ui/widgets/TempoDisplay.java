@@ -22,11 +22,15 @@ import android.widget.TextView;
 
 import com.esdevices.backbeater.R;
 
+import com.esdevices.backbeater.activity.MainActivity;
 import com.esdevices.backbeater.audio.MetronomePlayer;
 import com.esdevices.backbeater.audio.WindowQueue;
 import com.esdevices.backbeater.utils.Constants;
 import com.esdevices.backbeater.utils.Constants.Sound;
 import com.esdevices.backbeater.utils.Preferences;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Created by aeboyd on 7/15/15.
@@ -68,6 +72,8 @@ public class TempoDisplay extends AppCompatTextView {
 
     public SmGaugeView gaugeView;
     public TextView targetLabel;
+
+    public MainActivity mainActivity;
 
     public TempoDisplay(Context context) {
         this(context, null, 0);
@@ -116,6 +122,10 @@ public class TempoDisplay extends AppCompatTextView {
 
     public void setTargetLabel(TextView view) {
         this.targetLabel = view;
+    }
+
+    public void setParent(MainActivity activity) {
+        this.mainActivity = activity;
     }
 
     public void setWindow(int window) {
@@ -366,6 +376,8 @@ public class TempoDisplay extends AppCompatTextView {
     private boolean hit = false;
     private double offDegree = 0;
     private boolean isIdle = true;
+    private TimerTask timerTask = null;
+    private Timer targetTimer = null;
 
     private double getOneLapTime(){ // time to run one whole circle
         double _CPT = isMetronomeOn() ? (double)metronomeTempo : (double) this.CPT /(double)beat;
@@ -385,7 +397,7 @@ public class TempoDisplay extends AppCompatTextView {
 
         long timeSinceLastBeat = beatTime - lastBeatTime;
 
-        if (timeSinceLastBeat == 0 || timeSinceLastBeat < 50) {
+        if (timeSinceLastBeat == 0) {
             return;
         }
 
@@ -395,14 +407,35 @@ public class TempoDisplay extends AppCompatTextView {
     }
 
     private void processBeat(double bpm, long beatTime) {
-        double multiplier = isMetronomeOn() ? 1 : (double) beat;
-        double instantTempo = multiplier * bpm;
+//        double multiplier = isMetronomeOn() ? 1 : (double) beat;
+        double instantTempo = this.beat * bpm;
         CPT = windowQueue.enqueue(instantTempo).average();
         lastBeatTime = beatTime;
 
         if (targetLabel != null) {
             if (bpm > 13.0) {
                 targetLabel.setAlpha(1);
+                if (targetTimer != null) {
+                    targetTimer.cancel();
+                    targetTimer = null;
+                }
+
+                if (timerTask != null) {
+                    timerTask.cancel();
+                    timerTask = null;
+                }
+                timerTask = new TimerTask() {
+                    @Override
+                    public void run() {
+                        targetLabel.setAlpha(0);
+                        targetTimer.cancel();
+                        targetTimer = null;
+                    }
+                };
+
+                targetTimer = new Timer();
+                targetTimer.schedule(timerTask, 5000);
+
             } else {
                 targetLabel.setAlpha(0);
             }
@@ -410,8 +443,8 @@ public class TempoDisplay extends AppCompatTextView {
 
         offDegree = 0;
         if (this.CPT > 0) {
-
-            int pos = this.CPT - metronomeTempo;
+            int vCPT = Math.min(Constants.MAX_TEMPO, (Math.max(Constants.MIN_TEMPO, this.CPT)));
+            int pos = vCPT - metronomeTempo;
             if (pos > 4)        pos = 4;
             else if (pos < -4)  pos = -4;
             if (gaugeView != null)
@@ -465,7 +498,9 @@ public class TempoDisplay extends AppCompatTextView {
                 offDegree = (((double)timeSinceLastTimerBeat/oneLapTime) % 1) * 2*Math.PI + Math.PI;
 
             }
-
+            if (!isMetronomeOn()) {
+                mainActivity.setTargetTemp(vCPT);
+            }
         }
         invalidate();
     }

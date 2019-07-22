@@ -307,7 +307,7 @@ public class SmGaugeView extends View {
 
             canvas.save();
             canvas.rotate(180 + currentAngle, oval.centerX(), oval.centerY());
-            float txtX = oval.centerX() + radius1 - majorTicksLength / 2;
+            float txtX = oval.centerX() + radius1 - majorTicksLength * 2/ 3;
             float txtY = oval.centerY();
             canvas.rotate(180 - currentAngle, txtX, txtY);
             if (iStep < 4) {

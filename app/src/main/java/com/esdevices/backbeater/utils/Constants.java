@@ -55,7 +55,6 @@ public static String getTempoString(int tempo) {
     } else {
         cptString = ""+ tempo;
     }
-    cptString = ""+ tempo;
     return cptString;
 }
     
