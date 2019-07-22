@@ -13,7 +13,7 @@
     <string name="dlg_no_connection_msg">Please check your internet connection and try again!</string>
     
     <string name="dlg_mic_permission_ttl">Microphone permission required</string>
-    <string name="dlg_mic_permission_msg_1">Allow Backbeater to access your microphone?</string>
+    <string name="dlg_mic_permission_msg_1">Allow Backbeater to access its sensor via the mic connector?</string>
     <string name="dlg_mic_permission_msg_2">Without permission to use your microphone sensor won\'t work.\nGo to your device Settings and then Privacy to grant permission.</string>
     
     

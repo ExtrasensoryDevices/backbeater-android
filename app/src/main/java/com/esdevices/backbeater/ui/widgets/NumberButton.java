@@ -5,18 +5,18 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.support.v7.widget.AppCompatButton;
 import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.view.View;
 
-import android.widget.Button;
 import com.esdevices.backbeater.R;
 import com.esdevices.backbeater.utils.Constants;
 
 /**
  * Created by aeboyd on 7/15/15.
  */
-public class NumberButton extends Button implements View.OnClickListener {
+public class NumberButton extends AppCompatButton implements View.OnClickListener {
     TextPaint paint;
     private final static int TEXT_COLOR = -1;
     private final int BACK_COLOR;

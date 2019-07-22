@@ -2,15 +2,15 @@ apply plugin: 'com.android.application'
 apply plugin: 'io.fabric'
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion '27.0.3'
+    compileSdkVersion 28
+    //buildToolsVersion '28.0.0'
 
     defaultConfig {
         applicationId "com.esdevices.backbeater"
-        minSdkVersion 18
-        targetSdkVersion 27
-        versionCode 14
-        versionName "1.0.2"
+        minSdkVersion 16
+        targetSdkVersion 28
+        versionCode 15
+        versionName "1.0.3"
     }
     buildTypes {
         release {
@@ -21,7 +21,7 @@ android {
 }
 
 dependencies {
-  final supportLibVer = '27.0.2'
+  final supportLibVer = '28.0.0'
   final butterknifeVer = "7.0.1"
   implementation fileTree(include: ['*.jar'], dir: 'libs')
   implementation "com.android.support:appcompat-v7:$supportLibVer"
