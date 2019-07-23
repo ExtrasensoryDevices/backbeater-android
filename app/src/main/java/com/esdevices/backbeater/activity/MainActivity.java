@@ -202,7 +202,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
        super.onResume();
 
        synchronized (lock) {
-           // check if USB mic is pluged in already
+           // check if USB mic is plugged in already
            if (usbScanner != null) {
                boolean shouldCheckForMic = usbScanner.isUsbClassAudioDeviceConnected();
                if (shouldCheckForMic){

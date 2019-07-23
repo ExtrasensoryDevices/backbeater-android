@@ -104,7 +104,7 @@ public class TempoDisplay extends AppCompatTextView {
 
         paint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
         paint.setColor(WHITE_COLOR);
-        paint.setStyle(Paint.Style.STROKE);
+        paint.setStyle(Paint.Style.FILL);
         paint.setStrokeWidth(getResources().getDimension(R.dimen.circle_outline_width));
         if(!isInEditMode()) {
             paint.setTypeface(Constants.BBTypeface.STEELFISH.getTypeface(context));
@@ -330,18 +330,11 @@ public class TempoDisplay extends AppCompatTextView {
         // draw CPT text
         String cptString = Constants.getTempoString(CPT);
 
-        paint.setStyle(Paint.Style.STROKE);
-        float stroke = paint.getStrokeWidth();
-        paint.setStrokeWidth(0);
-
         density *= 1.25f;
         if (density < 2.5f)  density = 2.5f;
         paint.setTextSize(radius/density);
         paint.getTextBounds(cptString, 0, cptString.length(), textBounds);
-        paint.setColor(WHITE_COLOR);
         canvas.drawText(cptString, cX, cY - textBounds.exactCenterY(), paint);
-        paint.setStrokeWidth(stroke);
-
 
         // if become idle
         if (!oldIsIdle && isIdle) {

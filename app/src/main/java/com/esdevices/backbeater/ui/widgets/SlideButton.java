@@ -322,6 +322,7 @@ public class SlideButton extends View {
     
         
         paint.setStrokeWidth(0);
+        paint.setStyle(Paint.Style.FILL);
         paint.setColor(textColor);
         String t = ""+ (tempSlideValue==0 ? slideValue : tempSlideValue);
         paint.setTextSize(radius);
@@ -338,7 +339,7 @@ public class SlideButton extends View {
         
         // reset stroke width
         paint.setStrokeWidth(strokeWidth);
-    
+        paint.setStyle(Paint.Style.STROKE);
     
     
         // -------------- invalidate if needed ------------------

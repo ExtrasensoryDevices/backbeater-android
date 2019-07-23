@@ -65,6 +65,7 @@ public class NumberButton extends AppCompatButton implements View.OnClickListene
 
         paint.setColor(textColor);
         paint.setStrokeWidth(0);
+        paint.setStyle(Paint.Style.FILL);
         canvas.drawText(getText().toString(), cX, cY - textBounds.centerY(), paint);
         paint.setStrokeWidth(stroke);
 
