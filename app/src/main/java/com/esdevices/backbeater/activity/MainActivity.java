@@ -51,6 +51,8 @@ import com.esdevices.backbeater.utils.UsbScanner;
 import com.flurry.android.FlurryAgent;
 
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -152,8 +154,6 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     
         drawerLayout.setScrimColor(getResources().getColor(R.color.main_color_transparent));
         tempoDisplay.setParent(this);
-        tempoDisplay.setGaugeView(gaugeView);
-        tempoDisplay.setTargetLabel(targetLabel);
         
         handler = new Handler(getMainLooper()){
             @Override
@@ -462,18 +462,20 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         setTempo(newValue, tempoSlideButton.isSelected());
 
 //        gaugeView.setTargetNumber(newValue);
-        MainActivity.this.setSensitivity(newValue);
+
 //        tempoDisplay.setMetronomeOn(Constants.Sound.fromIndex(sound), newValue);
 
-//        if (tempoSlideButton.isSelected()) {
-//
-//        }
+        if (tempoSlideButton.isSelected()) {
+            MainActivity.this.setSensitivity(newValue);
+        }
         FlurryAgent.logEvent(Constants.FLURRY_METRONOME_TEMPO_VALUE_CHANGED, Constants.buildFlurryParams("value", ""+newValue));
     
     }
     
     @Override public void onSensitivityValueChanged(int newValue) {
-        setSensitivity(newValue);
+        if (tempoSlideButton.isSelected()) {
+            MainActivity.this.setSensitivity(newValue);
+        }
         FlurryAgent.logEvent(Constants.FLURRY_SENSITIVITY_VALUE_CHANGED, Constants.buildFlurryParams("value", ""+newValue));
     }
     
@@ -534,7 +536,55 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         }
         Preferences.putSensitivity(sensitivity);
     }
-    
+
+    public void setSpeed(int speed) {
+        if (gaugeView != null)
+            gaugeView.setSpeed(speed + 4);
+    }
+
+    TimerTask timerTask = null;
+    Timer targetTimer = null;
+    int sensorTapCount = 0;
+    public void setTargetLabel(double bpm) {
+        if (targetLabel != null) {
+            if (targetLabel.getVisibility() == View.VISIBLE) {
+                if (bpm > 13.0) {
+                    if (sensorTapCount < 5) {
+                        sensorTapCount += 1;
+                        return;
+                    }
+                    targetLabel.setAlpha(1);
+                    if (targetTimer != null) {
+                        targetTimer.cancel();
+                        targetTimer = null;
+                    }
+
+                    if (timerTask != null) {
+                        timerTask.cancel();
+                        timerTask = null;
+                    }
+                    timerTask = new TimerTask() {
+                        @Override
+                        public void run() {
+                            targetLabel.setAlpha(0);
+                            targetTimer.cancel();
+                            targetTimer = null;
+                        }
+                    };
+
+                    targetTimer = new Timer();
+                    targetTimer.schedule(timerTask, 5000);
+
+                } else {
+                    targetLabel.setAlpha(0);
+                }
+            }
+            else {
+                sensorTapCount = 0;
+            }
+        }
+    }
+
     @OnClick({R.id.window2, R.id.window3, R.id.window4, R.id.window5,
         R.id.beat1, R.id.beat2, R.id.beat3, R.id.beat4,
         R.id.soundDrum, R.id.soundSticks, R.id.soundMetronom, R.id.soundSurprise,

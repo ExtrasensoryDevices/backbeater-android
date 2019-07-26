@@ -12,13 +12,11 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.text.TextPaint;
 import android.util.AttributeSet;
-import android.util.DisplayMetrics;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.support.v7.widget.AppCompatTextView;
 import android.view.ViewConfiguration;
-import android.widget.TextView;
 
 import com.esdevices.backbeater.R;
 
@@ -29,8 +27,6 @@ import com.esdevices.backbeater.utils.Constants;
 import com.esdevices.backbeater.utils.Constants.Sound;
 import com.esdevices.backbeater.utils.Preferences;
 
-import java.util.Timer;
-import java.util.TimerTask;
 
 /**
  * Created by aeboyd on 7/15/15.
@@ -69,9 +65,6 @@ public class TempoDisplay extends AppCompatTextView {
     private WindowQueue windowQueue;
 
     public boolean handleTap = true;
-
-    public SmGaugeView gaugeView;
-    public TextView targetLabel;
 
     public MainActivity mainActivity;
 
@@ -115,14 +108,6 @@ public class TempoDisplay extends AppCompatTextView {
     //================================================================================
     //  Window queue settings
     //================================================================================
-
-    public void setGaugeView(SmGaugeView view) {
-        this.gaugeView = view;
-    }
-
-    public void setTargetLabel(TextView view) {
-        this.targetLabel = view;
-    }
 
     public void setParent(MainActivity activity) {
         this.mainActivity = activity;
@@ -369,8 +354,6 @@ public class TempoDisplay extends AppCompatTextView {
     private boolean hit = false;
     private double offDegree = 0;
     private boolean isIdle = true;
-    private TimerTask timerTask = null;
-    private Timer targetTimer = null;
 
     private double getOneLapTime(){ // time to run one whole circle
         double _CPT = isMetronomeOn() ? (double)metronomeTempo : (double) this.CPT /(double)beat;
@@ -390,7 +373,7 @@ public class TempoDisplay extends AppCompatTextView {
 
         long timeSinceLastBeat = beatTime - lastBeatTime;
 
-        if (timeSinceLastBeat == 0) {
+        if (timeSinceLastBeat < 20) {
             return;
         }
 
@@ -405,43 +388,16 @@ public class TempoDisplay extends AppCompatTextView {
         CPT = windowQueue.enqueue(instantTempo).average();
         lastBeatTime = beatTime;
 
-        if (targetLabel != null) {
-            if (bpm > 13.0) {
-                targetLabel.setAlpha(1);
-                if (targetTimer != null) {
-                    targetTimer.cancel();
-                    targetTimer = null;
-                }
-
-                if (timerTask != null) {
-                    timerTask.cancel();
-                    timerTask = null;
-                }
-                timerTask = new TimerTask() {
-                    @Override
-                    public void run() {
-                        targetLabel.setAlpha(0);
-                        targetTimer.cancel();
-                        targetTimer = null;
-                    }
-                };
-
-                targetTimer = new Timer();
-                targetTimer.schedule(timerTask, 5000);
-
-            } else {
-                targetLabel.setAlpha(0);
-            }
-        }
+        mainActivity.setTargetLabel(bpm);
 
         offDegree = 0;
         if (this.CPT > 0) {
             int vCPT = Math.min(Constants.MAX_TEMPO, (Math.max(Constants.MIN_TEMPO, this.CPT)));
-            int pos = vCPT - metronomeTempo;
+            int pos = this.CPT - metronomeTempo;
             if (pos > 4)        pos = 4;
             else if (pos < -4)  pos = -4;
-            if (gaugeView != null)
-                gaugeView.setSpeed(pos + 4);
+
+            mainActivity.setSpeed(pos);
 
             if (pos == 0) {
                 //self.screenFlash()
@@ -451,15 +407,15 @@ public class TempoDisplay extends AppCompatTextView {
                                 .ofPropertyValuesHolder(drumFlash,
                                         PropertyValuesHolder.ofInt("alpha", 0, 180));
                         animator.setTarget(drumFlash);
-                        animator.setDuration(250);
+                        animator.setDuration(200);
                         animator.start();
 
                         ObjectAnimator animator1 = ObjectAnimator
                                 .ofPropertyValuesHolder(drumFlash,
                                         PropertyValuesHolder.ofInt("alpha", 180, 0));
                         animator1.setTarget(drumFlash);
-                        animator1.setStartDelay(250);
-                        animator1.setDuration(250);
+                        animator1.setStartDelay(200);
+                        animator1.setDuration(150);
                         animator1.start();
                     }
                 }
@@ -468,15 +424,15 @@ public class TempoDisplay extends AppCompatTextView {
                             .ofPropertyValuesHolder(drumFlash,
                                     PropertyValuesHolder.ofInt("alpha", 0, 180));
                     animator.setTarget(drumFlash);
-                    animator.setDuration(250);
+                    animator.setDuration(200);
                     animator.start();
 
                     ObjectAnimator animator1 = ObjectAnimator
                             .ofPropertyValuesHolder(drumFlash,
                                     PropertyValuesHolder.ofInt("alpha", 180, 0));
                     animator1.setTarget(drumFlash);
-                    animator1.setStartDelay(250);
-                    animator1.setDuration(250);
+                    animator1.setStartDelay(200);
+                    animator1.setDuration(150);
                     animator1.start();
                 }
             }
@@ -534,11 +490,11 @@ public class TempoDisplay extends AppCompatTextView {
         if (metronomeTempo > 0) {
             rTempo = 60.f / metronomeTempo;
         }
-        metronome.setCurrentSound(sound);
-        metronome.play(rTempo);
-        setMetronomeTempo(metronomeTempo);
-        lastTimerBeatTime = System.currentTimeMillis();
-        invalidate();
+            metronome.setCurrentSound(sound);
+            metronome.play(rTempo);
+            setMetronomeTempo(metronomeTempo);
+            lastTimerBeatTime = System.currentTimeMillis();
+            invalidate();
     }
 
     public void setMetronomeOff() {
