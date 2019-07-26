@@ -80,6 +80,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     
     @Bind(R.id.tempoDisplay) TempoDisplay tempoDisplay;
     @Bind(R.id.sensitivitySlider) SensitivitySlider sensitivitySlider;
+    @Bind(R.id.sensitivityLabel) BBTextView sensitivityLabel;
     @Bind(R.id.window2) NumberButton window2Button;
     @Bind(R.id.window3) NumberButton window3Button;
     @Bind(R.id.window4) NumberButton window4Button;
@@ -186,6 +187,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         setBeat(Preferences.getBeat(beat), false);
         
         setSensitivity(Preferences.getSensitivity(sensitivity));
+        sensitivityLabel.setText("" + sensitivity);
         sensitivitySlider.setValue(sensitivity);
         sensitivitySlider.setValueChangeListener(this);
 
@@ -351,7 +353,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     
     public void setTempo(int tempo, boolean startMetronome) {
         tempo = Math.min(Constants.MAX_TEMPO, (Math.max(Constants.MIN_TEMPO, tempo)));
-        tempoSlideButton.setValue(tempo);
+//        tempoSlideButton.setValue(tempo);
         gaugeView.setTargetNumber(tempo);
         // update metronome if needed
         if (!tempoSlideButton.isSelected() && startMetronome) {
@@ -361,7 +363,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
             tempoDisplay.setMetronomeOn(Constants.Sound.fromIndex(sound),tempo);
         }
         else {
-            tempoDisplay.setMetronomeTempo(tempo);
+//            tempoDisplay.setMetronomeTempo(tempo);
         }
         if (currentSongIndex != -1 && songList.size() > 0) {
             Song song = songList.get(currentSongIndex);
@@ -375,11 +377,11 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
 
     public void setTargetTemp(int tempo) {
         tempo = Math.min(Constants.MAX_TEMPO, (Math.max(Constants.MIN_TEMPO, tempo)));
-        tempoSlideButton.setValue(tempo);
+//        tempoSlideButton.setValue(tempo);
         gaugeView.setTargetNumber(tempo);
         // update metronome if needed
 
-        tempoDisplay.setMetronomeTempo(tempo);
+//        tempoDisplay.setMetronomeTempo(tempo);
 
         if (currentSongIndex != -1 && songList.size() > 0) {
             Song song = songList.get(currentSongIndex);
@@ -423,7 +425,9 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     
     @OnClick(R.id.setTempoButton)
     public void onSetTempoButtonClick(View v) {
+        if (targetLabel.getVisibility() != View.VISIBLE || sensorTapCount == 5) {
         setTempo(tempoDisplay.getCPT(), true);
+    }
     }
     
     
@@ -473,6 +477,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     }
     
     @Override public void onSensitivityValueChanged(int newValue) {
+        sensitivityLabel.setText("" + newValue);
         if (tempoSlideButton.isSelected()) {
             MainActivity.this.setSensitivity(newValue);
         }
@@ -712,8 +717,24 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
                 showRequestPermissionRationale(R.string.dlg_mic_permission_msg_1);
                 return false;
             } else {
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle(R.string.dlg_mic_permission_ttl);
+                builder.setMessage(R.string.dlg_mic_permission_msg_3);
+                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.RECORD_AUDIO}, PERMISSIONS_REQUEST_RECORD_AUDIO);
+                    }
+                });
+                builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+                builder.show();
+
                 // No explanation needed, we can request the permission.
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, PERMISSIONS_REQUEST_RECORD_AUDIO);
                 return false;
             }
         }

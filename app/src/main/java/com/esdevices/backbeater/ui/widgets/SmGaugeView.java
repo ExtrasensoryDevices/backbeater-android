@@ -28,7 +28,7 @@ public class SmGaugeView extends View {
     private int minorTicks = DEFAULT_MINOR_TICKS;
     private int backWidth = 6;
     private int offsetY = 80;
-    private int majorTicksLength = 48;
+    private int majorTicksLength = 60;
 
     private int labelColor1 = 0xFFB51A00;
     private int labelColor2 = 0xFF4F7A28;
@@ -46,7 +46,7 @@ public class SmGaugeView extends View {
     private Paint colorLinePaint;
     private int labelTextSize;
 
-    String labelArray[] = {"slow", "-3", "-2", "-1", "", "+1", "+2", "+3", "fast"};
+    String labelArray[] = {"SLOW", "-3", "-2", "-1", "", "+1", "+2", "+3", "FAST"};
 
     private int targetNumber = 120;
     int outerCenterWidth = 28;//  36;
@@ -189,7 +189,7 @@ public class SmGaugeView extends View {
         }
 
         if (txtPaint0 != null) {
-            txtPaint0.setTextSize(labelTextSize + 8);
+            txtPaint0.setTextSize(labelTextSize + 4);
             invalidate();
         }
     }
@@ -264,7 +264,8 @@ public class SmGaugeView extends View {
 
     private void drawNeedle(Canvas canvas) {
         RectF oval = getOval(canvas, 1);
-        float radius = oval.width()*0.5f - majorTicksLength - backWidth - 28-backWidth*2;
+        float radius = oval.width()*0.5f - majorTicksLength - backWidth - 28-backWidth*2 - 40;
+        if (radius <= 0) { radius = 10; }
         RectF outerOval = new RectF(oval.centerX() - outerCenterWidth, oval.centerY() - outerCenterWidth,
                 oval.centerX() + outerCenterWidth, oval.centerY() + outerCenterWidth);
         RectF innerOval = new RectF(oval.centerX() - innerCenterWidth, oval.centerY() - innerCenterWidth,
@@ -305,23 +306,26 @@ public class SmGaugeView extends View {
                     ticksPaint
             );
 
-            canvas.save();
-            canvas.rotate(180 + currentAngle, oval.centerX(), oval.centerY());
-            float txtX = oval.centerX() + radius1 - majorTicksLength * 2/ 3;
-            float txtY = oval.centerY();
-            canvas.rotate(180 - currentAngle, txtX, txtY);
-            if (iStep < 4) {
-                canvas.drawText(labelArray[iStep], txtX, txtY, txtPaint1);
-            }
-            else if (iStep > 4) {
-                canvas.drawText(labelArray[iStep], txtX, txtY, txtPaint2);
-            }
-            else {
-                canvas.drawText("" + targetNumber, txtX, txtY, txtPaint0);
-            }
+            if (iStep == 0 || iStep == majorTickStep) {
+                canvas.save();
+                canvas.rotate(180 + currentAngle, oval.centerX(), oval.centerY());
+                float txtX = oval.centerX() + radius1 - majorTicksLength * 2 / 3;
+                float txtY = oval.centerY();
+                canvas.rotate(180 - currentAngle, txtX, txtY);
+                canvas.drawText(labelArray[iStep], txtX, txtY + 8, txtPaint0);
+//            if (iStep < 4) {
+//                canvas.drawText(labelArray[iStep], txtX, txtY, txtPaint1);
+//            }
+//            else if (iStep > 4) {
+//                canvas.drawText(labelArray[iStep], txtX, txtY, txtPaint2);
+//            }
+//            else {
+//                canvas.drawText("" + targetNumber, txtX, txtY, txtPaint0);
+//            }
 
-            canvas.restore();
 
+                canvas.restore();
+            }
             currentAngle += majorStep;
         }
     }
@@ -374,7 +378,7 @@ public class SmGaugeView extends View {
 
         txtPaint0 = new Paint(Paint.ANTI_ALIAS_FLAG);
         txtPaint0.setColor(Color.WHITE);
-        txtPaint0.setTextSize(labelTextSize + 8);
+        txtPaint0.setTextSize(labelTextSize + 4);
         txtPaint0.setTextAlign(Paint.Align.CENTER);
         txtPaint0.setLinearText(true);
 

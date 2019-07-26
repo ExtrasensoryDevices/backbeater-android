@@ -27,6 +27,7 @@ public class SensitivitySlider extends View {
     
     
     private TextPaint mTextPaint;
+    private Paint mDrawPaint;
     private Drawable low;
     private Drawable high;
     private float level = 1.0f;
@@ -59,8 +60,12 @@ public class SensitivitySlider extends View {
         mTextPaint = new TextPaint();
         mTextPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
         mTextPaint.setTextAlign(Paint.Align.LEFT);
-    
-    
+
+        mDrawPaint = new Paint();
+        mDrawPaint.setColor(Color.BLACK);
+        mDrawPaint.setStyle(Paint.Style.STROKE);
+        mDrawPaint.setStrokeWidth(getResources().getDimension(R.dimen.sensitivity_stroke));
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             low = getResources().getDrawable(R.drawable.sensitivity_low, context.getTheme());
             high = getResources().getDrawable(R.drawable.sensitivity_high, context.getTheme());
@@ -115,13 +120,13 @@ public class SensitivitySlider extends View {
             low.setBounds(paddingLeft, paddingTop, contentHeight + paddingLeft, contentHeight+paddingTop);
             high.setBounds(width - paddingLeft-paddingRight-contentHeight, paddingTop, width-paddingRight, contentHeight+paddingTop);
             circleRadius = (int) (contentHeight/3.5);
-            mTextPaint.setTextSize((int)(circleRadius));
-            mTextPaint.getTextBounds("100",0,2,textBounds);
+            //mTextPaint.setTextSize((int)(circleRadius));
+            //mTextPaint.getTextBounds("100",0,2,textBounds);
         }
         int cY = low.getBounds().centerY();
-        mTextPaint.setColor(Color.BLACK);
-        mTextPaint.setStyle(Paint.Style.STROKE);
-        canvas.drawLine(low.getBounds().right, cY, high.getBounds().left, cY, mTextPaint);
+//        mTextPaint.setColor(Color.BLACK);
+//        mTextPaint.setStyle(Paint.Style.STROKE);
+        canvas.drawLine(low.getBounds().right, cY, high.getBounds().left, cY, mDrawPaint);
         low.draw(canvas);
         high.draw(canvas);
         mTextPaint.setColor(PINK_COLOR);
@@ -132,12 +137,12 @@ public class SensitivitySlider extends View {
         canvas.drawCircle(cX,low.getBounds().centerY(),circleRadius,mTextPaint);
         mTextPaint.setColor(-1);
         mTextPaint.setStrokeWidth(mTextPaint.getStrokeWidth() / 2);
-        mTextPaint.setStyle(Paint.Style.STROKE);
+        //mTextPaint.setStyle(Paint.Style.FILL_AND_STROKE);
         canvas.drawCircle(cX, cY, circleRadius, mTextPaint);
 
-        mTextPaint.setStrokeWidth(mTextPaint.getStrokeWidth() * 2);
-        mTextPaint.setStyle(Paint.Style.FILL);
-        canvas.drawText(""+getValue(),cX,cY-textBounds.exactCenterY(),mTextPaint);
+//        mTextPaint.setStrokeWidth(mTextPaint.getStrokeWidth() * 2);
+//        mTextPaint.setStyle(Paint.Style.FILL);
+//        canvas.drawText(""+getValue(),cX,cY-textBounds.exactCenterY(),mTextPaint);
     }
 
     @Override

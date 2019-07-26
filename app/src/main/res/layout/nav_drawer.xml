@@ -28,6 +28,17 @@
         android:textAllCaps="true"
         android:textColor="#fff" />
 
+    <com.esdevices.backbeater.ui.widgets.BBTextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="50"
+        android:id="@+id/sensitivityLabel"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="4px"
+        android:textAllCaps="true"
+        android:textSize="24sp"
+        android:textColor="#fff" />
+
     <com.esdevices.backbeater.ui.widgets.SensitivitySlider
         android:id="@+id/sensitivitySlider"
         android:layout_width="match_parent"

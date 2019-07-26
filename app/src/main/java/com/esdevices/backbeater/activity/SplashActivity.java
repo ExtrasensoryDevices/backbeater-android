@@ -16,10 +16,10 @@ public class SplashActivity extends Activity {
     
     
         // testing
-        //Intent i = new Intent(SplashActivity.this, CalibrationActivity.class);
-        //startActivity(i);
-        //finish();
-        //if (true) {return;}
+//        Intent i = new Intent(SplashActivity.this, CalibrationActivity.class);
+//        startActivity(i);
+//        finish();
+//        if (true) {return;}
 
         new Handler().postDelayed(new Runnable(){
             @Override
