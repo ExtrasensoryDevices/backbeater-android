@@ -222,7 +222,7 @@ public class TempoDisplay extends AppCompatTextView {
             canvas.drawCircle(cX, cY, radius, paint);
             paint.setColor(accentColor);
             */
-            // select drim animation frame
+            // select drum animation frame
             int drumAnimationFrameIndex = (int) (timeSinceLastBeat / DRUM_ANIMATION_DURATION * DRUM_ANIMATION_FRAMES);
             if(!leftStrike) {
                 // right strike -> offset=DRUM_ANIMATION_FRAMES
@@ -407,14 +407,14 @@ public class TempoDisplay extends AppCompatTextView {
                                 .ofPropertyValuesHolder(drumFlash,
                                         PropertyValuesHolder.ofInt("alpha", 0, 180));
                         animator.setTarget(drumFlash);
-                        animator.setDuration(200);
+                        animator.setDuration(150);
                         animator.start();
 
                         ObjectAnimator animator1 = ObjectAnimator
                                 .ofPropertyValuesHolder(drumFlash,
                                         PropertyValuesHolder.ofInt("alpha", 180, 0));
                         animator1.setTarget(drumFlash);
-                        animator1.setStartDelay(200);
+                        animator1.setStartDelay(150);
                         animator1.setDuration(150);
                         animator1.start();
                     }
@@ -424,14 +424,14 @@ public class TempoDisplay extends AppCompatTextView {
                             .ofPropertyValuesHolder(drumFlash,
                                     PropertyValuesHolder.ofInt("alpha", 0, 180));
                     animator.setTarget(drumFlash);
-                    animator.setDuration(200);
+                    animator.setDuration(150);
                     animator.start();
 
                     ObjectAnimator animator1 = ObjectAnimator
                             .ofPropertyValuesHolder(drumFlash,
                                     PropertyValuesHolder.ofInt("alpha", 180, 0));
                     animator1.setTarget(drumFlash);
-                    animator1.setStartDelay(200);
+                    animator1.setStartDelay(150);
                     animator1.setDuration(150);
                     animator1.start();
                 }

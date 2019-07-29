@@ -67,7 +67,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     private int sound = 1;
     private int window = 5;
     private int beat = 1;
-    private int sensitivity = 100;
+    private int sensitivity = 50;
     
     private List<Song> songList;
     private int currentSongIndex = -1;
@@ -361,6 +361,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         }
         if (tempoSlideButton.isSelected()) {
             tempoDisplay.setMetronomeOn(Constants.Sound.fromIndex(sound),tempo);
+            tempoSlideButton.setValue(tempo);
         }
         else {
 //            tempoDisplay.setMetronomeTempo(tempo);
@@ -383,14 +384,14 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
 
 //        tempoDisplay.setMetronomeTempo(tempo);
 
-        if (currentSongIndex != -1 && songList.size() > 0) {
-            Song song = songList.get(currentSongIndex);
-            if (song.tempo != tempo) {
-                song.tempo = tempo;
-                songList.set(currentSongIndex, song);
-                Preferences.putSongList(songList);
-            }
-        }
+//        if (currentSongIndex != -1 && songList.size() > 0) {
+//            Song song = songList.get(currentSongIndex);
+//            if (song.tempo != tempo) {
+//                song.tempo = tempo;
+//                songList.set(currentSongIndex, song);
+//                Preferences.putSongList(songList);
+//            }
+//        }
     }
     
     @Override
@@ -425,9 +426,9 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     
     @OnClick(R.id.setTempoButton)
     public void onSetTempoButtonClick(View v) {
-        if (targetLabel.getVisibility() != View.VISIBLE || sensorTapCount == 5) {
-        setTempo(tempoDisplay.getCPT(), true);
-    }
+        if (targetLabel.getVisibility() != View.VISIBLE || (targetLabel.getAlpha() != 0 && sensorTapCount == 5)) {
+            setTempo(tempoDisplay.getCPT(), true);
+        }
     }
     
     

@@ -24,6 +24,7 @@ public class MetronomePlayer {
     private static final int COUNT = 4;
 
     Timer soundTimer = null;
+    float duration = 0;
 
     public MetronomePlayer(){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
@@ -49,11 +50,18 @@ public class MetronomePlayer {
         this.currentSound = sound;
     }
 
+    long lastPlayTime = 0;
     public void play(float duration) {
+        int delay = 10;
         if (soundTimer != null) {
             soundTimer.cancel();
             soundTimer = null;
+
+            if (lastPlayTime != 0) {
+                delay = (int)(this.duration * 1000) - (int)(System.currentTimeMillis() - lastPlayTime);
+            }
         }
+        this.duration = duration;
         soundTimer = new Timer();
         soundTimer.scheduleAtFixedRate( new TimerTask() {
             @Override
@@ -61,10 +69,11 @@ public class MetronomePlayer {
                 new Thread(new Runnable() {
                     @Override public void run() {
                         soundPool.play(soundIds[currentSound.index],1,1,1,0,1f);
+                        lastPlayTime = System.currentTimeMillis();
                     }
                 }).start();
             }
-        }, 50, (int)(duration*1000) );
+        }, delay, (int)(this.duration*1000) );
 /*
         new Thread(new Runnable() {
             @Override public void run() {

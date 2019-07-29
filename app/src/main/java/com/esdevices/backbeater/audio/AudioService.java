@@ -24,6 +24,7 @@ public class AudioService {
     private double startThreshold;
     private double endThreshold;
     private int sensitivity = 0;
+    private int saveSensitivity = 0;
 
     private long lastTime = 0;
     private final int KnockTime = 10;
@@ -90,8 +91,10 @@ public class AudioService {
     }
     
     public void setSensitivity(int sensitivity) {
+        this.saveSensitivity = sensitivity;
         this.sensitivity = sensitivity;
-        updateThreshold();
+        if (sensorStartTime == 0)
+            updateThreshold();
     }
     
     public void startMe() {
@@ -118,12 +121,17 @@ public class AudioService {
     
     short lastPositiveDS = 0; // data sample, only consider positive part of the sound wave
     private boolean inBeat = false;
-    
+
+    private long sensorStartTime = 0;
+    private int beatCount = 0;
+    private final long MaxTestTime = 4000;
+    private final int MicThreshold = 150;
+
     // stats
-    //short min=Short.MAX_VALUE, max=Short.MIN_VALUE;
-    //double min_e=Double.MAX_VALUE, max_e=Double.MIN_VALUE;
-    //short started_DS = 0, ended_DS = 0;
-    //double started_e = 0, ended_e = 0;
+    short min=Short.MAX_VALUE, max=Short.MIN_VALUE;
+    double min_e=Double.MAX_VALUE, max_e=Double.MIN_VALUE;
+    short started_DS = 0, ended_DS = 0;
+    double started_e = 0, ended_e = 0;
     
     private void processDataInput(short[] buffer, int dataLength) {
         for (int i = 0; i < dataLength; i++) {
@@ -134,8 +142,8 @@ public class AudioService {
 //                return;
 //            }
             // stats
-            //if (currentDS < min) { min = currentDS; }
-            //if (currentDS > max) { max = currentDS; }
+            if (currentDS < min) { min = currentDS; }
+            if (currentDS > max) { max = currentDS; }
             
             if (currentDS > lastPositiveDS) {
                 // step 1: get positive data sample
@@ -146,17 +154,17 @@ public class AudioService {
     
                 // energyLevel = average of the last 4 positive samples
                 double energyLevel = energyFunction.push(lastPositiveDS);
-    
+
                 // stats
-                //if (energyLevel < min_e) min_e = energyLevel;
-                //if (energyLevel > max_e) max_e = energyLevel;
+                if (energyLevel < min_e) min_e = energyLevel;
+                if (energyLevel > max_e) max_e = energyLevel;
     
                 if (energyLevel > startThreshold & !inBeat) {
                     // beat started
                     inBeat = true;
     
                     // stats
-                    //started_DS = lastPositiveDS; started_e = energyLevel;
+                    started_DS = lastPositiveDS; started_e = energyLevel;
                     
                 } else if (energyLevel < endThreshold && inBeat) {
                     // beat ended
@@ -165,19 +173,38 @@ public class AudioService {
                     lastTime = System.currentTimeMillis();
 
                     // stats
-                    //ended_DS = lastPositiveDS; ended_e = energyLevel;
+                    ended_DS = lastPositiveDS; ended_e = energyLevel;
 
-                    //if (calibrationBeatListener != null) {
-                    //    calibrationBeatListener.onBeat(started_DS, started_e, ended_DS, ended_e);
-                    //    energyFunction.clear();
-                    //}
-                    //min=Short.MAX_VALUE; max=Short.MIN_VALUE;
-                    //min_e=Double.MAX_VALUE; max_e=Double.MIN_VALUE;
+                    if (calibrationBeatListener != null) {
+                        calibrationBeatListener.onBeat(started_DS, started_e, ended_DS, ended_e);
+                        energyFunction.clear();
+                    }
+                    min=Short.MAX_VALUE; max=Short.MIN_VALUE;
+                    min_e=Double.MAX_VALUE; max_e=Double.MIN_VALUE;
     
                     inBeat = false;
-    
-                    if (beatListener != null) {
-                        beatListener.onBeat(lastTime);
+
+                    if (sensorStartTime != 0) {
+                        beatCount++;
+                        if (lastTime - sensorStartTime > 500) {
+                            if (lastTime - sensorStartTime > MaxTestTime) {
+                                Log.e("BeatAudio", "### beatCount = " + beatCount);
+                                if (beatCount > MicThreshold) {
+                                    this.sensitivity = 0;
+                                    updateThreshold();
+                                }
+                                else {
+                                    this.sensitivity = saveSensitivity;
+                                    setSensitivity(saveSensitivity);
+                                }
+                                sensorStartTime = 0;
+                            }
+                        }
+                    }
+                    else {
+                        if (beatListener != null) {
+                            beatListener.onBeat(lastTime);
+                        }
                     }
                 }
                 lastPositiveDS = 0;
@@ -188,7 +215,11 @@ public class AudioService {
    
     
     private void subscribe() {
+        beatCount = 0;
+        saveSensitivity = sensitivity;
+        setSensitivity(100);
         lastTime = System.currentTimeMillis();
+        sensorStartTime = lastTime;
         new Thread(new Runnable() {
             @Override public void run() {
                 running = true;
@@ -212,7 +243,7 @@ public class AudioService {
                 audioRecord.release();
             }
     
-    }).start();
+        }).start();
     }
     
     /******************************************************

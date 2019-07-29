@@ -15,7 +15,7 @@
     <string name="dlg_mic_permission_ttl">Microphone permission required</string>
     <string name="dlg_mic_permission_msg_1">Allow Backbeater to access its sensor via the mic connector?</string>
     <string name="dlg_mic_permission_msg_2">Without permission to use your microphone sensor won\'t work.\nGo to your device Settings and then Privacy to grant permission.</string>
-    <string name="dlg_mic_permission_msg_3">Without permission to use your microphone sensor won\'t work.\nPlease allow Backbeater to access its sensor via the mic connector.</string>
+    <string name="dlg_mic_permission_msg_3">The sensor requires access to the microphone connector in order to work. Please allow mic access to continue.</string>
     
     <string name="OK">OK</string>
     <string name="cancel">Cancel</string>
