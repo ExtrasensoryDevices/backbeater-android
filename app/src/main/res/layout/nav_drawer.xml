@@ -24,7 +24,6 @@
         android:text="sensitivity level"
         android:id="@+id/textView2"
         android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="@dimen/padding_small"
         android:textAllCaps="true"
         android:textColor="#fff" />
 
@@ -34,9 +33,9 @@
         android:text="50"
         android:id="@+id/sensitivityLabel"
         android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="4px"
+        android:layout_marginBottom="-20px"
         android:textAllCaps="true"
-        android:textSize="24sp"
+        android:textSize="26sp"
         android:textColor="#fff" />
 
     <com.esdevices.backbeater.ui.widgets.SensitivitySlider

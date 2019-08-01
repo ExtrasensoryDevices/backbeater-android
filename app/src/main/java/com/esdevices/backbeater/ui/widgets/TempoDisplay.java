@@ -2,6 +2,9 @@ package com.esdevices.backbeater.ui.widgets;
 
 import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
+import android.animation.TypeEvaluator;
+import android.animation.ValueAnimator;
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Canvas;
@@ -12,6 +15,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.text.TextPaint;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -47,7 +51,7 @@ public class TempoDisplay extends AppCompatTextView {
     private Rect drumFlashBounds = new Rect();
 
     private static final float PCT_DRUM = .4f;
-    private static final float DRUM_ANIMATION_DURATION = 600f;
+    private static final int DRUM_ANIMATION_DURATION = 500;
     private final int DRUM_ANIMATION_FRAMES;
     private boolean leftStrike = false;
     private static final float DRUM_PULSE_ANIMATION_DURATION = DRUM_ANIMATION_DURATION/10f;
@@ -223,12 +227,12 @@ public class TempoDisplay extends AppCompatTextView {
             paint.setColor(accentColor);
             */
             // select drum animation frame
-            int drumAnimationFrameIndex = (int) (timeSinceLastBeat / DRUM_ANIMATION_DURATION * DRUM_ANIMATION_FRAMES);
-            if(!leftStrike) {
-                // right strike -> offset=DRUM_ANIMATION_FRAMES
-                drumAnimationFrameIndex = drumAnimationFrameIndex + DRUM_ANIMATION_FRAMES;
-            }
-            drum.selectDrawable(drumAnimationFrameIndex);
+//            int drumAnimationFrameIndex = (int) (timeSinceLastBeat / DRUM_ANIMATION_DURATION * DRUM_ANIMATION_FRAMES);
+//            if(!leftStrike) {
+//                // right strike -> offset=DRUM_ANIMATION_FRAMES
+//                drumAnimationFrameIndex = drumAnimationFrameIndex + DRUM_ANIMATION_FRAMES;
+//            }
+//            drum.selectDrawable(drumAnimationFrameIndex);
         }else {
             // missed the hit time
             /*
@@ -249,7 +253,7 @@ public class TempoDisplay extends AppCompatTextView {
                 paint.setAlpha(255);
             }
             */
-            drum.selectDrawable(leftStrike ? DRUM_ANIMATION_FRAMES-1 : 2*DRUM_ANIMATION_FRAMES-1);
+//            drum.selectDrawable(leftStrike ? DRUM_ANIMATION_FRAMES-1 : 2*DRUM_ANIMATION_FRAMES-1);
         }
 
         // drum pulse animation
@@ -443,9 +447,36 @@ public class TempoDisplay extends AppCompatTextView {
             if (hit && Constants.isValidTempo(CPT)) {
                 //Log.d("HIT", "--------- HIT ------------");
                 leftStrike = !leftStrike;
+
+                {
+                    ValueAnimator va = ValueAnimator.ofObject(new TypeEvaluator<Integer>() {
+                        @Override
+                        public Integer evaluate(float fraction, Integer startValue, Integer endValue) {
+                            return (int)(startValue + fraction * (endValue - startValue));
+                        }
+                    }, 0, DRUM_ANIMATION_FRAMES);
+
+                    va.setDuration(DRUM_ANIMATION_DURATION);
+                    va.setStartDelay(0);
+                    va.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                        public void onAnimationUpdate(ValueAnimator animation) {
+                            Integer value = (Integer) animation.getAnimatedValue();
+                            if (value != null) {
+                                int idx = 0;
+                                if(!leftStrike) {
+                                    idx += DRUM_ANIMATION_FRAMES;
+                                }
+                                drum.selectDrawable(value + idx);
+                                invalidate();
+                            }
+                        }
+                    });
+                    va.start();
+                }
+
             } else {
                 offDegree = (((double)timeSinceLastTimerBeat/oneLapTime) % 1) * 2*Math.PI + Math.PI;
-
+                drum.selectDrawable(leftStrike ? DRUM_ANIMATION_FRAMES-1 : 2*DRUM_ANIMATION_FRAMES-1);
             }
             if (!isMetronomeOn()) {
                 mainActivity.setTargetTemp(vCPT);

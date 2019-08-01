@@ -191,7 +191,10 @@ public class AudioService {
                                 Log.e("BeatAudio", "### beatCount = " + beatCount);
                                 if (beatCount > MicThreshold) {
                                     this.sensitivity = 0;
-                                    updateThreshold();
+
+                                    startThreshold = 8507.36;
+                                    endThreshold = 1.1 * startThreshold;
+
                                 }
                                 else {
                                     this.sensitivity = saveSensitivity;
@@ -217,7 +220,9 @@ public class AudioService {
     private void subscribe() {
         beatCount = 0;
         saveSensitivity = sensitivity;
-        setSensitivity(100);
+        sensitivity = 100;
+        updateThreshold();
+
         lastTime = System.currentTimeMillis();
         sensorStartTime = lastTime;
         new Thread(new Runnable() {

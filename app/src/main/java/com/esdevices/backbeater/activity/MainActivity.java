@@ -378,11 +378,11 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
 
     public void setTargetTemp(int tempo) {
         tempo = Math.min(Constants.MAX_TEMPO, (Math.max(Constants.MIN_TEMPO, tempo)));
-//        tempoSlideButton.setValue(tempo);
+        tempoSlideButton.setValue(tempo);
         gaugeView.setTargetNumber(tempo);
         // update metronome if needed
 
-//        tempoDisplay.setMetronomeTempo(tempo);
+        tempoDisplay.setMetronomeTempo(tempo);
 
 //        if (currentSongIndex != -1 && songList.size() > 0) {
 //            Song song = songList.get(currentSongIndex);
@@ -484,8 +484,10 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         }
         FlurryAgent.logEvent(Constants.FLURRY_SENSITIVITY_VALUE_CHANGED, Constants.buildFlurryParams("value", ""+newValue));
     }
-    
-    
+
+    @Override public void onSensitivityEditChanged(int newValue) {
+        sensitivityLabel.setText("" + newValue);
+    }
     
     
     //================================================================================
@@ -545,7 +547,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
 
     public void setSpeed(int speed) {
         if (gaugeView != null)
-            gaugeView.setSpeed(speed + 4);
+            gaugeView.setSpeed(speed + 4, 200, 0);
     }
 
     TimerTask timerTask = null;

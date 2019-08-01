@@ -264,7 +264,7 @@ public class SmGaugeView extends View {
 
     private void drawNeedle(Canvas canvas) {
         RectF oval = getOval(canvas, 1);
-        float radius = oval.width()*0.5f - majorTicksLength - backWidth - 28-backWidth*2 - 40;
+        float radius = oval.width()*0.5f - majorTicksLength - backWidth - 28-backWidth*2 - 16;
         if (radius <= 0) { radius = 10; }
         RectF outerOval = new RectF(oval.centerX() - outerCenterWidth, oval.centerY() - outerCenterWidth,
                 oval.centerX() + outerCenterWidth, oval.centerY() + outerCenterWidth);

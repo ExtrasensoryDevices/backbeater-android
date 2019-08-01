@@ -20,6 +20,7 @@ public class SensitivitySlider extends View {
     
     public interface ValueChangeListener {
         void onSensitivityValueChanged(int newValue);
+        void onSensitivityEditChanged(int newValue);
     }
     
     
@@ -158,6 +159,9 @@ public class SensitivitySlider extends View {
                 level = (event.getX()-left)/(right-left);
                 level = Math.min(level, 1f);
                 level = Math.max(level,0f);
+                if (valueChangeListener != null){
+                    valueChangeListener.onSensitivityEditChanged(getValue());
+                }
                 invalidate();
                 break;
             case MotionEvent.ACTION_UP:
