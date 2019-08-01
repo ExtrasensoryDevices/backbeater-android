@@ -353,7 +353,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     
     public void setTempo(int tempo, boolean startMetronome) {
         tempo = Math.min(Constants.MAX_TEMPO, (Math.max(Constants.MIN_TEMPO, tempo)));
-//        tempoSlideButton.setValue(tempo);
+        tempoSlideButton.setValue(tempo);
         gaugeView.setTargetNumber(tempo);
         // update metronome if needed
         if (!tempoSlideButton.isSelected() && startMetronome) {
@@ -364,7 +364,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
             tempoSlideButton.setValue(tempo);
         }
         else {
-//            tempoDisplay.setMetronomeTempo(tempo);
+            tempoDisplay.setMetronomeTempo(tempo);
         }
         if (currentSongIndex != -1 && songList.size() > 0) {
             Song song = songList.get(currentSongIndex);
@@ -378,7 +378,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
 
     public void setTargetTemp(int tempo) {
         tempo = Math.min(Constants.MAX_TEMPO, (Math.max(Constants.MIN_TEMPO, tempo)));
-        tempoSlideButton.setValue(tempo);
+//        tempoSlideButton.setValue(tempo);
         gaugeView.setTargetNumber(tempo);
         // update metronome if needed
 
