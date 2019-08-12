@@ -2,8 +2,6 @@ package com.esdevices.backbeater.ui.widgets;
 
 import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
-import android.animation.TypeEvaluator;
-import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Canvas;
@@ -14,6 +12,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.text.TextPaint;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -37,7 +36,7 @@ public class TempoDisplay extends AppCompatTextView {
 
     public static final long MS_IN_MIN = 60000;
     public static final int WHITE_COLOR = -1;
-//    private final int accentColor;
+    private final int accentColor;
     private final AnimationDrawable drum;
     private final Drawable drumFlash;
     private final TextPaint paint;
@@ -49,7 +48,7 @@ public class TempoDisplay extends AppCompatTextView {
     private Rect drumFlashBounds = new Rect();
 
     private static final float PCT_DRUM = .4f;
-    private static final int DRUM_ANIMATION_DURATION = 500;
+    private static final float DRUM_ANIMATION_DURATION = 300f;
     private final int DRUM_ANIMATION_FRAMES;
     private boolean leftStrike = false;
     private static final float DRUM_PULSE_ANIMATION_DURATION = DRUM_ANIMATION_DURATION/10f;
@@ -86,7 +85,7 @@ public class TempoDisplay extends AppCompatTextView {
         CPT = Preferences.getCPT(CPT);
         windowQueue = new WindowQueue(window);
 
-//        accentColor = getResources().getColor(R.color.assent_color);
+        accentColor = getResources().getColor(R.color.assent_color);
 
         drum = (AnimationDrawable)getResources().getDrawable(R.drawable.drum_hit_animation);
         int totalFrames = drum.getNumberOfFrames();
@@ -202,15 +201,114 @@ public class TempoDisplay extends AppCompatTextView {
         }
         long now = System.currentTimeMillis();
         long timeSinceLastBeat = now - lastBeatTime;
+        long timeSinceLastTimerBeat = now - lastTimerBeatTime;
 
         float density = getResources().getDisplayMetrics().density;
 
         int navbar = (int)(getNavigationBarHeight(getContext(), false) / density + 0.5f);
         int cY = drumBounds.height()/2+getPaddingTop() + contentHeight * 3/4;// width/2;//+radius + navbar/2;
 
+        // beat - beat registered
+        // hit - beat in time according to CPT
+        boolean beat = Constants.isValidTempo(CPT) && timeSinceLastBeat < DRUM_ANIMATION_DURATION;
+
+        // draw big circle
+        if (beat){
+            // hit in right time
+            /*
+            // draw big circle (flash white)
+            float halfDrumAnimation = DRUM_ANIMATION_DURATION / 2f;
+            paint.setColor(NumberButton.mixTwoColors(accentColor, WHITE_COLOR,
+                Math.abs((timeSinceLastBeat-halfDrumAnimation)/halfDrumAnimation)));
+            canvas.drawCircle(cX, cY, radius, paint);
+            paint.setColor(accentColor);
+            */
+            // select drim animation frame
+            int drumAnimationFrameIndex = (int) (timeSinceLastBeat / DRUM_ANIMATION_DURATION * DRUM_ANIMATION_FRAMES);
+            if(!leftStrike) {
+                // right strike -> offset=DRUM_ANIMATION_FRAMES
+                drumAnimationFrameIndex = drumAnimationFrameIndex + DRUM_ANIMATION_FRAMES;
+            }
+            drum.selectDrawable(drumAnimationFrameIndex);
+        }else {
+            // missed the hit time
+            /*
+            // draw big circle with accent color
+            paint.setColor(accentColor);
+            canvas.drawCircle(cX, cY, radius, paint);
+
+            // draw fading white circle
+            if (beat && offDegree > 0) {
+                paint.setColor(NumberButton.mixTwoColors(accentColor, WHITE_COLOR, timeSinceLastBeat / DRUM_ANIMATION_DURATION));
+                paint.setAlpha((int) (255 - (timeSinceLastBeat / DRUM_ANIMATION_DURATION) * 255));
+                int ocX = (int) (radius * Math.sin(offDegree) + cX);
+                int ocY = (int) (radius * Math.cos(offDegree) + cY);
+                paint.setStyle(Paint.Style.FILL);
+                canvas.drawCircle(ocX, ocY, 3 * paint.getStrokeWidth(), paint);
+                // reset paint color
+                paint.setColor(accentColor);
+                paint.setAlpha(255);
+            }
+            */
+            drum.selectDrawable(leftStrike ? DRUM_ANIMATION_FRAMES-1 : 2*DRUM_ANIMATION_FRAMES-1);
+        }
+
+        // drum pulse animation
+        if (!beat && timeSinceLastBeat < DRUM_PULSE_ANIMATION_DURATION) {
+
+            float halfDrumPulseAnimation = DRUM_PULSE_ANIMATION_DURATION / 2f;
+            float timeElapsed = (float) timeSinceLastBeat - halfDrumPulseAnimation;
+            float coefficient = 0;
+            if (timeElapsed <= halfDrumPulseAnimation) {
+                 // increase 0 -> 1
+                coefficient = timeElapsed / halfDrumPulseAnimation;
+            } else {
+                // decrease 1 -> 0
+                coefficient = timeElapsed / halfDrumPulseAnimation - 1f;
+            }
+
+            int deltaY = (int) (coefficient * DRUM_PULSE_DELTA_Y);
+            int deltaX = (int) ((float)deltaY*(float)drumBounds.width() / (float)drumBounds.height());
+
+            drumPulseBounds.set(drumBounds.left+deltaX, drumBounds.top+deltaY, drumBounds.right-deltaX, drumBounds.bottom-deltaY);
+            drum.setBounds(drumPulseBounds);
+
+            drumFlashBounds.set(drumBounds.centerX()-drumBounds.height()/2, drumBounds.top, drumBounds.centerX()+drumBounds.height()/2, drumBounds.bottom);
+            drumFlash.setBounds(drumFlashBounds);
+        } else {
+            drum.setBounds(drumBounds);
+
+            drumFlashBounds.set(drumBounds.centerX()-drumBounds.height()/2, drumBounds.top, drumBounds.centerX()+drumBounds.height()/2, drumBounds.bottom);
+            drumFlash.setBounds(drumFlashBounds);
+        }
+
         boolean oldIsIdle = isIdle;
         isIdle = Constants.IDLE_TIMEOUT_IN_MS - timeSinceLastBeat < 200;
 
+        int _CPT = metronomeIsOn ? metronomeTempo : CPT;
+        boolean _cptIsValid = Constants.isValidTempo(_CPT);
+
+        //paint the red circle that goes on the ring
+        /*
+        paint.setStyle(Paint.Style.FILL);
+        if (_cptIsValid && (!isIdle || metronomeIsOn) ) {
+
+            double oneLapTime = getOneLapTime();
+            double degree = (((double)timeSinceLastTimerBeat/oneLapTime) % 1) * 2*Math.PI + Math.PI;
+
+            int ocX = (int) (radius * Math.sin(degree) + cX);
+            int ocY = (int) (radius * Math.cos(degree) + cY);
+            canvas.drawCircle(ocX, ocY, 3 * paint.getStrokeWidth(), paint);
+
+
+            if ((oneLapTime-timeSinceLastTimerBeat <= 5) || (timeSinceLastTimerBeat >= oneLapTime)) {
+                lastTimerBeatTime = now;
+                if (metronomeIsOn) {
+                    metronome.play();
+                }
+            }
+        }
+        */
         // draw drum
         drum.draw(canvas);
         drumFlash.draw(canvas);
@@ -240,7 +338,8 @@ public class TempoDisplay extends AppCompatTextView {
     private void reset() {
         lastTimerBeatTime = 0;
         lastBeatTime=0;
-//        hit = false;
+        hit = false;
+        offDegree = 0;
         isIdle = true;
         windowQueue.clear();
     }
@@ -253,8 +352,8 @@ public class TempoDisplay extends AppCompatTextView {
 
     private long lastTimerBeatTime = 0;
     private long lastBeatTime=0;
-//    private boolean hit = false;
-//    private double offDegree = 0;
+    private boolean hit = false;
+    private double offDegree = 0;
     private boolean isIdle = true;
 
     private double getOneLapTime(){ // time to run one whole circle
@@ -292,6 +391,7 @@ public class TempoDisplay extends AppCompatTextView {
 
         mainActivity.setTargetLabel(bpm);
 
+        offDegree = 0;
         if (this.CPT > 0) {
             int vCPT = Math.min(Constants.MAX_TEMPO, (Math.max(Constants.MIN_TEMPO, this.CPT)));
             int pos = this.CPT - metronomeTempo;
@@ -301,156 +401,57 @@ public class TempoDisplay extends AppCompatTextView {
             mainActivity.setSpeed(pos);
 
             if (pos == 0) {
-                screenFlash();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    if (drumFlash.getAlpha() == 0) {
+                        ObjectAnimator animator = ObjectAnimator
+                                .ofPropertyValuesHolder(drumFlash,
+                                        PropertyValuesHolder.ofInt("alpha", 0, 180));
+                        animator.setTarget(drumFlash);
+                        animator.setDuration(200);
+                        animator.start();
+
+                        ObjectAnimator animator1 = ObjectAnimator
+                                .ofPropertyValuesHolder(drumFlash,
+                                        PropertyValuesHolder.ofInt("alpha", 180, 0));
+                        animator1.setTarget(drumFlash);
+                        animator1.setStartDelay(200);
+                        animator1.setDuration(150);
+                        animator1.start();
+                    }
+                }
+                else {
+                    ObjectAnimator animator = ObjectAnimator
+                            .ofPropertyValuesHolder(drumFlash,
+                                    PropertyValuesHolder.ofInt("alpha", 0, 180));
+                    animator.setTarget(drumFlash);
+                    animator.setDuration(200);
+                    animator.start();
+
+                    ObjectAnimator animator1 = ObjectAnimator
+                            .ofPropertyValuesHolder(drumFlash,
+                                    PropertyValuesHolder.ofInt("alpha", 180, 0));
+                    animator1.setTarget(drumFlash);
+                    animator1.setStartDelay(200);
+                    animator1.setDuration(150);
+                    animator1.start();
+                }
             }
 
             double oneLapTime = getOneLapTime();
             long timeSinceLastTimerBeat = beatTime - lastTimerBeatTime;
-            boolean hit = Math.abs(oneLapTime-timeSinceLastTimerBeat) > 150;
+            hit = Math.abs(oneLapTime-timeSinceLastTimerBeat) <= 200;
+            if (hit && Constants.isValidTempo(CPT)) {
+                //Log.d("HIT", "#### --------- HIT ------------");
+                leftStrike = !leftStrike;
+            } else {
+                offDegree = (((double)timeSinceLastTimerBeat/oneLapTime) % 1) * 2*Math.PI + Math.PI;
 
-            if (Constants.isValidTempo(CPT)) {
-                if (hit) {
-                    leftStrike = !leftStrike;
-                    strikeAnimation();
-                }
-            }
-            else {
-                if (hit) {
-                    pulseAnimation();
-                }
             }
             if (!isMetronomeOn()) {
                 mainActivity.setTargetTemp(vCPT);
             }
         }
         invalidate();
-    }
-
-    ValueAnimator strikeAnimator = null;
-    private void strikeAnimation() {
-        if (strikeAnimator != null) {
-            strikeAnimator.cancel();
-            strikeAnimator = null;
-        }
-        ValueAnimator va = ValueAnimator.ofObject(new TypeEvaluator<Integer>() {
-            @Override
-            public Integer evaluate(float fraction, Integer startValue, Integer endValue) {
-                return (int)(startValue + fraction * (endValue - startValue));
-            }
-        }, 0, DRUM_ANIMATION_FRAMES-1);
-
-        va.setDuration(DRUM_ANIMATION_DURATION);
-        va.setStartDelay(0);
-        va.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            public void onAnimationUpdate(ValueAnimator animation) {
-                Integer value = (Integer) animation.getAnimatedValue();
-                if (value != null) {
-                    int idx = 0;
-                    if(!leftStrike) {
-                        idx += DRUM_ANIMATION_FRAMES;
-                    }
-                    drum.selectDrawable(value + idx);
-                    invalidate();
-                }
-            }
-        });
-        va.start();
-        strikeAnimator = va;
-    }
-
-    ValueAnimator pulseAnimator = null;
-    private void pulseAnimation() {
-        if (pulseAnimator != null) {
-            pulseAnimator.cancel();
-            pulseAnimator = null;
-        }
-        drum.selectDrawable(leftStrike ? DRUM_ANIMATION_FRAMES-1 : 2*DRUM_ANIMATION_FRAMES-1);
-
-        ValueAnimator va = ValueAnimator.ofObject(new TypeEvaluator<Float>() {
-            @Override
-            public Float evaluate(float fraction, Float startValue, Float endValue) {
-                return (startValue + fraction * (endValue - startValue));
-            }
-        }, 0.0f, 0.4f);
-        va.setDuration(200);
-        va.setStartDelay(0);
-        va.setRepeatMode(ObjectAnimator.REVERSE);
-
-        va.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                Float value = (Float)animation.getAnimatedValue();
-                if (value != null) {
-
-                    int deltaY = (int) (value * DRUM_PULSE_DELTA_Y);
-                    int deltaX = (int) ((float)deltaY*(float)drumBounds.width() / (float)drumBounds.height());
-
-                    drumPulseBounds.set(drumBounds.left+deltaX, drumBounds.top+deltaY, drumBounds.right-deltaX, drumBounds.bottom-deltaY);
-                    drum.setBounds(drumPulseBounds);
-                    invalidate();
-                }
-            }
-        });
-
-        va.start();
-        pulseAnimator = va;
-
-//        float halfDrumPulseAnimation = DRUM_PULSE_ANIMATION_DURATION / 2f;
-//        float timeElapsed = (float) timeSinceLastBeat - halfDrumPulseAnimation;
-//        float coefficient = 0;
-//        if (timeElapsed <= halfDrumPulseAnimation) {
-//            // increase 0 -> 1
-//            coefficient = timeElapsed / halfDrumPulseAnimation;
-//        } else {
-//            // decrease 1 -> 0
-//            coefficient = timeElapsed / halfDrumPulseAnimation - 1f;
-//        }
-//
-//        int deltaY = (int) (coefficient * DRUM_PULSE_DELTA_Y);
-//        int deltaX = (int) ((float)deltaY*(float)drumBounds.width() / (float)drumBounds.height());
-
-//        drumPulseBounds.set(drumBounds.left+deltaX, drumBounds.top+deltaY, drumBounds.right-deltaX, drumBounds.bottom-deltaY);
-//        drum.setBounds(drumPulseBounds);
-
-
-    }
-
-    private void screenFlash() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            if (drumFlash.getAlpha() == 0) {
-                ObjectAnimator animator = ObjectAnimator
-                        .ofPropertyValuesHolder(drumFlash,
-                                PropertyValuesHolder.ofInt("alpha", 0, 180));
-                animator.setTarget(drumFlash);
-                animator.setDuration(100);
-                animator.setRepeatMode(ObjectAnimator.REVERSE);
-                animator.start();
-
-                ObjectAnimator animator1 = ObjectAnimator
-                        .ofPropertyValuesHolder(drumFlash,
-                                PropertyValuesHolder.ofInt("alpha", 180, 0));
-                animator1.setTarget(drumFlash);
-                animator1.setStartDelay(100);
-                animator1.setDuration(100);
-                animator1.start();
-            }
-        }
-        else {
-            ObjectAnimator animator = ObjectAnimator
-                    .ofPropertyValuesHolder(drumFlash,
-                            PropertyValuesHolder.ofInt("alpha", 0, 180));
-            animator.setTarget(drumFlash);
-            animator.setDuration(100);
-            animator.start();
-
-            ObjectAnimator animator1 = ObjectAnimator
-                    .ofPropertyValuesHolder(drumFlash,
-                            PropertyValuesHolder.ofInt("alpha", 180, 0));
-            animator1.setTarget(drumFlash);
-            animator1.setStartDelay(100);
-            animator1.setDuration(100);
-            animator1.start();
-        }
     }
 
     //================================================================================
