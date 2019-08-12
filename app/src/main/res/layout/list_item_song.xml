@@ -42,7 +42,7 @@
         android:layout_height="@dimen/button_medium"
         android:layout_marginRight="@dimen/padding_small"
         android:gravity="center"
-        tools:text="120"
+        tools:text="80"
         android:textColor="#fff"
         android:textSize="13dp"
         app:bbTypeface="FUTURA_ROUND_BOOK"

@@ -422,7 +422,7 @@ public class TempoDisplay extends AppCompatTextView {
                         .ofPropertyValuesHolder(drumFlash,
                                 PropertyValuesHolder.ofInt("alpha", 0, 180));
                 animator.setTarget(drumFlash);
-                animator.setDuration(150);
+                animator.setDuration(100);
                 animator.setRepeatMode(ObjectAnimator.REVERSE);
                 animator.start();
 
@@ -430,8 +430,8 @@ public class TempoDisplay extends AppCompatTextView {
                         .ofPropertyValuesHolder(drumFlash,
                                 PropertyValuesHolder.ofInt("alpha", 180, 0));
                 animator1.setTarget(drumFlash);
-                animator1.setStartDelay(150);
-                animator1.setDuration(150);
+                animator1.setStartDelay(100);
+                animator1.setDuration(100);
                 animator1.start();
             }
         }
@@ -440,15 +440,15 @@ public class TempoDisplay extends AppCompatTextView {
                     .ofPropertyValuesHolder(drumFlash,
                             PropertyValuesHolder.ofInt("alpha", 0, 180));
             animator.setTarget(drumFlash);
-            animator.setDuration(150);
+            animator.setDuration(100);
             animator.start();
 
             ObjectAnimator animator1 = ObjectAnimator
                     .ofPropertyValuesHolder(drumFlash,
                             PropertyValuesHolder.ofInt("alpha", 180, 0));
             animator1.setTarget(drumFlash);
-            animator1.setStartDelay(150);
-            animator1.setDuration(150);
+            animator1.setStartDelay(100);
+            animator1.setDuration(100);
             animator1.start();
         }
     }

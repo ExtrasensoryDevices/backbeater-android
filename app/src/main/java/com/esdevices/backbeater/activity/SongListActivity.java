@@ -6,7 +6,9 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +23,8 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnEditorAction;
 import butterknife.OnFocusChange;
+import butterknife.OnTextChanged;
+
 import com.esdevices.backbeater.R;
 import com.esdevices.backbeater.model.Song;
 import com.esdevices.backbeater.ui.widgets.BBEditTextView;
@@ -201,6 +205,40 @@ public class SongListActivity extends Activity  {
             this.parent = view;
             songNameText.setText(song.name.toUpperCase());
             tempoText.setText(""+song.tempo);
+
+            tempoText.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    Song song = songList.get(getPosition(parent));
+                    String res = tempoText.getText().toString().trim();
+                    try {
+                        int value = Integer.parseInt(res);
+                        if (value < Constants.MIN_TEMPO) {
+                            return;
+
+                        } else if (value > Constants.MAX_TEMPO) {
+                            return;
+                        }
+
+                        if (song.tempo != value) {
+                            song.tempo = value;
+                            onDataChange();
+                        }
+                    } catch (NumberFormatException e) {
+                        tempoText.setText("" + song.tempo);
+                    }
+                }
+            });
         }
         
         @OnClick(R.id.deleteButton)
@@ -246,8 +284,7 @@ public class SongListActivity extends Activity  {
                 }
             }
         }
-    
-    
+
         @OnEditorAction(R.id.tempoText)
         boolean tempoEditorAction(int actionId) {
             if (tempoText.hasFocus()) {

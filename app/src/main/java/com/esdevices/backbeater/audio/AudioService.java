@@ -192,7 +192,7 @@ public class AudioService {
                                 if (beatCount > MicThreshold) {
                                     this.sensitivity = 0;
 
-                                    startThreshold = 8507.36;
+                                    startThreshold = 10000;
                                     endThreshold = 1.1 * startThreshold;
 
                                 }

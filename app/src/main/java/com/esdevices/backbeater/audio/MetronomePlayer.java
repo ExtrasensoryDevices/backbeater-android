@@ -27,17 +27,20 @@ public class MetronomePlayer {
     float duration = 0;
 
     public MetronomePlayer(){
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
-            AudioAttributes attrs = new AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_GAME)
-                    .setFlags(AudioAttributes.FLAG_AUDIBILITY_ENFORCED)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
+//            AudioAttributes attrs = new AudioAttributes.Builder()
+//                    .setUsage(AudioAttributes.USAGE_GAME)
+//                    .setFlags(AudioAttributes.FLAG_AUDIBILITY_ENFORCED | AudioAttributes.FLAG_HW_AV_SYNC)
+//                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+//
+//                    .build();
+//            soundPool = new SoundPool.Builder().setMaxStreams(COUNT).setAudioAttributes(attrs).build();
+//        } else {
+//
+//        }
 
-                    .build();
-            soundPool = new SoundPool.Builder().setMaxStreams(COUNT).setAudioAttributes(attrs).build();
-        } else {
-            soundPool = new SoundPool(COUNT, AudioManager.STREAM_MUSIC, 0);
-        }
+        soundPool = new SoundPool(COUNT, AudioManager.STREAM_VOICE_CALL, 0);
+
         // init sounds
         soundIds = new int[COUNT];
         Context context = App.getContext();

@@ -67,7 +67,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     private int sound = 1;
     private int window = 5;
     private int beat = 1;
-    private int sensitivity = 50;
+    private int sensitivity = 100;
     
     private List<Song> songList;
     private int currentSongIndex = -1;
@@ -547,7 +547,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
 
     public void setSpeed(int speed) {
         if (gaugeView != null)
-            gaugeView.setSpeed(speed + 4, 200, 0);
+            gaugeView.setSpeed(speed + 4, 90, 0);
     }
 
     TimerTask timerTask = null;

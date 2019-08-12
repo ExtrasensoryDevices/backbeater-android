@@ -48,7 +48,7 @@ public class SmGaugeView extends View {
 
     String labelArray[] = {"SLOW", "-3", "-2", "-1", "", "+1", "+2", "+3", "FAST"};
 
-    private int targetNumber = 120;
+    private int targetNumber = 80;
     int outerCenterWidth = 28;//  36;
     int innerCenterWidth = 20;// 26;
     int needleWidth = 6;
