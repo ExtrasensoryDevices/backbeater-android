@@ -194,19 +194,17 @@ public class TempoDisplay extends AppCompatTextView {
         }
 
         // (cX, cY), radius - centre and radius of the big circle,
-        int cX = width/2+getPaddingLeft();
-        int radius = (int) (width/2-paint.getStrokeWidth());
-        if(height-drumBounds.height()/2<getWidth()){
-            radius = (height - drumBounds.height()/2)/2- getPaddingLeft();
-        }
+//        int cX = width/2+getPaddingLeft();
+//        int radius = (int) (width/2-paint.getStrokeWidth());
+//        if(height-drumBounds.height()/2<getWidth()){
+//            radius = (height - drumBounds.height()/2)/2- getPaddingLeft();
+//        }
         long now = System.currentTimeMillis();
         long timeSinceLastBeat = now - lastBeatTime;
-        long timeSinceLastTimerBeat = now - lastTimerBeatTime;
+//        long timeSinceLastTimerBeat = now - lastTimerBeatTime;
 
-        float density = getResources().getDisplayMetrics().density;
-
-        int navbar = (int)(getNavigationBarHeight(getContext(), false) / density + 0.5f);
-        int cY = drumBounds.height()/2+getPaddingTop() + contentHeight * 3/4;// width/2;//+radius + navbar/2;
+//        int navbar = (int)(getNavigationBarHeight(getContext(), false) / density + 0.5f);
+//        int cY = drumBounds.height()/2+getPaddingTop() + contentHeight * 3/4;// width/2;//+radius + navbar/2;
 
         // beat - beat registered
         // hit - beat in time according to CPT
@@ -285,8 +283,8 @@ public class TempoDisplay extends AppCompatTextView {
         boolean oldIsIdle = isIdle;
         isIdle = Constants.IDLE_TIMEOUT_IN_MS - timeSinceLastBeat < 200;
 
-        int _CPT = metronomeIsOn ? metronomeTempo : CPT;
-        boolean _cptIsValid = Constants.isValidTempo(_CPT);
+//        int _CPT = metronomeIsOn ? metronomeTempo : CPT;
+//        boolean _cptIsValid = Constants.isValidTempo(_CPT);
 
         //paint the red circle that goes on the ring
         /*
@@ -313,6 +311,9 @@ public class TempoDisplay extends AppCompatTextView {
         drum.draw(canvas);
         drumFlash.draw(canvas);
 
+        /*
+        if (CPT != dCPT) {
+            dCPT = CPT;
         // draw CPT text
         String cptString = Constants.getTempoString(CPT);
 
@@ -322,6 +323,7 @@ public class TempoDisplay extends AppCompatTextView {
         paint.getTextBounds(cptString, 0, cptString.length(), textBounds);
         canvas.drawText(cptString, cX, cY - textBounds.exactCenterY(), paint);
 
+        */
         // if become idle
         if (!oldIsIdle && isIdle) {
             reset();
@@ -393,7 +395,6 @@ public class TempoDisplay extends AppCompatTextView {
 
         offDegree = 0;
         if (this.CPT > 0) {
-            int vCPT = Math.min(Constants.MAX_TEMPO, (Math.max(Constants.MIN_TEMPO, this.CPT)));
             int pos = this.CPT - metronomeTempo;
             if (pos > 4)        pos = 4;
             else if (pos < -4)  pos = -4;
@@ -448,7 +449,7 @@ public class TempoDisplay extends AppCompatTextView {
 
             }
             if (!isMetronomeOn()) {
-                mainActivity.setTargetTemp(vCPT);
+                mainActivity.setTargetTemp(this.CPT);
             }
         }
         invalidate();
