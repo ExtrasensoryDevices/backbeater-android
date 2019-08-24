@@ -58,6 +58,7 @@ public class TempoDisplay extends AppCompatTextView {
 
     private int CPT = Constants.DEFAULT_TEMPO;  // = Currently Playing Tempo (multiplied by Beat, averaged in Window) or Metronome Tempo
     private int metronomeTempo = Constants.DEFAULT_TEMPO;
+    private int dCPT = 0;
 
     private MetronomePlayer metronome;
 
@@ -248,7 +249,7 @@ public class TempoDisplay extends AppCompatTextView {
                 paint.setAlpha(255);
             }
             */
-            drum.selectDrawable(leftStrike ? DRUM_ANIMATION_FRAMES-1 : 2*DRUM_ANIMATION_FRAMES-1);
+            drum.selectDrawable(leftStrike ? DRUM_ANIMATION_FRAMES - 1 : 2 * DRUM_ANIMATION_FRAMES - 1);
         }
 
         // drum pulse animation
@@ -281,7 +282,7 @@ public class TempoDisplay extends AppCompatTextView {
         }
 
         boolean oldIsIdle = isIdle;
-        isIdle = Constants.IDLE_TIMEOUT_IN_MS - timeSinceLastBeat < 200;
+        isIdle = Constants.IDLE_TIMEOUT_IN_MS - timeSinceLastBeat < 60;
 
 //        int _CPT = metronomeIsOn ? metronomeTempo : CPT;
 //        boolean _cptIsValid = Constants.isValidTempo(_CPT);
@@ -314,15 +315,15 @@ public class TempoDisplay extends AppCompatTextView {
         /*
         if (CPT != dCPT) {
             dCPT = CPT;
-        // draw CPT text
-        String cptString = Constants.getTempoString(CPT);
-
-        density *= 1.25f;
-        if (density < 2.5f)  density = 2.5f;
-        paint.setTextSize(radius/density);
-        paint.getTextBounds(cptString, 0, cptString.length(), textBounds);
-        canvas.drawText(cptString, cX, cY - textBounds.exactCenterY(), paint);
-
+            // draw CPT text
+            String cptString = Constants.getTempoString(CPT);
+            float density = getResources().getDisplayMetrics().density;
+            density *= 1.25f;
+            if (density < 2.5f) density = 2.5f;
+            paint.setTextSize(radius / density);
+            paint.getTextBounds(cptString, 0, cptString.length(), textBounds);
+            canvas.drawText(cptString, cX, cY - textBounds.exactCenterY(), paint);
+        }
         */
         // if become idle
         if (!oldIsIdle && isIdle) {
@@ -376,7 +377,7 @@ public class TempoDisplay extends AppCompatTextView {
 
         long timeSinceLastBeat = beatTime - lastBeatTime;
 
-        if (timeSinceLastBeat < 20) {
+        if (timeSinceLastBeat < 100) {
             return;
         }
 
@@ -408,15 +409,15 @@ public class TempoDisplay extends AppCompatTextView {
                                 .ofPropertyValuesHolder(drumFlash,
                                         PropertyValuesHolder.ofInt("alpha", 0, 180));
                         animator.setTarget(drumFlash);
-                        animator.setDuration(200);
+                        animator.setDuration(100);
                         animator.start();
 
                         ObjectAnimator animator1 = ObjectAnimator
                                 .ofPropertyValuesHolder(drumFlash,
                                         PropertyValuesHolder.ofInt("alpha", 180, 0));
                         animator1.setTarget(drumFlash);
-                        animator1.setStartDelay(200);
-                        animator1.setDuration(150);
+                        animator1.setStartDelay(100);
+                        animator1.setDuration(100);
                         animator1.start();
                     }
                 }
@@ -425,25 +426,27 @@ public class TempoDisplay extends AppCompatTextView {
                             .ofPropertyValuesHolder(drumFlash,
                                     PropertyValuesHolder.ofInt("alpha", 0, 180));
                     animator.setTarget(drumFlash);
-                    animator.setDuration(200);
+                    animator.setDuration(100);
                     animator.start();
 
                     ObjectAnimator animator1 = ObjectAnimator
                             .ofPropertyValuesHolder(drumFlash,
                                     PropertyValuesHolder.ofInt("alpha", 180, 0));
                     animator1.setTarget(drumFlash);
-                    animator1.setStartDelay(200);
-                    animator1.setDuration(150);
+                    animator1.setStartDelay(100);
+                    animator1.setDuration(100);
                     animator1.start();
                 }
             }
 
             double oneLapTime = getOneLapTime();
             long timeSinceLastTimerBeat = beatTime - lastTimerBeatTime;
-            hit = Math.abs(oneLapTime-timeSinceLastTimerBeat) <= 200;
-            if (hit && Constants.isValidTempo(CPT)) {
-                //Log.d("HIT", "#### --------- HIT ------------");
+            hit = Math.abs(oneLapTime-timeSinceLastTimerBeat) <= 100;
+            if (Constants.isValidTempo(CPT)) {
                 leftStrike = !leftStrike;
+            }
+            if (hit && Constants.isValidTempo(CPT)) {
+//                Log.d("HIT", "#### --------- HIT ------------");
             } else {
                 offDegree = (((double)timeSinceLastTimerBeat/oneLapTime) % 1) * 2*Math.PI + Math.PI;
 
@@ -451,6 +454,10 @@ public class TempoDisplay extends AppCompatTextView {
             if (!isMetronomeOn()) {
                 mainActivity.setTargetTemp(this.CPT);
             }
+//            Log.e("TAG", "###>>>>>>>> ");
+        }
+        else {
+//            Log.e("TAG", "###$$$$$$ ");
         }
         invalidate();
     }
