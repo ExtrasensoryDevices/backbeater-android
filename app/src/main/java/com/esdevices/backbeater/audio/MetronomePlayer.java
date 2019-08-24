@@ -71,7 +71,7 @@ public class MetronomePlayer {
             public void run() {
                 new Thread(new Runnable() {
                     @Override public void run() {
-                        soundPool.play(soundIds[currentSound.index],1,1,1,0,1f);
+                        soundPool.play(soundIds[currentSound.index],0.5f,0.5f,1,0,1f);
                         lastPlayTime = System.currentTimeMillis();
                     }
                 }).start();
