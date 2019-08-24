@@ -125,7 +125,7 @@ public class AudioService {
     private long sensorStartTime = 0;
     private int beatCount = 0;
     private final long MaxTestTime = 4000;
-    private final int MicThreshold = 150;
+    private final int MicThreshold = 10;
 
     // stats
     short min=Short.MAX_VALUE, max=Short.MIN_VALUE;
@@ -156,15 +156,12 @@ public class AudioService {
                 double energyLevel = energyFunction.push(lastPositiveDS);
 
                 // stats
-                if (energyLevel < min_e) min_e = energyLevel;
-                if (energyLevel > max_e) max_e = energyLevel;
     
                 if (energyLevel > startThreshold & !inBeat) {
                     // beat started
                     inBeat = true;
     
                     // stats
-                    started_DS = lastPositiveDS; started_e = energyLevel;
                     
                 } else if (energyLevel < endThreshold && inBeat) {
                     // beat ended
@@ -173,20 +170,11 @@ public class AudioService {
                     lastTime = System.currentTimeMillis();
 
                     // stats
-                    ended_DS = lastPositiveDS; ended_e = energyLevel;
-
-                    if (calibrationBeatListener != null) {
-                        calibrationBeatListener.onBeat(started_DS, started_e, ended_DS, ended_e);
-                        energyFunction.clear();
-                    }
-                    min=Short.MAX_VALUE; max=Short.MIN_VALUE;
-                    min_e=Double.MAX_VALUE; max_e=Double.MIN_VALUE;
     
                     inBeat = false;
 
                     if (sensorStartTime != 0) {
                         beatCount++;
-                        if (lastTime - sensorStartTime > 500) {
                             if (lastTime - sensorStartTime > MaxTestTime) {
                                 Log.e("BeatAudio", "### beatCount = " + beatCount);
                                 if (beatCount > MicThreshold) {
@@ -198,10 +186,12 @@ public class AudioService {
                                 }
                                 else {
                                     this.sensitivity = saveSensitivity;
+                                sensorStartTime = 0;
                                     setSensitivity(saveSensitivity);
                                 }
                                 sensorStartTime = 0;
-                            }
+                            lastPositiveDS = 0;
+                            return;
                         }
                     }
                     else {
@@ -220,18 +210,21 @@ public class AudioService {
     private void subscribe() {
         beatCount = 0;
         saveSensitivity = sensitivity;
-        sensitivity = 100;
-        updateThreshold();
+
+        startThreshold = 100;
+        endThreshold = 1.1 * startThreshold;
 
         lastTime = System.currentTimeMillis();
         sensorStartTime = lastTime;
+
         new Thread(new Runnable() {
             @Override public void run() {
                 running = true;
                 AudioRecord audioRecord = setupAudioRecord();
-                Log.d("STATE", ""+audioRecord.getState());
+
+                Log.d("STATE", "####"+audioRecord.getState());
                 int state = audioRecord.getState();
-                if (audioRecord.getState() != AudioRecord.STATE_INITIALIZED) {
+                if (state != AudioRecord.STATE_INITIALIZED) {
                     Log.d("STATE", "NOT INITIALIZED");
                 }
                 audioRecord.startRecording();
