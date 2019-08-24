@@ -60,6 +60,26 @@
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
         android:layout_centerInParent="true" />
+
+    <com.esdevices.backbeater.ui.widgets.BBTextView
+        android:id="@+id/tempoLabel"
+        android:gravity="center"
+        tools:text="10"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_above="@id/songListButton"
+        android:layout_below="@id/gaugeView"
+        android:layout_toRightOf="@id/frameLayout1"
+        android:layout_toEndOf="@id/frameLayout1"
+        android:layout_toLeftOf="@id/tempoSlideButton"
+        android:layout_toStartOf="@id/tempoSlideButton"
+        android:layout_margin="6dp"
+        android:textColor="#fff"
+        android:textSize="40dp"
+        android:textAllCaps="true"
+        android:maxLines="1"
+        android:ellipsize="end"
+        />
     
     <com.esdevices.backbeater.ui.widgets.SlideButton
         android:id="@+id/tempoSlideButton"

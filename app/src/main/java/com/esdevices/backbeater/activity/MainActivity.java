@@ -13,6 +13,7 @@ import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.PorterDuff.Mode;
+import android.graphics.Rect;
 import android.hardware.usb.UsbManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -79,6 +80,7 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     @Bind(R.id.drawerLayout) DrawerLayout drawerLayout;
     
     @Bind(R.id.tempoDisplay) TempoDisplay tempoDisplay;
+    @Bind(R.id.tempoLabel) BBTextView tempoLabel;
     @Bind(R.id.sensitivitySlider) SensitivitySlider sensitivitySlider;
     @Bind(R.id.sensitivityLabel) BBTextView sensitivityLabel;
     @Bind(R.id.window2) NumberButton window2Button;
@@ -187,13 +189,17 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         setBeat(Preferences.getBeat(beat), false);
         
         setSensitivity(Preferences.getSensitivity(sensitivity));
-        sensitivityLabel.setText("" + sensitivity);
-        sensitivitySlider.setValue(sensitivity);
+        int sensor = sensitivity;
+        if (sensor > 100) sensor = 100;
+        sensitivityLabel.setText("" + sensor);
+        sensitivitySlider.setValue(sensor);
         sensitivitySlider.setValueChangeListener(this);
 
         setTempo(sensitivity, false);
         
         tempoSlideButton.setStateChangeListener(this);
+
+        tempoLabel.setTypeface(Constants.BBTypeface.STEELFISH.getTypeface(this));
         
         updateSongList();
     }
@@ -220,6 +226,16 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
        intentFilter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
 
        getApplicationContext().registerReceiver(broadcastReceiver, intentFilter);
+
+       Rect rect = new Rect();
+       tempoLabel.getDrawingRect(rect);
+
+       int radius = getResources().getDisplayMetrics().widthPixels/4 - 20;
+
+       float density = getResources().getDisplayMetrics().density;
+       density *= 1.25f;
+       if (density < 2.5f) density = 2.5f;
+       tempoLabel.setTextSize(radius / density);
    }
 
     @Override
@@ -352,6 +368,9 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     //================================================================================
     
     public void setTempo(int tempo, boolean startMetronome) {
+        String cptString = Constants.getTempoString(tempo);
+        tempoLabel.setText(cptString);
+
         tempo = Math.min(Constants.MAX_TEMPO, (Math.max(Constants.MIN_TEMPO, tempo)));
         tempoSlideButton.setValue(tempo);
         gaugeView.setTargetNumber(tempo);
@@ -377,6 +396,9 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     }
 
     public void setTargetTemp(int tempo) {
+        String cptString = Constants.getTempoString(tempo);
+        tempoLabel.setText(cptString);
+
         tempo = Math.min(Constants.MAX_TEMPO, (Math.max(Constants.MIN_TEMPO, tempo)));
 //        tempoSlideButton.setValue(tempo);
         gaugeView.setTargetNumber(tempo);
