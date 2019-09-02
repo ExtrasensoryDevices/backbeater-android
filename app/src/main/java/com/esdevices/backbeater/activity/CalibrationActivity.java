@@ -1,14 +1,24 @@
 package com.esdevices.backbeater.activity;
 
+import android.Manifest;
 import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.Settings;
+import android.support.annotation.StringRes;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
@@ -53,7 +63,7 @@ public class CalibrationActivity  extends Activity implements AudioService.Audio
         audioService = new AudioService();
         audioService.setCalibrationBeatListener(this);
     
-        int startThreshold = 4000;
+        int startThreshold = 100;
         thresholdText.setText(""+startThreshold);
         audioService.setTestStartThreshold(startThreshold);
         
@@ -62,7 +72,11 @@ public class CalibrationActivity  extends Activity implements AudioService.Audio
         //audioService.setSensitivity(startSensitivity);
         sensitivityLabel.setVisibility(View.GONE);
         sensitivityText.setVisibility(View.GONE);
-        audioService.startMe();
+
+        boolean allowed = permissionCheck();
+        if (allowed) {
+            audioService.startMeTest();
+        }
     
         anim = ObjectAnimator.ofInt(beatText, "backgroundColor", Color.WHITE, Color.GREEN);
         anim.setDuration(100);
@@ -73,6 +87,97 @@ public class CalibrationActivity  extends Activity implements AudioService.Audio
         beatText.setText("Version "+ BuildConfig.VERSION_NAME+ "("+BuildConfig.VERSION_CODE+")");
         
         
+    }
+
+    private static final int PERMISSIONS_REQUEST_RECORD_AUDIO = 1001;
+    private boolean permissionCheck() {
+        // thisActivity is the current activity
+        int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO);
+        if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
+            return true;
+        } else {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.RECORD_AUDIO)) {
+
+                showRequestPermissionRationale(R.string.dlg_mic_permission_msg_1);
+                return false;
+            } else {
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle(R.string.dlg_mic_permission_ttl);
+                builder.setMessage(R.string.dlg_mic_permission_msg_3);
+                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                        ActivityCompat.requestPermissions(CalibrationActivity.this, new String[]{Manifest.permission.RECORD_AUDIO}, PERMISSIONS_REQUEST_RECORD_AUDIO);
+                    }
+                });
+                builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+                builder.show();
+
+                // No explanation needed, we can request the permission.
+                return false;
+            }
+        }
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSIONS_REQUEST_RECORD_AUDIO: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // permission was granted, yay!
+                    audioService.startMeTest();
+                } else {
+                    // permission denied
+                    showRequestPermissionRationale(R.string.dlg_mic_permission_msg_2);
+                }
+                return;
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request
+        }
+    }
+
+
+    private boolean showingRationaleDialog = false;
+    private void showRequestPermissionRationale(@StringRes int msg) {
+        if (showingRationaleDialog) { return; }
+        showingRationaleDialog = true;
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.dlg_mic_permission_ttl);
+        builder.setMessage(msg);
+        builder.setPositiveButton(R.string.open_settings, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                dialog.cancel();
+                showingRationaleDialog = false;
+                openSettings();
+            }
+        });
+        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                dialog.cancel();
+                showingRationaleDialog = false;
+            }
+        });
+        builder.show();
+    }
+
+
+    private void openSettings() {
+        Intent intent = new Intent();
+        intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+        Uri uri = Uri.fromParts("package", getPackageName(), null);
+        intent.setData(uri);
+        startActivity(intent);
     }
     
     @Override protected void onPause() {
