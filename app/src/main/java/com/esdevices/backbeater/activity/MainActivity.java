@@ -24,6 +24,7 @@ import android.support.annotation.StringRes;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.text.method.ScrollingMovementMethod;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
@@ -111,6 +112,8 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     @Bind(R.id.gaugeView)  SmGaugeView gaugeView;
     @Bind(R.id.targetLabel) TextView targetLabel;
 
+    @Bind(R.id.log_edit) TextView logView;
+
     private UsbScanner usbScanner;
 
     private final Object lock = new Object();
@@ -196,12 +199,16 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
         sensitivitySlider.setValueChangeListener(this);
 
         setTempo(sensitivity, false);
-        
+        tempoLabel.setText("MAX");
+
         tempoSlideButton.setStateChangeListener(this);
 
         tempoLabel.setTypeface(Constants.BBTypeface.STEELFISH.getTypeface(this));
         
         updateSongList();
+
+        logView.setMovementMethod(new ScrollingMovementMethod());
+        logView.setVisibility(View.GONE);
     }
 
 
@@ -368,8 +375,8 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     //================================================================================
     
     public void setTempo(int tempo, boolean startMetronome) {
-        String cptString = Constants.getTempoString(tempo);
-        tempoLabel.setText(cptString);
+//        String cptString = Constants.getTempoString(tempo);
+//        tempoLabel.setText(cptString);
 
         tempo = Math.min(Constants.MAX_TEMPO, (Math.max(Constants.MIN_TEMPO, tempo)));
         tempoSlideButton.setValue(tempo);
@@ -415,7 +422,19 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
 //            }
 //        }
     }
-    
+
+    public void setTempoOnly(int tempo) {
+        String cptString = Constants.getTempoString(tempo);
+        tempoLabel.setText(cptString);
+
+        tempo = Math.min(Constants.MAX_TEMPO, (Math.max(Constants.MIN_TEMPO, tempo)));
+//        tempoSlideButton.setValue(tempo);
+        gaugeView.setTargetNumber(tempo);
+        // update metronome if needed
+
+//        tempoDisplay.setMetronomeTempo(tempo);
+    }
+
     @Override
     public void onBeat(final long hitTime){
         handler.post(new Runnable() {
@@ -840,5 +859,22 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
     @Override
     public void popoverViewDidDismiss(PopoverView view) {
         Log.i("POPOVER", "Did dismiss");
+    }
+
+    public void setLogText(final String log) {
+        this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (log == null) {
+                    logView.setText("");
+                }
+                else {
+                    String newLog = logView.getText().toString();
+                    newLog += "\n" + log;
+                    logView.setText(newLog);
+                }
+            }
+        });
+
     }
 }

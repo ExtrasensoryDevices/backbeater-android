@@ -194,34 +194,15 @@ public class TempoDisplay extends AppCompatTextView {
             drumFlash.setBounds(drumFlashBounds);
         }
 
-        // (cX, cY), radius - centre and radius of the big circle,
-//        int cX = width/2+getPaddingLeft();
-//        int radius = (int) (width/2-paint.getStrokeWidth());
-//        if(height-drumBounds.height()/2<getWidth()){
-//            radius = (height - drumBounds.height()/2)/2- getPaddingLeft();
-//        }
         long now = System.currentTimeMillis();
         long timeSinceLastBeat = now - lastBeatTime;
-//        long timeSinceLastTimerBeat = now - lastTimerBeatTime;
-
-//        int navbar = (int)(getNavigationBarHeight(getContext(), false) / density + 0.5f);
-//        int cY = drumBounds.height()/2+getPaddingTop() + contentHeight * 3/4;// width/2;//+radius + navbar/2;
 
         // beat - beat registered
         // hit - beat in time according to CPT
         boolean beat = Constants.isValidTempo(CPT) && timeSinceLastBeat < DRUM_ANIMATION_DURATION;
 
         // draw big circle
-        if (beat){
-            // hit in right time
-            /*
-            // draw big circle (flash white)
-            float halfDrumAnimation = DRUM_ANIMATION_DURATION / 2f;
-            paint.setColor(NumberButton.mixTwoColors(accentColor, WHITE_COLOR,
-                Math.abs((timeSinceLastBeat-halfDrumAnimation)/halfDrumAnimation)));
-            canvas.drawCircle(cX, cY, radius, paint);
-            paint.setColor(accentColor);
-            */
+        if (beat) {
             // select drim animation frame
             int drumAnimationFrameIndex = (int) (timeSinceLastBeat / DRUM_ANIMATION_DURATION * DRUM_ANIMATION_FRAMES);
             if(!leftStrike) {
@@ -229,26 +210,7 @@ public class TempoDisplay extends AppCompatTextView {
                 drumAnimationFrameIndex = drumAnimationFrameIndex + DRUM_ANIMATION_FRAMES;
             }
             drum.selectDrawable(drumAnimationFrameIndex);
-        }else {
-            // missed the hit time
-            /*
-            // draw big circle with accent color
-            paint.setColor(accentColor);
-            canvas.drawCircle(cX, cY, radius, paint);
-
-            // draw fading white circle
-            if (beat && offDegree > 0) {
-                paint.setColor(NumberButton.mixTwoColors(accentColor, WHITE_COLOR, timeSinceLastBeat / DRUM_ANIMATION_DURATION));
-                paint.setAlpha((int) (255 - (timeSinceLastBeat / DRUM_ANIMATION_DURATION) * 255));
-                int ocX = (int) (radius * Math.sin(offDegree) + cX);
-                int ocY = (int) (radius * Math.cos(offDegree) + cY);
-                paint.setStyle(Paint.Style.FILL);
-                canvas.drawCircle(ocX, ocY, 3 * paint.getStrokeWidth(), paint);
-                // reset paint color
-                paint.setColor(accentColor);
-                paint.setAlpha(255);
-            }
-            */
+        } else {
             drum.selectDrawable(leftStrike ? DRUM_ANIMATION_FRAMES - 1 : 2 * DRUM_ANIMATION_FRAMES - 1);
         }
 
@@ -284,47 +246,10 @@ public class TempoDisplay extends AppCompatTextView {
         boolean oldIsIdle = isIdle;
         isIdle = Constants.IDLE_TIMEOUT_IN_MS - timeSinceLastBeat < 60;
 
-//        int _CPT = metronomeIsOn ? metronomeTempo : CPT;
-//        boolean _cptIsValid = Constants.isValidTempo(_CPT);
-
-        //paint the red circle that goes on the ring
-        /*
-        paint.setStyle(Paint.Style.FILL);
-        if (_cptIsValid && (!isIdle || metronomeIsOn) ) {
-
-            double oneLapTime = getOneLapTime();
-            double degree = (((double)timeSinceLastTimerBeat/oneLapTime) % 1) * 2*Math.PI + Math.PI;
-
-            int ocX = (int) (radius * Math.sin(degree) + cX);
-            int ocY = (int) (radius * Math.cos(degree) + cY);
-            canvas.drawCircle(ocX, ocY, 3 * paint.getStrokeWidth(), paint);
-
-
-            if ((oneLapTime-timeSinceLastTimerBeat <= 5) || (timeSinceLastTimerBeat >= oneLapTime)) {
-                lastTimerBeatTime = now;
-                if (metronomeIsOn) {
-                    metronome.play();
-                }
-            }
-        }
-        */
         // draw drum
         drum.draw(canvas);
         drumFlash.draw(canvas);
 
-        /*
-        if (CPT != dCPT) {
-            dCPT = CPT;
-            // draw CPT text
-            String cptString = Constants.getTempoString(CPT);
-            float density = getResources().getDisplayMetrics().density;
-            density *= 1.25f;
-            if (density < 2.5f) density = 2.5f;
-            paint.setTextSize(radius / density);
-            paint.getTextBounds(cptString, 0, cptString.length(), textBounds);
-            canvas.drawText(cptString, cX, cY - textBounds.exactCenterY(), paint);
-        }
-        */
         // if become idle
         if (!oldIsIdle && isIdle) {
             reset();
@@ -334,7 +259,6 @@ public class TempoDisplay extends AppCompatTextView {
         if (metronomeIsOn || (CPT > 0 && !isIdle)){
             invalidate();
         }
-
     }
 
 
@@ -454,10 +378,9 @@ public class TempoDisplay extends AppCompatTextView {
             if (!isMetronomeOn()) {
                 mainActivity.setTargetTemp(this.CPT);
             }
-//            Log.e("TAG", "###>>>>>>>> ");
-        }
-        else {
-//            Log.e("TAG", "###$$$$$$ ");
+            else {
+                mainActivity.setTempoOnly(this.CPT);
+            }
         }
         invalidate();
     }
@@ -489,22 +412,30 @@ public class TempoDisplay extends AppCompatTextView {
     }
 
     public void setMetronomeOn(Sound sound, int metronomeTempo) {
+        if (metronome != null) {
+            metronome.stop();
+            metronome = null;
+        }
         if (metronome == null) {
+            mainActivity.setLogText(null);
             metronome = new MetronomePlayer();
+            metronome.parent = mainActivity;
         }
         float rTempo = 1;
         if (metronomeTempo > 0) {
             rTempo = 60.f / metronomeTempo;
         }
-            metronome.setCurrentSound(sound);
-            metronome.play(rTempo);
-            setMetronomeTempo(metronomeTempo);
-            lastTimerBeatTime = System.currentTimeMillis();
-            invalidate();
+        metronome.setCurrentSound(sound);
+        metronome.play(rTempo);
+        setMetronomeTempo(metronomeTempo);
+        lastTimerBeatTime = System.currentTimeMillis();
+        invalidate();
     }
 
     public void setMetronomeOff() {
+        mainActivity.setLogText(null);
         metronome.stop();
+        metronome = null;
         reset();
         invalidate();
     }

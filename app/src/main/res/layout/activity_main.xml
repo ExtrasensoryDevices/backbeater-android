@@ -199,6 +199,17 @@
         android:layout_height="@dimen/padding_medium"
         android:layout_alignParentBottom="true" />
 
+    <TextView
+        android:id="@+id/log_edit"
+        android:layout_width="200dp"
+        android:layout_height="300dp"
+        android:gravity="start|top"
+        android:textColor="#fff"
+        android:layout_marginLeft="8dp"
+        android:layout_marginStart="8dp"
+        android:scrollbars = "vertical"
+        android:layout_alignTop="@+id/tempoDisplay" />
+
 </RelativeLayout>
 
     <include layout="@layout/nav_drawer" />
