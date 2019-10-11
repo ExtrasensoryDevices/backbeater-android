@@ -320,7 +320,7 @@ public class TempoDisplay extends AppCompatTextView {
 
         offDegree = 0;
         if (this.CPT > 0) {
-            int pos = this.CPT - metronomeTempo;
+            int pos = (int)bpm - metronomeTempo;
             if (pos > 4)        pos = 4;
             else if (pos < -4)  pos = -4;
 

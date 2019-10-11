@@ -13,10 +13,15 @@ public class WindowQueue {
     
     private List<Double> buffer;
     private double sum = 0;
-    
-    
+
+    private int avg;
+    private int position;
+
+
     public WindowQueue(int capacity) {
         this.capacity = capacity;
+        position = 0;
+        avg = 0;
         buffer = new ArrayList(capacity);
     }
     
@@ -32,6 +37,8 @@ public class WindowQueue {
     public void clear() {
         sum = 0;
         buffer.clear();
+        position = 0;
+        avg = 0;
     }
     
     
@@ -45,8 +52,9 @@ public class WindowQueue {
         if (buffer.size() == capacity) {
             valueRemoved = buffer.remove(0).doubleValue();
         }
+        position += 1;
         // add new value to the end
-        buffer.add(new Double(value));
+        buffer.add(value);
         
         sum = sum - valueRemoved + value;
         
@@ -58,6 +66,10 @@ public class WindowQueue {
         if (size == 0){
             return 0;
         }
-        return (int)(sum/(double)size);
+        if (position == capacity) {
+            position = 0;
+            avg = (int)(sum / size);
+        }
+        return avg;
     }
 }
