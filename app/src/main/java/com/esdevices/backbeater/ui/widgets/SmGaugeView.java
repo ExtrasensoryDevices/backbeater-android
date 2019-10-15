@@ -326,6 +326,24 @@ public class SmGaugeView extends View {
 
                 canvas.restore();
             }
+            else {
+                canvas.save();
+                canvas.rotate(180 + currentAngle, oval.centerX(), oval.centerY());
+                float txtX = oval.centerX() + radius1 - majorTicksLength * 2 / 3;
+                float txtY = oval.centerY();
+                canvas.rotate(180 - currentAngle, txtX, txtY);
+
+                if (iStep < 4) {
+                    canvas.drawText(labelArray[iStep], txtX, txtY, txtPaint1);
+                }
+                else if (iStep > 4) {
+                    canvas.drawText(labelArray[iStep], txtX, txtY, txtPaint2);
+                }
+                else {
+                    canvas.drawText("" + targetNumber, txtX, txtY, txtPaint0);
+                }
+                canvas.restore();
+            }
             currentAngle += majorStep;
         }
     }
