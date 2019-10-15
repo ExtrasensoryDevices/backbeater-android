@@ -435,6 +435,10 @@ public class MainActivity extends Activity implements SlideButton.StateChangeLis
 //        tempoDisplay.setMetronomeTempo(tempo);
     }
 
+    public void invalidateTempo() {
+        tempoDisplay.invalidate();
+    }
+
     @Override
     public void onBeat(final long hitTime){
         handler.post(new Runnable() {

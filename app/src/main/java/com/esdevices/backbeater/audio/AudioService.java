@@ -179,7 +179,7 @@ public class AudioService {
                     if (sensorStartTime != 0) {
                         beatCount++;
                         if (lastTime - sensorStartTime > MaxTestTime) {
-                            Log.e("BeatAudio", "### beatCount = " + beatCount);
+                            //Log.e("BeatAudio", "### beatCount = " + beatCount);
                             if (beatCount > MicThreshold) {
                                 this.sensitivity = 0;
 
@@ -237,7 +237,7 @@ public class AudioService {
                 while (running) {
                     int dataLength = audioRecord.read(buffer, 0, buffer_size);
                     if (dataLength < 0) {
-                        Log.e(TAG, "Some error while trying to read the audio record " + dataLength);
+                        //Log.e(TAG, "Some error while trying to read the audio record " + dataLength);
                         break;
                     }
                     processDataInput(buffer, dataLength);
@@ -320,7 +320,7 @@ public class AudioService {
                 while (running) {
                     int dataLength = audioRecord.read(buffer, 0, buffer_size);
                     if (dataLength < 0) {
-                        Log.e(TAG, "Some error while trying to read the audio record " + dataLength);
+                        //Log.e(TAG, "Some error while trying to read the audio record " + dataLength);
                         break;
                     }
                     processDataTest(buffer, dataLength);
