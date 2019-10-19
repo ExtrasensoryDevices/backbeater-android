@@ -321,16 +321,15 @@ public class TempoDisplay extends AppCompatTextView {
         offDegree = 0;
         if (this.CPT > 0) {
             int pos = (int)bpm - metronomeTempo;
-            if (pos > 4)        pos = 4;
-            else if (pos >= 2) {
-                this.CPT += 3;
-                pos = pos - 3;
-            }
-            else if (pos < -4)  pos = -4;
-            else if (pos <= -2) {
-                this.CPT -= 3;
-                pos = pos + 3;
-            }
+            if (pos <= 2 && pos >= -2)       pos = 0;
+            else if (pos <= 5 && pos > 2)    pos = 1;
+            else if (pos >= -5 && pos < -2)  pos = -1;
+            else if (pos <= 8 && pos > 5)    pos = 2;
+            else if (pos >= -8 && pos < -5)  pos = -2;
+            else if (pos <= 11 && pos > 8)   pos = 3;
+            else if (pos >= -11 && pos < -8) pos = -3;
+            else if (pos > 11)  pos = 4;
+            else pos = -4;
 
             mainActivity.setSpeed(pos);
 
