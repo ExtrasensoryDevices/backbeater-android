@@ -28,6 +28,9 @@ import com.esdevices.backbeater.utils.Constants;
 import com.esdevices.backbeater.utils.Constants.Sound;
 import com.esdevices.backbeater.utils.Preferences;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 
 /**
  * Created by aeboyd on 7/15/15.
@@ -69,6 +72,10 @@ public class TempoDisplay extends AppCompatTextView {
     public boolean handleTap = true;
 
     public MainActivity mainActivity;
+
+    private boolean isPlaying = false;
+    private Timer playTimer = null;
+    public static long lastPlayTime = 0;
 
     public TempoDisplay(Context context) {
         this(context, null, 0);
@@ -169,6 +176,7 @@ public class TempoDisplay extends AppCompatTextView {
         return 0;
     }
 
+    int playPulseCount = 0;
     @Override
     protected void onDraw(Canvas canvas) {
         boolean metronomeIsOn = isMetronomeOn();
@@ -214,37 +222,75 @@ public class TempoDisplay extends AppCompatTextView {
             drum.selectDrawable(leftStrike ? DRUM_ANIMATION_FRAMES - 1 : 2 * DRUM_ANIMATION_FRAMES - 1);
         }
 
-        // drum pulse animation
-        if (!beat && timeSinceLastBeat < DRUM_PULSE_ANIMATION_DURATION) {
+        boolean oldIsIdle = isIdle;
+        if (isPlaying) {
+            // drum pulse animation
+            if (!beat && timeSinceLastBeat < DRUM_PULSE_ANIMATION_DURATION) {
 
-            float halfDrumPulseAnimation = DRUM_PULSE_ANIMATION_DURATION / 2f;
-            float timeElapsed = (float) timeSinceLastBeat - halfDrumPulseAnimation;
-            float coefficient = 0;
-            if (timeElapsed <= halfDrumPulseAnimation) {
-                 // increase 0 -> 1
-                coefficient = timeElapsed / halfDrumPulseAnimation;
+                float halfDrumPulseAnimation = DRUM_PULSE_ANIMATION_DURATION / 2f;
+                float timeElapsed = (float) timeSinceLastBeat - halfDrumPulseAnimation;
+                float coefficient = 0;
+                if (timeElapsed <= halfDrumPulseAnimation) {
+                    // increase 0 -> 1
+                    coefficient = timeElapsed / halfDrumPulseAnimation;
+                } else {
+                    // decrease 1 -> 0
+                    coefficient = timeElapsed / halfDrumPulseAnimation - 1f;
+                }
+
+                int deltaY = (int) (coefficient * DRUM_PULSE_DELTA_Y);
+                int deltaX = (int) ((float) deltaY * (float) drumBounds.width() / (float) drumBounds.height());
+
+                drumPulseBounds.set(drumBounds.left + deltaX, drumBounds.top + deltaY, drumBounds.right - deltaX, drumBounds.bottom - deltaY);
+                drum.setBounds(drumPulseBounds);
+
+                drumFlashBounds.set(drumBounds.centerX() - drumBounds.height() / 2, drumBounds.top, drumBounds.centerX() + drumBounds.height() / 2, drumBounds.bottom);
+                drumFlash.setBounds(drumFlashBounds);
             } else {
-                // decrease 1 -> 0
-                coefficient = timeElapsed / halfDrumPulseAnimation - 1f;
+                drum.setBounds(drumBounds);
+
+                drumFlashBounds.set(drumBounds.centerX() - drumBounds.height() / 2, drumBounds.top, drumBounds.centerX() + drumBounds.height() / 2, drumBounds.bottom);
+                drumFlash.setBounds(drumFlashBounds);
             }
 
-            int deltaY = (int) (coefficient * DRUM_PULSE_DELTA_Y);
-            int deltaX = (int) ((float)deltaY*(float)drumBounds.width() / (float)drumBounds.height());
-
-            drumPulseBounds.set(drumBounds.left+deltaX, drumBounds.top+deltaY, drumBounds.right-deltaX, drumBounds.bottom-deltaY);
-            drum.setBounds(drumPulseBounds);
-
-            drumFlashBounds.set(drumBounds.centerX()-drumBounds.height()/2, drumBounds.top, drumBounds.centerX()+drumBounds.height()/2, drumBounds.bottom);
-            drumFlash.setBounds(drumFlashBounds);
-        } else {
-            drum.setBounds(drumBounds);
-
-            drumFlashBounds.set(drumBounds.centerX()-drumBounds.height()/2, drumBounds.top, drumBounds.centerX()+drumBounds.height()/2, drumBounds.bottom);
-            drumFlash.setBounds(drumFlashBounds);
+            isIdle = Constants.IDLE_TIMEOUT_IN_MS - timeSinceLastBeat < 60;
         }
+        else {
+            if (isMetronomeOn()) {
+                long sincePlayTime = now - lastPlayTime;
 
-        boolean oldIsIdle = isIdle;
-        isIdle = Constants.IDLE_TIMEOUT_IN_MS - timeSinceLastBeat < 60;
+                if (sincePlayTime < 60 && playPulseCount < 1) {
+                    playPulseCount++;
+//                    Log.e("TAG", "#### tempo > " + lastPlayTime + " : " + sincePlayTime);
+                    float halfDrumPulseAnimation = DRUM_PULSE_ANIMATION_DURATION / 2f;
+                    float timeElapsed = (float) DRUM_PULSE_ANIMATION_DURATION - halfDrumPulseAnimation;
+                    float coefficient = 0;
+                    if (timeElapsed <= halfDrumPulseAnimation) {
+                        // increase 0 -> 1
+                        coefficient = timeElapsed / halfDrumPulseAnimation;
+                    } else {
+                        // decrease 1 -> 0
+                        coefficient = timeElapsed / halfDrumPulseAnimation - 1f;
+                    }
+
+                    int deltaY = (int) (coefficient * DRUM_PULSE_DELTA_Y);
+                    int deltaX = (int) ((float) deltaY * (float) drumBounds.width() / (float) drumBounds.height());
+
+                    drumPulseBounds.set(drumBounds.left + deltaX, drumBounds.top + deltaY, drumBounds.right - deltaX, drumBounds.bottom - deltaY);
+                    drum.setBounds(drumPulseBounds);
+
+                } else {
+                    if (sincePlayTime > 100)
+                        playPulseCount = 0;
+                    drum.setBounds(drumBounds);
+                }
+
+                isIdle = Constants.IDLE_TIMEOUT_IN_MS - sincePlayTime < 60;
+            }
+            else {
+                isIdle = Constants.IDLE_TIMEOUT_IN_MS - timeSinceLastBeat < 60;
+            }
+        }
 
         // draw drum
         drum.draw(canvas);
@@ -305,6 +351,22 @@ public class TempoDisplay extends AppCompatTextView {
             return;
         }
 
+        if (isMetronomeOn()) {
+            isPlaying = true;
+
+            if (playTimer != null) {
+                playTimer.cancel();
+                playTimer = null;
+            }
+
+            playTimer = new Timer();
+            playTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    isPlaying = false;
+                }
+            }, 2000);
+        }
 
         double tapBpm = (double) (MS_IN_MIN /timeSinceLastBeat);
         processBeat(tapBpm, beatTime);
