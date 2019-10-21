@@ -1,11 +1,12 @@
 package com.esdevices.backbeater.audio;
 
-import android.content.Context;
-import android.media.AudioAttributes;
-import android.media.AudioManager;
-import android.media.SoundPool;
-import android.os.Build;
+import android.media.MediaPlayer;
+import android.os.Handler;
+import android.util.Log;
+
 import com.esdevices.backbeater.App;
+import com.esdevices.backbeater.activity.MainActivity;
+import com.esdevices.backbeater.ui.widgets.TempoDisplay;
 import com.esdevices.backbeater.utils.Constants.Sound;
 
 import java.util.Timer;
@@ -16,75 +17,88 @@ import java.util.TimerTask;
  */
 
 public class MetronomePlayer {
-    private SoundPool soundPool;
-    private Sound currentSound = Sound.fromIndex(0);
-    
-    private int[] soundIds;
-    
-    private static final int COUNT = 4;
-
     Timer soundTimer = null;
+    TimerTask timerTask = null;
     float duration = 0;
 
+    public MainActivity parent = null;
+
+    private MediaPlayer mediaPlayer = null;
+
     public MetronomePlayer(){
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
-//            AudioAttributes attrs = new AudioAttributes.Builder()
-//                    .setUsage(AudioAttributes.USAGE_GAME)
-//                    .setFlags(AudioAttributes.FLAG_AUDIBILITY_ENFORCED | AudioAttributes.FLAG_HW_AV_SYNC)
-//                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-//
-//                    .build();
-//            soundPool = new SoundPool.Builder().setMaxStreams(COUNT).setAudioAttributes(attrs).build();
-//        } else {
-//
-//        }
-
-        soundPool = new SoundPool(COUNT, AudioManager.STREAM_VOICE_CALL, 0);
-
-        // init sounds
-        soundIds = new int[COUNT];
-        Context context = App.getContext();
-        for (int i=0; i<COUNT; i++) {
-            soundIds[i] = soundPool.load(context, Sound.fromIndex(i).resourceId, 1);
-        }
     }
     
-    public void setCurrentSound(Sound sound) {
-        this.currentSound = sound;
+    public void setCurrentSound(final Sound sound) {
+        MediaPlayer mp = MediaPlayer.create(App.getContext(), sound.resourceId);
+        mp.setVolume(0.22f, 0.22f);
+        mp.seekTo(0);
+        if (mediaPlayer != null) {
+            mediaPlayer.release();
+        }
+        mediaPlayer = mp;
     }
 
     long lastPlayTime = 0;
+
     public void play(float duration) {
-        int delay = 10;
+        int delay = 0;
         if (soundTimer != null) {
             soundTimer.cancel();
             soundTimer = null;
-
-            if (lastPlayTime != 0) {
-                delay = (int)(this.duration * 1000) - (int)(System.currentTimeMillis() - lastPlayTime);
-            }
         }
         this.duration = duration;
         soundTimer = new Timer();
-        soundTimer.scheduleAtFixedRate( new TimerTask() {
+
+        Log.i("TAG", "#### start play = " + (int)(this.duration*1000));
+
+
+        final int dur = (int)(this.duration * 1000);
+
+        lastPlayTime = System.currentTimeMillis();
+        TempoDisplay.lastPlayTime = System.currentTimeMillis();
+        mediaPlayer.setVolume(0.2f, 0.2f);
+        mediaPlayer.start();
+
+        final Handler handler1 = new Handler();
+        timerTask = new TimerTask() {
             @Override
             public void run() {
-                new Thread(new Runnable() {
-                    @Override public void run() {
-                        soundPool.play(soundIds[currentSound.index],0.5f,0.5f,1,0,1f);
-                        lastPlayTime = System.currentTimeMillis();
+                final long curTime =  System.currentTimeMillis();
+                if (parent != null) {
+                    handler1.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            TempoDisplay.lastPlayTime = System.currentTimeMillis();
+                            parent.invalidateTempo();
+                        }
+                    }, 10);
+                }
+                if (mediaPlayer != null) {
+                    try {
+//                        if (mediaPlayer.isPlaying()) {
+//                            mediaPlayer.stop();
+//                            mediaPlayer.seekTo(0);
+//                        }
+                        mediaPlayer.setVolume(0.15f, 0.15f);
+                        mediaPlayer.start();
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-                }).start();
+                }
+
+                if (parent != null) {
+
+                    long curTime2 = System.currentTimeMillis();
+
+//                    parent.setLogText("play = " + (curTime - lastPlayTime) + " > " + (curTime2 - curTime));
+
+//                    Log.e("TAG", "##### play = " + (curTime - lastPlayTime) + " > " + (curTime2 - curTime));
+                }
+                lastPlayTime = curTime;
             }
-        }, delay, (int)(this.duration*1000) );
-/*
-        new Thread(new Runnable() {
-            @Override public void run() {
-                soundPool.setLoop(soundIds[currentSound.index], -1);
-                soundPool.play(soundIds[currentSound.index],1,1,1,-1,1f);
-            }
-        }).start();
-*/
+        };
+
+        soundTimer.scheduleAtFixedRate(timerTask, dur, dur );
     }
 
     public void stop() {
@@ -92,6 +106,10 @@ public class MetronomePlayer {
             soundTimer.cancel();
             soundTimer = null;
         }
-        soundPool.stop(soundIds[currentSound.index]);
+
+        if (mediaPlayer != null) {
+            mediaPlayer.release();
+        }
+        mediaPlayer = null;
     }
 }
